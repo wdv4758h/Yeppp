@@ -1,0 +1,83 @@
+/*
+ *                      Yeppp! library implementation
+ *
+ * This file is part of Yeppp! library and licensed under 2-clause BSD license.
+ * See library/LICENSE.txt for details.
+ *
+ */
+
+package info.yeppp;
+
+/** @brief	Contains information about @Yeppp library version. */
+/** @see	Library#getVersion() */
+public class Version {
+	protected Version(int major, int minor, int patchLevel, int build, String releaseName) {
+		this.major = major;
+		this.minor = minor;
+		this.patchLevel = patchLevel;
+		this.build = build;
+		this.releaseName = releaseName;
+	}
+	
+	final private int major;
+	final private int minor;
+	final private int patchLevel;
+	final private int build;
+	final private String releaseName;
+	
+	/** @brief A UTF-8 string with a human-readable name of this release. May contain non-ASCII characters. */
+	/**
+	 * @brief	Provides the major version number of @Yeppp library.
+	 * @details	Library releases with the same major versions are guaranteed to be API- and ABI-compatible.
+	 * @return	The major version of @Yeppp library.
+	 */
+	public int getMajor() {
+		return this.major;
+	}
+
+	/**
+	 * @brief	Provides the minor version number of @Yeppp library.
+	 * @details	A change in minor versions indicates addition of new features, and major bug-fixes.
+	 * @return	The minor version of @Yeppp library.
+	 */
+	public int getMinor() {
+		return this.minor;
+	}
+
+	/**
+	 * @brief	Provides the patch level number of @Yeppp library.
+	 * @details	A version with a higher patch level indicates minor bug-fixes.
+	 * @return	The patch level of @Yeppp library.
+	 */
+	public int getPatchLevel() {
+		return this.patchLevel;
+	}
+
+	/**
+	 * @brief	Provides the build number of @Yeppp library.
+	 * @details	The build number is unique for the fixed combination of major, minor, and patch-level versions.
+	 * @return	The build number of @Yeppp library.
+	 */
+	public int getBuild() {
+		return this.build;
+	}
+
+	/**
+	 * @brief	Provides the human-readable name of this release of @Yeppp library.
+	 * @details	The release name may contain non-ASCII characters.
+	 * @return	The release name of the @Yeppp library.
+	 */
+	public String getReleaseName() {
+		return this.releaseName;
+	}
+
+	/**
+	 * @brief	Provides a string representation for all parts of the version.
+	 * @return	The full version string in the format "major.minor.patch.build (release name)".
+	 */
+	@Override
+	public String toString() {
+		return String.format("%d.%d.%d.%d (%s)", this.major, this.minor, this.patchLevel, this.build, this.releaseName);
+	}
+
+}
