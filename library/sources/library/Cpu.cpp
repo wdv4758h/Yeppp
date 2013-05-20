@@ -25,7 +25,7 @@ ConstantString _briefCpuName;
 ConstantString _fullCpuName;
 
 
-YepStatus yepLibrary_GetCpuVendor(YepCpuVendor *vendorPointer) {
+YepStatus YEPABI yepLibrary_GetCpuVendor(YepCpuVendor *vendorPointer) {
 	if YEP_UNLIKELY(vendorPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -33,7 +33,7 @@ YepStatus yepLibrary_GetCpuVendor(YepCpuVendor *vendorPointer) {
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetCpuArchitecture(YepCpuArchitecture *architecturePointer) {
+YepStatus YEPABI yepLibrary_GetCpuArchitecture(YepCpuArchitecture *architecturePointer) {
 	if YEP_UNLIKELY(architecturePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -55,7 +55,7 @@ YepStatus yepLibrary_GetCpuArchitecture(YepCpuArchitecture *architecturePointer)
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetCpuMicroarchitecture(YepCpuMicroarchitecture *microarchitecturePointer) {
+YepStatus YEPABI yepLibrary_GetCpuMicroarchitecture(YepCpuMicroarchitecture *microarchitecturePointer) {
 	if YEP_UNLIKELY(microarchitecturePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -63,7 +63,7 @@ YepStatus yepLibrary_GetCpuMicroarchitecture(YepCpuMicroarchitecture *microarchi
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetLogicalCoresCount(Yep32u *logicalCoresCount) {
+YepStatus YEPABI yepLibrary_GetLogicalCoresCount(Yep32u *logicalCoresCount) {
 	if YEP_UNLIKELY(logicalCoresCount == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -71,7 +71,7 @@ YepStatus yepLibrary_GetLogicalCoresCount(Yep32u *logicalCoresCount) {
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetCpuIsaFeatures(Yep64u *isaFeaturesPointer) {
+YepStatus YEPABI yepLibrary_GetCpuIsaFeatures(Yep64u *isaFeaturesPointer) {
 	if YEP_UNLIKELY(isaFeaturesPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -79,7 +79,7 @@ YepStatus yepLibrary_GetCpuIsaFeatures(Yep64u *isaFeaturesPointer) {
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetCpuSimdFeatures(Yep64u *simdFeaturesPointer) {
+YepStatus YEPABI yepLibrary_GetCpuSimdFeatures(Yep64u *simdFeaturesPointer) {
 	if YEP_UNLIKELY(simdFeaturesPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -87,7 +87,7 @@ YepStatus yepLibrary_GetCpuSimdFeatures(Yep64u *simdFeaturesPointer) {
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetCpuSystemFeatures(Yep64u *systemFeaturesPointer) {
+YepStatus YEPABI yepLibrary_GetCpuSystemFeatures(Yep64u *systemFeaturesPointer) {
 	if YEP_UNLIKELY(systemFeaturesPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -95,7 +95,7 @@ YepStatus yepLibrary_GetCpuSystemFeatures(Yep64u *systemFeaturesPointer) {
 	return YepStatusOk;
 }
 
-YepStatus yepLibrary_GetCpuDataCacheSize(Yep32u level, Yep32u *cacheSizePointer) {
+YepStatus YEPABI yepLibrary_GetCpuDataCacheSize(Yep32u level, Yep32u *cacheSizePointer) {
 	if YEP_UNLIKELY(cacheSizePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -121,7 +121,7 @@ YepStatus yepLibrary_GetCpuDataCacheSize(Yep32u level, Yep32u *cacheSizePointer)
 	}
 }
 
-YepStatus yepLibrary_GetCpuInstructionCacheSize(Yep32u level, Yep32u *cacheSizePointer) {
+YepStatus YEPABI yepLibrary_GetCpuInstructionCacheSize(Yep32u level, Yep32u *cacheSizePointer) {
 	if YEP_UNLIKELY(cacheSizePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}

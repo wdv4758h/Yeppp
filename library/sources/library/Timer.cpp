@@ -18,7 +18,7 @@
 	#include <time.h>
 #endif
 
-YepStatus yepLibrary_GetTimerTicks(Yep64u* ticksPointer) {
+YepStatus YEPABI yepLibrary_GetTimerTicks(Yep64u* ticksPointer) {
 	if YEP_UNLIKELY(ticksPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -45,7 +45,7 @@ YepStatus yepLibrary_GetTimerTicks(Yep64u* ticksPointer) {
 #endif
 }
 
-YepStatus yepLibrary_GetTimerFrequency(Yep64u* frequencyPointer) {
+YepStatus YEPABI yepLibrary_GetTimerFrequency(Yep64u* frequencyPointer) {
 	if YEP_UNLIKELY(frequencyPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -66,7 +66,7 @@ YepStatus yepLibrary_GetTimerFrequency(Yep64u* frequencyPointer) {
 #endif
 }
 
-YepStatus yepLibrary_GetTimerAccuracy(Yep64u* accuracyPointer) {
+YepStatus YEPABI yepLibrary_GetTimerAccuracy(Yep64u* accuracyPointer) {
 	const YepSize defaultIterations = 128;
 	const YepSize maxIterations = 1024;
 	

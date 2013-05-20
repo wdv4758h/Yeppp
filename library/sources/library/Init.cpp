@@ -16,7 +16,7 @@
 #include <math/functions.h>
 #include <library/functions.h>
 
-YepStatus yepLibrary_Init() {
+YepStatus YEPABI yepLibrary_Init() {
 	YepStatus status = _yepLibrary_InitCpuInfo();
 	if YEP_UNLIKELY(status != YepStatusOk) {
 		return status;
@@ -68,13 +68,13 @@ FunctionPointer _yepLibrary_InitFunction(const FunctionDescriptor<YepStatus (*)(
 	}
 }
 
-YepStatus yepLibrary_Release() {
+YepStatus YEPABI yepLibrary_Release() {
 	return YepStatusOk;
 }
 
 static const YepLibraryVersion _version = { YEP_MAJOR_VERSION, YEP_MINOR_VERSION, YEP_PATCH_VERSION, YEP_BUILD_VERSION, YEP_RELEASE_NAME };
 
-const YepLibraryVersion* yepLibrary_GetVersion() {
+const YepLibraryVersion* YEPABI yepLibrary_GetVersion() {
 	return &_version;
 }
 

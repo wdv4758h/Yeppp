@@ -628,7 +628,7 @@ static ConstantString getSPARCSystemFeatureString(Yep32u ctzSystemFeature) {
 	}
 };
 
-YepStatus yepLibrary_GetString(YepEnumeration enumerationType, Yep32u enumerationValue, void *buffer, YepSize *lengthPointer) {
+YepStatus YEPABI yepLibrary_GetString(YepEnumeration enumerationType, Yep32u enumerationValue, void *buffer, YepSize *lengthPointer) {
 	if YEP_UNLIKELY(buffer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
