@@ -143,7 +143,7 @@
 const Yep32u LinuxPerfEventCpuCounterStateMagic = 0xCAB06128u;
 const Yep32u ArmCP15CpuCounterStateMagic = 0xF2C5E274u;
 
-YepStatus yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
+YepStatus YEPABI yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
 	if YEP_UNLIKELY(statePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -276,7 +276,7 @@ YepStatus yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
 #endif
 }
 
-YepStatus yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ticksPointer) {
+YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ticksPointer) {
 	if YEP_UNLIKELY(statePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
