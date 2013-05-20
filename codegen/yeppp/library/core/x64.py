@@ -1623,8 +1623,8 @@ def DotProduct_VfVf_Sf_implementation_Nehalem(codegen, function_signature, modul
 				def PROCESS_BATCH(xmm_acc, xPointer, yPointer):
 					for i in range(len(xmm_acc)):
 						xmm_temp = SSERegister()
-						SIMD_LOAD( xmm_temp, [yPointer + i * 32] )
-						SIMD_MUL( xmm_temp, [xPointer + i * 32] )
+						SIMD_LOAD( xmm_temp, [yPointer + i * 16] )
+						SIMD_MUL( xmm_temp, [xPointer + i * 16] )
 						SIMD_ADD( xmm_acc[i], xmm_temp )
 
 				sourceAlignment = 16
@@ -1633,24 +1633,24 @@ def DotProduct_VfVf_Sf_implementation_Nehalem(codegen, function_signature, modul
 
 				xmm_acc = [SSERegister() for i in range(batchRegisters)]
 				for i in range(batchRegisters):
-					SIMD_ZERO( xmm_acc[i].get_oword() )
+					SIMD_ZERO( xmm_acc[i] )
 
 				CMP( length, 0 )
 				JE( "return_ok" )
 
 				TEST( xPointer, sourceAlignment - 1 )
-				JZ( "source_32b_aligned" )
+				JZ( "source_16b_aligned" )
 
-				LABEL( "source_32b_misaligned" )
+				LABEL( "source_16b_misaligned" )
 				PROCESS_SCALAR( xmm_acc[0], xPointer, yPointer )
 				ADD( xPointer, x_size )
 				ADD( yPointer, y_size )
 				SUB( length, 1 )
 				JZ( "return_ok" )
 				TEST( xPointer, sourceAlignment - 1 )
-				JNZ( "source_32b_misaligned" )
+				JNZ( "source_16b_misaligned" )
 
-				LABEL( "source_32b_aligned" )
+				LABEL( "source_16b_aligned" )
 				SUB( length, batchElements )
 				JB( 'process_restore' )
 
@@ -1744,16 +1744,18 @@ def DotProduct_VfVf_Sf_implementation_Bulldozer(codegen, function_signature, mod
 						VADDSD( xmm_partial_sum, xmm_partial_sum, xmm_temp )
 
 				def PROCESS_SCALAR(xmm_acc, xPointer, yPointer):
-					xmm_temp = SSERegister()
+					xmm_x = SSERegister()
+					SCALAR_LOAD( xmm_x, [xPointer] )
+					xmm_y = SSERegister()
+					SCALAR_LOAD( xmm_y, [yPointer] )
 					
-					SCALAR_LOAD( xmm_temp, [xPointer] )
-					SCALAR_FMA( xmm_acc, xmm_temp, [yPointer], xmm_acc )
+					SIMD_FMA( xmm_acc, xmm_x, xmm_y, xmm_acc )
 
 				def PROCESS_BATCH(xmm_acc, xPointer, yPointer):
 					for i in range(len(xmm_acc)):
 						xmm_temp = SSERegister()
-						SIMD_LOAD( xmm_temp, [yPointer + i * 32] )
-						SIMD_FMA( xmm_acc[i], xmm_temp, [xPointer + i * 32], xmm_acc[i] )
+						SIMD_LOAD( xmm_temp, [yPointer + i * 16] )
+						SIMD_FMA( xmm_acc[i], xmm_temp, [xPointer + i * 16], xmm_acc[i] )
 
 				sourceAlignment = 16
 				batchRegisters = 6
@@ -1761,30 +1763,30 @@ def DotProduct_VfVf_Sf_implementation_Bulldozer(codegen, function_signature, mod
 
 				xmm_acc = [SSERegister() for i in range(batchRegisters)]
 				for i in range(batchRegisters):
-					SIMD_ZERO( xmm_acc[i].get_oword() )
+					SIMD_ZERO( xmm_acc[i] )
 
 				CMP( length, 0 )
 				JE( "return_ok" )
 
 				TEST( xPointer, sourceAlignment - 1 )
-				JZ( "source_32b_aligned" )
+				JZ( "source_%db_aligned" % sourceAlignment )
 
-				LABEL( "source_32b_misaligned" )
-				PROCESS_SCALAR( xmm_acc[0], xPointer, yPointer )
+				LABEL( "source_%db_misaligned" % sourceAlignment )
+				PROCESS_SCALAR(xmm_acc[0], xPointer, yPointer)
 				ADD( xPointer, x_size )
 				ADD( yPointer, y_size )
 				SUB( length, 1 )
 				JZ( "return_ok" )
 				TEST( xPointer, sourceAlignment - 1 )
-				JNZ( "source_32b_misaligned" )
+				JNZ( "source_%db_misaligned" % sourceAlignment )
 
-				LABEL( "source_32b_aligned" )
+				LABEL( "source_%db_aligned" % sourceAlignment )
 				SUB( length, batchElements )
 				JB( 'process_restore' )
 
 				ALIGN( 16 )
 				LABEL( "process_batch" )
-				PROCESS_BATCH( xmm_acc, xPointer, yPointer )
+				PROCESS_BATCH(xmm_acc, xPointer, yPointer)
 				ADD( xPointer, batchElements * x_size )
 				ADD( yPointer, batchElements * y_size )
 				SUB( length, batchElements )
