@@ -77,6 +77,9 @@
 	#error "Visibility symbols are not defined"
 #endif
 
+/* yepLibrary must be included after the new definitions of YEP_*_SYMBOL */
+#include <yepLibrary.h>
+
 #if defined(YEP_DESCRIBE_FUNCTION_IMPLEMENTATION)
 	#error "YEP_DESCRIBE_FUNCTION_IMPLEMENTATION macro defined twice"
 #else
