@@ -1,0 +1,24 @@
+/*
+ *                      Yeppp! library implementation
+ *
+ * This file is part of Yeppp! library and licensed under 2-clause BSD license.
+ * See library/LICENSE.txt for details.
+ *
+ */
+
+package info.yeppp;
+
+/**
+ * @brief	Operating System exception
+ * @details	This exception is thrown when a @Yeppp function call fails inside the OS kernel.
+ */
+public class SystemException extends RuntimeException {
+	
+	/**
+	 * @brief	Constructs an Operating System exception with the supplied description.
+	 */
+	public SystemException(String description) {
+		super(description);
+	}
+
+}
