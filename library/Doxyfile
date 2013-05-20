@@ -733,22 +733,7 @@ EXCLUDE_PATTERNS       =
 # wildcard * is used, a substring. Examples: ANamespace, AClass, 
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = Yep8u \
-                         Yep8s \
-                         Yep16u \
-                         Yep16s \
-                         Yep32u \
-                         Yep32s \
-                         Yep64u \
-                         Yep64s \
-                         YepSize \
-                         YepBoolean \
-                         Yep32f \
-                         Yep64f \
-                         Yep16f \
-                         Yep16fc \
-                         Yep32fc \
-                         Yep64fc
+EXCLUDE_SYMBOLS        = 
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or 
 # directories that contain example code fragments that are included (see 
@@ -1607,7 +1592,8 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = YEP_RESTRICT=restrict \
                          YEP_PUBLIC_SYMBOL= \
-                         YEPABI=
+                         YEPABI= \
+                         __DOXYGEN__
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 
