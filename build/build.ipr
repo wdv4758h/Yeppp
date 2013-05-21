@@ -8,7 +8,7 @@
           <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
         </element>
         <element id="module-output" name="build" />
-        <element id="extracted-dir" path="C:/Projects/YepppFramework/EBUILDA/EBUILDA.jar" path-in-jar="/" />
+        <element id="extracted-dir" path="$PROJECT_DIR$/../../EBUILDA/EBUILDA.jar" path-in-jar="/" />
       </root>
     </artifact>
   </component>
@@ -197,7 +197,7 @@
   <component name="libraryTable">
     <library name="EBUILDA">
       <CLASSES>
-        <root url="jar://C:/Projects/YepppFramework/EBUILDA/EBUILDA.jar!/" />
+        <root url="jar://$PROJECT_DIR$/../../EBUILDA/EBUILDA.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
