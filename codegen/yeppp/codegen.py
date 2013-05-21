@@ -129,7 +129,6 @@ class FunctionGenerator:
 		self.assembly_codegens = list()
 
 	def generate_group_prolog(self, module_name, group_name, group_comment, header_license, source_license):
-		import yeppp.codegen as codegen
 		from peachpy import x86
 		from peachpy import x64
 		self.dispatch_table_header_generator = peachpy.codegen.CodeGenerator()
