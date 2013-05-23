@@ -84,592 +84,6 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL const struct YepLibraryVersion *YEPABI yepLibrary_GetVersion();
 	/**@}*/
 
-#ifdef __cplusplus
-	const Yep64u YepIsaFeaturesDefault        = 0x0000000000000000ull;
-	const Yep64u YepSimdFeaturesDefault       = 0x0000000000000000ull;
-	const Yep64u YepSystemFeaturesDefault     = 0x0000000000000000ull;
-#else
-	#define YepIsaFeaturesDefault               0x0000000000000000ull
-	#define YepSimdFeaturesDefault              0x0000000000000000ull
-	#define YepSystemFeaturesDefault            0x0000000000000000ull
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepSystemFeatureCycleCounter      = 0x0000000000000001ull;
-	const Yep64u YepSystemFeatureCycleCounter64Bit = 0x0000000000000002ull;
-	const Yep64u YepSystemFeatureAddressSpace64Bit = 0x0000000000000004ull;
-	const Yep64u YepSystemFeatureGPRegisters64Bit  = 0x0000000000000008ull;
-	const Yep64u YepSystemFeatureMisalignedAccess  = 0x0000000000000010ull;
-	const Yep64u YepSystemFeatureSingleThreaded    = 0x0000000000000020ull;
-#else
-	/** @name	Common CPU and System Features
-	 *  @see	yepLibrary_GetCpuSystemFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief The processor has a built-in cycle counter, and the operating system provides a way to access it. */
-	#define YepSystemFeatureCycleCounter       0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief The processor has a 64-bit cycle counter, or the operating system provides an abstraction of a 64-bit cycle counter. */
-	#define YepSystemFeatureCycleCounter64Bit  0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief The processor and the operating system allows to use 64-bit pointers. */
-	#define YepSystemFeatureAddressSpace64Bit  0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief The processor and the operating system allows to do 64-bit arithmetical operations on general-purpose registers. */
-	#define YepSystemFeatureGPRegisters64Bit   0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief The processor and the operating system allows misaligned memory reads and writes. */
-	#define YepSystemFeatureMisalignedAccess   0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief The processor or the operating system support at most one hardware thread. */
-	#define YepSystemFeatureSingleThreaded     0x0000000000000020ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepX86IsaFeatureFPU          = 0x0000000000000001ull;
-	const Yep64u YepX86IsaFeatureCpuid        = 0x0000000000000002ull;
-	const Yep64u YepX86IsaFeatureRdtsc        = 0x0000000000000004ull;
-	const Yep64u YepX86IsaFeatureCMOV         = 0x0000000000000008ull;
-	const Yep64u YepX86IsaFeatureSYSENTER     = 0x0000000000000010ull;
-	const Yep64u YepX86IsaFeatureSYSCALL      = 0x0000000000000020ull;
-	const Yep64u YepX86IsaFeatureMSR          = 0x0000000000000040ull;
-	const Yep64u YepX86IsaFeatureClflush      = 0x0000000000000080ull;
-	const Yep64u YepX86IsaFeatureMONITOR      = 0x0000000000000100ull;
-	const Yep64u YepX86IsaFeatureFXSAVE       = 0x0000000000000200ull;
-	const Yep64u YepX86IsaFeatureXSAVE        = 0x0000000000000400ull;
-	const Yep64u YepX86IsaFeatureCmpxchg8b    = 0x0000000000000800ull;
-	const Yep64u YepX86IsaFeatureCmpxchg16b   = 0x0000000000001000ull;
-	const Yep64u YepX86IsaFeatureX64          = 0x0000000000002000ull;
-	const Yep64u YepX86IsaFeatureLahfSahf64   = 0x0000000000004000ull;
-	const Yep64u YepX86IsaFeatureFsGsBase     = 0x0000000000008000ull;
-	const Yep64u YepX86IsaFeatureMovbe        = 0x0000000000010000ull;
-	const Yep64u YepX86IsaFeaturePopcnt       = 0x0000000000020000ull;
-	const Yep64u YepX86IsaFeatureLzcnt        = 0x0000000000040000ull;
-	const Yep64u YepX86IsaFeatureBMI          = 0x0000000000080000ull;
-	const Yep64u YepX86IsaFeatureBMI2         = 0x0000000000100000ull;
-	const Yep64u YepX86IsaFeatureTBM          = 0x0000000000200000ull;
-	const Yep64u YepX86IsaFeatureRdrand       = 0x0000000000400000ull;
-	const Yep64u YepX86IsaFeatureACE          = 0x0000000000800000ull;
-	const Yep64u YepX86IsaFeatureACE2         = 0x0000000001000000ull;
-	const Yep64u YepX86IsaFeatureRNG          = 0x0000000002000000ull;
-	const Yep64u YepX86IsaFeaturePHE          = 0x0000000004000000ull;
-	const Yep64u YepX86IsaFeaturePMM          = 0x0000000008000000ull;
-	const Yep64u YepX86IsaFeatureAES          = 0x0000000010000000ull;
-	const Yep64u YepX86IsaFeaturePclmulqdq    = 0x0000000020000000ull;
-	const Yep64u YepX86IsaFeatureRdtscp       = 0x0000000040000000ull;
-	const Yep64u YepX86IsaFeatureLWP          = 0x0000000080000000ull;
-	const Yep64u YepX86IsaFeatureHLE          = 0x0000000100000000ull;
-	const Yep64u YepX86IsaFeatureRTM          = 0x0000000200000000ull;
-	const Yep64u YepX86IsaFeatureXtest        = 0x0000000400000000ull;
-	const Yep64u YepX86IsaFeatureRdseed       = 0x0000000800000000ull;
-	const Yep64u YepX86IsaFeatureADX          = 0x0000001000000000ull;
-#else
-	/** @name	x86 and x86-64 ISA Extensions
-	 *  @see	yepLibrary_GetCpuIsaFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief x87 FPU integrated on chip. */
-	#define YepX86IsaFeatureFPU                   0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief x87 CPUID instruction. */
-	#define YepX86IsaFeatureCpuid                 0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief RDTSC instruction. */
-	#define YepX86IsaFeatureRdtsc                 0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief CMOV, FCMOV, and FCOMI/FUCOMI instructions. */
-	#define YepX86IsaFeatureCMOV                  0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief SYSENTER and SYSEXIT instructions. */
-	#define YepX86IsaFeatureSYSENTER              0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief SYSCALL and SYSRET instructions. */
-	#define YepX86IsaFeatureSYSCALL               0x0000000000000020ull
-	/** @ingroup yepLibrary */
-	/** @brief RDMSR and WRMSR instructions. */
-	#define YepX86IsaFeatureMSR                   0x0000000000000040ull
-	/** @ingroup yepLibrary */
-	/** @brief CLFLUSH instruction. */
-	#define YepX86IsaFeatureClflush               0x0000000000000080ull
-	/** @ingroup yepLibrary */
-	/** @brief MONITOR and MWAIT instructions. */
-	#define YepX86IsaFeatureMONITOR               0x0000000000000100ull
-	/** @ingroup yepLibrary */
-	/** @brief FXSAVE and FXRSTOR instructions. */
-	#define YepX86IsaFeatureFXSAVE                0x0000000000000200ull
-	/** @ingroup yepLibrary */
-	/** @brief XSAVE, XRSTOR, XGETBV, and XSETBV instructions. */
-	#define YepX86IsaFeatureXSAVE                 0x0000000000000400ull
-	/** @ingroup yepLibrary */
-	/** @brief CMPXCHG8B instruction. */
-	#define YepX86IsaFeatureCmpxchg8b             0x0000000000000800ull
-	/** @ingroup yepLibrary */
-	/** @brief CMPXCHG16B instruction. */
-	#define YepX86IsaFeatureCmpxchg16b            0x0000000000001000ull
-	/** @ingroup yepLibrary */
-	/** @brief Support for 64-bit mode. */
-	#define YepX86IsaFeatureX64                   0x0000000000002000ull
-	/** @ingroup yepLibrary */
-	/** @brief Support for LAHF and SAHF instructions in 64-bit mode. */
-	#define YepX86IsaFeatureLahfSahf64            0x0000000000004000ull
-	/** @ingroup yepLibrary */
-	/** @brief RDFSBASE, RDGSBASE, WRFSBASE, and WRGSBASE instructions. */
-	#define YepX86IsaFeatureFsGsBase              0x0000000000008000ull
-	/** @ingroup yepLibrary */
-	/** @brief MOVBE instruction. */
-	#define YepX86IsaFeatureMovbe                 0x0000000000010000ull
-	/** @ingroup yepLibrary */
-	/** @brief POPCNT instruction. */
-	#define YepX86IsaFeaturePopcnt                0x0000000000020000ull
-	/** @ingroup yepLibrary */
-	/** @brief LZCNT instruction. */
-	#define YepX86IsaFeatureLzcnt                 0x0000000000040000ull
-	/** @ingroup yepLibrary */
-	/** @brief BMI instruction set. */
-	#define YepX86IsaFeatureBMI                   0x0000000000080000ull
-	/** @ingroup yepLibrary */
-	/** @brief BMI 2 instruction set. */
-	#define YepX86IsaFeatureBMI2                  0x0000000000100000ull
-	/** @ingroup yepLibrary */
-	/** @brief TBM instruction set. */
-	#define YepX86IsaFeatureTBM                   0x0000000000200000ull
-	/** @ingroup yepLibrary */
-	/** @brief RDRAND instruction. */
-	#define YepX86IsaFeatureRdrand                0x0000000000400000ull
-	/** @ingroup yepLibrary */
-	/** @brief Padlock Advanced Cryptography Engine on chip. */
-	#define YepX86IsaFeatureACE                   0x0000000000800000ull
-	/** @ingroup yepLibrary */
-	/** @brief Padlock Advanced Cryptography Engine 2 on chip. */
-	#define YepX86IsaFeatureACE2                  0x0000000001000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Padlock Random Number Generator on chip. */
-	#define YepX86IsaFeatureRNG                   0x0000000002000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Padlock Hash Engine on chip. */
-	#define YepX86IsaFeaturePHE                   0x0000000004000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Padlock Montgomery Multiplier on chip. */
-	#define YepX86IsaFeaturePMM                   0x0000000008000000ull
-	/** @ingroup yepLibrary */
-	/** @brief AES instruction set. */
-	#define YepX86IsaFeatureAES                   0x0000000010000000ull
-	/** @ingroup yepLibrary */
-	/** @brief PCLMULQDQ instruction. */
-	#define YepX86IsaFeaturePclmulqdq             0x0000000020000000ull
-	/** @ingroup yepLibrary */
-	/** @brief RDTSCP instruction. */
-	#define YepX86IsaFeatureRdtscp                0x0000000040000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Lightweight Profiling extension. */
-	#define YepX86IsaFeatureLWP                   0x0000000080000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Hardware Lock Elision extension. */
-	#define YepX86IsaFeatureHLE                   0x0000000100000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Restricted Transactional Memory extension. */
-	#define YepX86IsaFeatureRTM                   0x0000000200000000ull
-	/** @ingroup yepLibrary */
-	/** @brief XTEST instruction. */
-	#define YepX86IsaFeatureXtest                 0x0000000400000000ull
-	/** @ingroup yepLibrary */
-	/** @brief RDSEED instruction. */
-	#define YepX86IsaFeatureRdseed                0x0000000800000000ull
-	/** @ingroup yepLibrary */
-	/** @brief ADCX and ADOX instructions. */
-	#define YepX86IsaFeatureADX                   0x0000001000000000ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepX86SimdFeatureMMX                  = 0x0000000000000001ull;
-	const Yep64u YepX86SimdFeatureMMXPlus              = 0x0000000000000002ull;
-	const Yep64u YepX86SimdFeatureEMMX                 = 0x0000000000000004ull;
-	const Yep64u YepX86SimdFeature3dnow                = 0x0000000000000008ull;
-	const Yep64u YepX86SimdFeature3dnowPlus            = 0x0000000000000010ull;
-	const Yep64u YepX86SimdFeature3dnowPrefetch        = 0x0000000000000020ull;
-	const Yep64u YepX86SimdFeature3dnowGeode           = 0x0000000000000040ull;
-	const Yep64u YepX86SimdFeatureSSE                  = 0x0000000000000080ull;
-	const Yep64u YepX86SimdFeatureSSE2                 = 0x0000000000000100ull;
-	const Yep64u YepX86SimdFeatureSSE3                 = 0x0000000000000200ull;
-	const Yep64u YepX86SimdFeatureSSSE3                = 0x0000000000000400ull;
-	const Yep64u YepX86SimdFeatureSSE4_1               = 0x0000000000000800ull;
-	const Yep64u YepX86SimdFeatureSSE4_2               = 0x0000000000001000ull;
-	const Yep64u YepX86SimdFeatureSSE4A                = 0x0000000000002000ull;
-	const Yep64u YepX86SimdFeatureAVX                  = 0x0000000000004000ull;
-	const Yep64u YepX86SimdFeatureAVX2                 = 0x0000000000008000ull;
-	const Yep64u YepX86SimdFeatureXOP                  = 0x0000000000010000ull;
-	const Yep64u YepX86SimdFeatureF16C                 = 0x0000000000020000ull;
-	const Yep64u YepX86SimdFeatureFMA3                 = 0x0000000000040000ull;
-	const Yep64u YepX86SimdFeatureFMA4                 = 0x0000000000080000ull;
-	const Yep64u YepX86SimdFeatureKNF                  = 0x0000000000100000ull;
-	const Yep64u YepX86SimdFeatureKNC                  = 0x0000000000200000ull;
-#else
-	/** @name	x86 and x86-64 SIMD Extensions
-	 *  @see	yepLibrary_GetCpuSimdFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief MMX instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_MMX_EXTENSION */
-	#define YepX86SimdFeatureMMX                  0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief MMX+ instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_MMXPLUS_EXTENSION */
-	#define YepX86SimdFeatureMMXPlus              0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief EMMX instruction set. */
-	#define YepX86SimdFeatureEMMX                 0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief 3dnow! instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_3DNOW_EXTENSION */
-	#define YepX86SimdFeature3dnow                0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief 3dnow!+ instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_3DNOWPLUS_EXTENSION */
-	#define YepX86SimdFeature3dnowPlus            0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief 3dnow! prefetch instructions. */
-	#define YepX86SimdFeature3dnowPrefetch        0x0000000000000020ull
-	/** @ingroup yepLibrary */
-	/** @brief Geode 3dnow! instructions. */
-	#define YepX86SimdFeature3dnowGeode           0x0000000000000040ull
-	/** @ingroup yepLibrary */
-	/** @brief SSE instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSE_EXTENSION */
-	#define YepX86SimdFeatureSSE                  0x0000000000000080ull
-	/** @ingroup yepLibrary */
-	/** @brief SSE 2 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSE2_EXTENSION */
-	#define YepX86SimdFeatureSSE2                 0x0000000000000100ull
-	/** @ingroup yepLibrary */
-	/** @brief SSE 3 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSE3_EXTENSION */
-	#define YepX86SimdFeatureSSE3                 0x0000000000000200ull
-	/** @ingroup yepLibrary */
-	/** @brief SSSE 3 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSSE3_EXTENSION */
-	#define YepX86SimdFeatureSSSE3                0x0000000000000400ull
-	/** @ingroup yepLibrary */
-	/** @brief SSE 4.1 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSE4_1_EXTENSION */
-	#define YepX86SimdFeatureSSE4_1               0x0000000000000800ull
-	/** @ingroup yepLibrary */
-	/** @brief SSE 4.2 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSE4_2_EXTENSION */
-	#define YepX86SimdFeatureSSE4_2               0x0000000000001000ull
-	/** @ingroup yepLibrary */
-	/** @brief SSE 4A instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_SSE4A_EXTENSION */
-	#define YepX86SimdFeatureSSE4A                0x0000000000002000ull
-	/** @ingroup yepLibrary */
-	/** @brief AVX instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_AVX_EXTENSION */
-	#define YepX86SimdFeatureAVX                  0x0000000000004000ull
-	/** @ingroup yepLibrary */
-	/** @brief AVX 2 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_AVX2_EXTENSION */
-	#define YepX86SimdFeatureAVX2                 0x0000000000008000ull
-	/** @ingroup yepLibrary */
-	/** @brief XOP instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_XOP_EXTENSION */
-	#define YepX86SimdFeatureXOP                  0x0000000000010000ull
-	/** @ingroup yepLibrary */
-	/** @brief F16C instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_F16C_EXTENSION */
-	#define YepX86SimdFeatureF16C                 0x0000000000020000ull
-	/** @ingroup yepLibrary */
-	/** @brief FMA3 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_FMA3_EXTENSION */
-	#define YepX86SimdFeatureFMA3                 0x0000000000040000ull
-	/** @ingroup yepLibrary */
-	/** @brief FMA4 instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_FMA4_EXTENSION */
-	#define YepX86SimdFeatureFMA4                 0x0000000000080000ull
-	/** @ingroup yepLibrary */
-	/** @brief Knights Ferry (aka Larrabee) instruction set. */
-	#define YepX86SimdFeatureKNF                  0x0000000000100000ull
-	/** @ingroup yepLibrary */
-	/** @brief Knights Corner (aka Xeon Phi) instruction set. */
-	/** @see YEP_COMPILER_SUPPORTS_X86_KNC_EXTENSION */
-	#define YepX86SimdFeatureKNC                  0x0000000000200000ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepX86SystemFeatureFPU                = 0x0000000100000000ull;
-	const Yep64u YepX86SystemFeatureSSE                = 0x0000000200000000ull;
-	const Yep64u YepX86SystemFeatureAVX                = 0x0000000400000000ull;
-	const Yep64u YepX86SystemFeatureMisalignedSSE      = 0x0000000800000000ull;
-	const Yep64u YepX86SystemFeatureACE                = 0x0000001000000000ull;
-	const Yep64u YepX86SystemFeatureACE2               = 0x0000002000000000ull;
-	const Yep64u YepX86SystemFeatureRNG                = 0x0000004000000000ull;
-	const Yep64u YepX86SystemFeaturePHE                = 0x0000008000000000ull;
-	const Yep64u YepX86SystemFeaturePMM                = 0x0000010000000000ull;
-	const Yep64u YepX86SystemFeatureMIC                = 0x0000020000000000ull;
-#else
-	/** @name	x86 CPU and System Features
-	 *  @see	yepLibrary_GetCpuSystemFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief The CPU has x87 FPU registers, and the operating systems preserves them during context switch. */
-	#define YepX86SystemFeatureFPU                0x0000000100000000ull
-	/** @ingroup yepLibrary */
-	/** @brief The CPU has SSE registers, and the operating systems preserves them during context switch. */
-	#define YepX86SystemFeatureSSE                0x0000000200000000ull
-	/** @ingroup yepLibrary */
-	/** @brief The CPU has AVX registers, and the operating systems preserves them during context switch. */
-	#define YepX86SystemFeatureAVX                0x0000000400000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Processor allows to use misaligned memory operands in SSE instructions other than loads and stores. */
-	#define YepX86SystemFeatureMisalignedSSE      0x0000000800000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine. */
-	#define YepX86SystemFeatureACE                0x0000001000000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine 2. */
-	#define YepX86SystemFeatureACE2               0x0000002000000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Processor and the operating system support the Padlock Random Number Generator. */
-	#define YepX86SystemFeatureRNG                0x0000004000000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Processor and the operating system support the Padlock Hash Engine. */
-	#define YepX86SystemFeaturePHE                0x0000008000000000ull
-	/** @ingroup yepLibrary */
-	/** @brief Processor and the operating system support the Padlock Montgomery Multiplier. */
-	#define YepX86SystemFeaturePMM                0x0000010000000000ull
-	/** @ingroup yepLibrary */
-	/** @brief The CPU has MIC registers, and the operating system preserves them during context switch. */
-	#define YepX86SystemFeatureMIC                0x0000020000000000ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepIA64IsaFeatureBrl                  = 0x0000000000000001ull;
-	const Yep64u YepIA64IsaFeatureAtomic128            = 0x0000000000000002ull;
-	const Yep64u YepIA64IsaFeatureClz                  = 0x0000000000000004ull;
-	const Yep64u YepIA64IsaFeatureMpy4                 = 0x0000000000000008ull;
-#else
-	/** @name	IA64 ISA Extensions
-	 *  @see	yepLibrary_GetCpuIsaFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief Long branch instruction. */
-	#define YepIA64IsaFeatureBrl                  0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief Atomic 128-bit (16-byte) loads, stores, and CAS. */
-	#define YepIA64IsaFeatureAtomic128            0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief CLZ (count leading zeros) instruction. */
-	#define YepIA64IsaFeatureClz                  0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief MPY4 and MPYSHL4 (Truncated 32-bit multiplication) instructions. */
-	#define YepIA64IsaFeatureMpy4                 0x0000000000000008ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepARMIsaFeatureV4                    = 0x0000000000000001ull;
-	const Yep64u YepARMIsaFeatureV5                    = 0x0000000000000002ull;
-	const Yep64u YepARMIsaFeatureV5E                   = 0x0000000000000004ull;
-	const Yep64u YepARMIsaFeatureV6                    = 0x0000000000000008ull;
-	const Yep64u YepARMIsaFeatureV6K                   = 0x0000000000000010ull;
-	const Yep64u YepARMIsaFeatureV7                    = 0x0000000000000020ull;
-	const Yep64u YepARMIsaFeatureV7MP                  = 0x0000000000000040ull;
-	const Yep64u YepARMIsaFeatureThumb                 = 0x0000000000000080ull;
-	const Yep64u YepARMIsaFeatureThumb2                = 0x0000000000000100ull;
-	const Yep64u YepARMIsaFeatureThumbEE               = 0x0000000000000200ull;
-	const Yep64u YepARMIsaFeatureJazelle               = 0x0000000000000400ull;
-	const Yep64u YepARMIsaFeatureFPA                   = 0x0000000000000800ull;
-	const Yep64u YepARMIsaFeatureVFP                   = 0x0000000000001000ull;
-	const Yep64u YepARMIsaFeatureVFP2                  = 0x0000000000002000ull;
-	const Yep64u YepARMIsaFeatureVFP3                  = 0x0000000000004000ull;
-	const Yep64u YepARMIsaFeatureVFPd32                = 0x0000000000008000ull;
-	const Yep64u YepARMIsaFeatureVFP3HP                = 0x0000000000010000ull;
-	const Yep64u YepARMIsaFeatureVFP4                  = 0x0000000000020000ull;
-	const Yep64u YepARMIsaFeatureDiv                   = 0x0000000000040000ull;
-	const Yep64u YepARMIsaFeatureArmada                = 0x0000000000080000ull;
-#else
-	/** @name	ARM ISA Extensions
-	 *  @see	yepLibrary_GetCpuIsaFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief ARMv4 instruction set. */
-	#define YepARMIsaFeatureV4                    0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief ARMv5 instruciton set. */
-	#define YepARMIsaFeatureV5                    0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief ARMv5 DSP instructions. */
-	#define YepARMIsaFeatureV5E                   0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief ARMv6 instruction set. */
-	#define YepARMIsaFeatureV6                    0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief ARMv6 Multiprocessing extensions. */
-	#define YepARMIsaFeatureV6K                   0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief ARMv7 instruction set. */
-	#define YepARMIsaFeatureV7                    0x0000000000000020ull
-	/** @ingroup yepLibrary */
-	/** @brief ARMv7 Multiprocessing extensions. */
-	#define YepARMIsaFeatureV7MP                  0x0000000000000040ull
-	/** @ingroup yepLibrary */
-	/** @brief Thumb mode. */
-	#define YepARMIsaFeatureThumb                 0x0000000000000080ull
-	/** @ingroup yepLibrary */
-	/** @brief Thumb 2 mode. */
-	#define YepARMIsaFeatureThumb2                0x0000000000000100ull
-	/** @ingroup yepLibrary */
-	/** @brief Thumb EE mode. */
-	#define YepARMIsaFeatureThumbEE               0x0000000000000200ull
-	/** @ingroup yepLibrary */
-	/** @brief Jazelle extensions. */
-	#define YepARMIsaFeatureJazelle               0x0000000000000400ull
-	/** @ingroup yepLibrary */
-	/** @brief FPA instructions. */
-	#define YepARMIsaFeatureFPA                   0x0000000000000800ull
-	/** @ingroup yepLibrary */
-	/** @brief VFP instruction set. */
-	#define YepARMIsaFeatureVFP                   0x0000000000001000ull
-	/** @ingroup yepLibrary */
-	/** @brief VFPv2 instruction set. */
-	#define YepARMIsaFeatureVFP2                  0x0000000000002000ull
-	/** @ingroup yepLibrary */
-	/** @brief VFPv3 instruction set. */
-	#define YepARMIsaFeatureVFP3                  0x0000000000004000ull
-	/** @ingroup yepLibrary */
-	/** @brief VFP implementation with 32 double-precision registers. */
-	#define YepARMIsaFeatureVFPd32                0x0000000000008000ull
-	/** @ingroup yepLibrary */
-	/** @brief VFPv3 half precision extension. */
-	#define YepARMIsaFeatureVFP3HP                0x0000000000010000ull
-	/** @ingroup yepLibrary */
-	/** @brief VFPv4 instruction set. */
-	#define YepARMIsaFeatureVFP4                  0x0000000000020000ull
-	/** @ingroup yepLibrary */
-	/** @brief SDIV and UDIV instructions. */
-	#define YepARMIsaFeatureDiv                   0x0000000000040000ull
-	/** @ingroup yepLibrary */
-	/** @brief Marvell Armada instruction extensions. */
-	#define YepARMIsaFeatureArmada                0x0000000000080000ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepARMSimdFeatureXScale               = 0x0000000000000001ull;
-	const Yep64u YepARMSimdFeatureWMMX                 = 0x0000000000000002ull;
-	const Yep64u YepARMSimdFeatureWMMX2                = 0x0000000000000004ull;
-	const Yep64u YepARMSimdFeatureNEON                 = 0x0000000000000008ull;
-	const Yep64u YepARMSimdFeatureNEONHP               = 0x0000000000000010ull;
-	const Yep64u YepARMSimdFeatureNEON2                = 0x0000000000000020ull;
-#else
-	/** @name	ARM SIMD Extensions
-	 *  @see	yepLibrary_GetCpuSimdFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief XScale instructions. */
-	#define YepARMSimdFeatureXScale               0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief Wireless MMX instruction set. */
-	#define YepARMSimdFeatureWMMX                 0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief Wireless MMX 2 instruction set. */
-	#define YepARMSimdFeatureWMMX2                0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief NEON (Advanced SIMD) instruction set. */
-	#define YepARMSimdFeatureNEON                 0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief NEON (Advanced SIMD) half-precision extension. */
-	#define YepARMSimdFeatureNEONHP               0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief NEON (Advanced SIMD) v2 instruction set. */
-	#define YepARMSimdFeatureNEON2                0x0000000000000020ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepARMSystemFeatureVFPVectorMode      = 0x0000000100000000ull;
-#else
-	/** @name	ARM CPU and System Features
-	 *  @see	yepLibrary_GetCpuSystemFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief VFP vector mode is supported in hardware. */
-	#define YepARMSystemFeatureVFPVectorMode      0x0000000100000000ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepMIPSIsaFeatureR2            = 0x0000000000000001ull;
-	const Yep64u YepMIPSIsaFeatureMicroMIPS     = 0x0000000000000002ull;
-	const Yep64u YepMIPSIsaFeatureFPU           = 0x0000000000000004ull;
-	const Yep64u YepMIPSIsaFeatureMT            = 0x0000000000000008ull;
-	const Yep64u YepMIPSIsaFeatureMIPS16        = 0x0000000000000010ull;
-	const Yep64u YepMIPSIsaFeatureSmartMIPS     = 0x0000000000000020ull;
-#else
-	/** @name	MIPS ISA Extensions
-	 *  @see	yepLibrary_GetCpuIsaFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief MIPS32/MIPS64 Release 2 architecture. */
-	#define YepMIPSIsaFeatureR2                   0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief MicroMIPS extension. */
-	/** @bug Not detected in this @Yeppp release. */
-	#define YepMIPSIsaFeatureMicroMIPS            0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief FPU with S, D, and W formats and instructions. */
-	#define YepMIPSIsaFeatureFPU                  0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief Multi-threading extension. */
-	#define YepMIPSIsaFeatureMT                   0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief MIPS16 extension. */
-	#define YepMIPSIsaFeatureMIPS16               0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief SmartMIPS extension. */
-	#define YepMIPSIsaFeatureSmartMIPS            0x0000000000000020ull
-	/**@}*/
-#endif
-
-#ifdef __cplusplus
-	const Yep64u YepMIPSSimdFeatureMDMX         = 0x0000000000000001ull;
-	const Yep64u YepMIPSSimdFeatureMIPS3D       = 0x0000000000000002ull;
-	const Yep64u YepMIPSSimdFeaturePairedSingle = 0x0000000000000004ull;
-	const Yep64u YepMIPSSimdFeatureDSP          = 0x0000000000000008ull;
-	const Yep64u YepMIPSSimdFeatureDSP2         = 0x0000000000000010ull;
-	const Yep64u YepMIPSSimdFeatureGodsonMMX    = 0x0000000000000020ull;
-	const Yep64u YepMIPSSimdFeatureIMX          = 0x0000000000000040ull;
-#else
-	/** @name	MIPS SIMD Extensions
-	 *  @see	yepLibrary_GetCpuSimdFeatures */
-	/**@{*/
-	/** @ingroup yepLibrary */
-	/** @brief MDMX instruction set. */
-	#define YepMIPSSimdFeatureMDMX                0x0000000000000001ull
-	/** @ingroup yepLibrary */
-	/** @brief MIPS3D instruction set. */
-	#define YepMIPSSimdFeatureMIPS3D              0x0000000000000002ull
-	/** @ingroup yepLibrary */
-	/** @brief Paired-single instructions. */
-	#define YepMIPSSimdFeaturePairedSingle        0x0000000000000004ull
-	/** @ingroup yepLibrary */
-	/** @brief MIPS DSP extension. */
-	#define YepMIPSSimdFeatureDSP                 0x0000000000000008ull
-	/** @ingroup yepLibrary */
-	/** @brief MIPS DSP Release 2 extension. */
-	#define YepMIPSSimdFeatureDSP2                0x0000000000000010ull
-	/** @ingroup yepLibrary */
-	/** @brief Loongson (Godson) MMX instruction set. */
-	/** @bug Not detected in this @Yeppp release. */
-	#define YepMIPSSimdFeatureGodsonMMX           0x0000000000000020ull
-	/** @ingroup yepLibrary */
-	/** @brief Ingenic Media Extension. */
-	#define YepMIPSSimdFeatureIMX                 0x0000000000000040ull
-	/**@}*/
-#endif
-
 	/** @name	Processor extensions information */
 	/**@{*/
 	/**
@@ -678,7 +92,8 @@ extern "C" {
 	 * @param[out]	isaFeatures	Pointer to a 64-bit mask where information about the supported ISA extensions will be stored.
 	 * @retval	#YepStatusOk	The information successfully stored to the mask pointed by @a isaFeatures parameter.
 	 * @retval	#YepStatusNullPointer	The @a isaFeatures pointer is null.
-	 * @see	yepLibrary_GetCpuSimdFeatures, yepLibrary_GetCpuSystemFeatures
+	 * @see	\ref x86_ISA_Extensions "x86 and x86-64 ISA extensions", \ref ARM_ISA_Extensions "ARM ISA extensions",
+	 *     	\ref MIPS_ISA_Extensions "MIPS ISA extensions", \ref IA64_ISA_Extensions "IA64 ISA extensions",
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepLibrary_GetCpuIsaFeatures(Yep64u *isaFeatures);
 	/**
@@ -687,7 +102,8 @@ extern "C" {
 	 * @param[out]	simdFeatures	Pointer to a 64-bit mask where information about the supported SIMD extensions will be stored.
 	 * @retval	#YepStatusOk	The information successfully stored to the mask pointed by @a simdFeatures parameter.
 	 * @retval	#YepStatusNullPointer	The @a simdFeatures pointer is null.
-	 * @see	yepLibrary_GetCpuIsaFeatures, yepLibrary_GetCpuSystemFeatures
+	 * @see	\ref x86_SIMD_Extensions "x86 and x86-64 SIMD extensions", \ref ARM_SIMD_Extensions "ARM SIMD extensions",
+	 *     	\ref MIPS_SIMD_Extensions "MIPS SIMD extensions"
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepLibrary_GetCpuSimdFeatures(Yep64u *simdFeatures);
 	/**
@@ -696,7 +112,9 @@ extern "C" {
 	 * @param[out]	systemFeatures	Pointer to a 64-bit mask where information about extended processor and system features will be stored.
 	 * @retval	#YepStatusOk	The information successfully stored to the mask pointed by @a systemFeatures parameter.
 	 * @retval	#YepStatusNullPointer	The @a systemFeatures pointer is null.
-	 * @see	yepLibrary_GetCpuIsaFeatures, yepLibrary_GetCpuSimdFeatures
+	 * @see	\ref Common_CPU_and_System_Features "Common CPU and system features",
+	 *     	\ref x86_CPU_and_System_Features "x86 and x86-64 CPU and system features",
+	 *     	\ref ARM_CPU_and_System_Features "ARM CPU and system features",
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepLibrary_GetCpuSystemFeatures(Yep64u *systemFeatures);
 	/**@}*/
@@ -1222,6 +640,602 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepLibrary_GetString(enum YepEnumeration enumerationType, Yep32u enumerationValue, void *buffer, YepSize *length);
 	/**@}*/
 
+#ifdef __cplusplus
+	const Yep64u YepIsaFeaturesDefault        = 0x0000000000000000ull;
+	const Yep64u YepSimdFeaturesDefault       = 0x0000000000000000ull;
+	const Yep64u YepSystemFeaturesDefault     = 0x0000000000000000ull;
+#else
+	#define YepIsaFeaturesDefault               0x0000000000000000ull
+	#define YepSimdFeaturesDefault              0x0000000000000000ull
+	#define YepSystemFeaturesDefault            0x0000000000000000ull
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepSystemFeatureCycleCounter      = 0x0000000000000001ull;
+	const Yep64u YepSystemFeatureCycleCounter64Bit = 0x0000000000000002ull;
+	const Yep64u YepSystemFeatureAddressSpace64Bit = 0x0000000000000004ull;
+	const Yep64u YepSystemFeatureGPRegisters64Bit  = 0x0000000000000008ull;
+	const Yep64u YepSystemFeatureMisalignedAccess  = 0x0000000000000010ull;
+	const Yep64u YepSystemFeatureSingleThreaded    = 0x0000000000000020ull;
+#else
+	/** @anchor	Common_CPU_and_System_Features
+	 *  @name	Common CPU and System Features
+	 *  @see	yepLibrary_GetCpuSystemFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief The processor has a built-in cycle counter, and the operating system provides a way to access it. */
+	#define YepSystemFeatureCycleCounter       0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief The processor has a 64-bit cycle counter, or the operating system provides an abstraction of a 64-bit cycle counter. */
+	#define YepSystemFeatureCycleCounter64Bit  0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief The processor and the operating system allows to use 64-bit pointers. */
+	#define YepSystemFeatureAddressSpace64Bit  0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief The processor and the operating system allows to do 64-bit arithmetical operations on general-purpose registers. */
+	#define YepSystemFeatureGPRegisters64Bit   0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief The processor and the operating system allows misaligned memory reads and writes. */
+	#define YepSystemFeatureMisalignedAccess   0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief The processor or the operating system support at most one hardware thread. */
+	#define YepSystemFeatureSingleThreaded     0x0000000000000020ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepX86IsaFeatureFPU          = 0x0000000000000001ull;
+	const Yep64u YepX86IsaFeatureCpuid        = 0x0000000000000002ull;
+	const Yep64u YepX86IsaFeatureRdtsc        = 0x0000000000000004ull;
+	const Yep64u YepX86IsaFeatureCMOV         = 0x0000000000000008ull;
+	const Yep64u YepX86IsaFeatureSYSENTER     = 0x0000000000000010ull;
+	const Yep64u YepX86IsaFeatureSYSCALL      = 0x0000000000000020ull;
+	const Yep64u YepX86IsaFeatureMSR          = 0x0000000000000040ull;
+	const Yep64u YepX86IsaFeatureClflush      = 0x0000000000000080ull;
+	const Yep64u YepX86IsaFeatureMONITOR      = 0x0000000000000100ull;
+	const Yep64u YepX86IsaFeatureFXSAVE       = 0x0000000000000200ull;
+	const Yep64u YepX86IsaFeatureXSAVE        = 0x0000000000000400ull;
+	const Yep64u YepX86IsaFeatureCmpxchg8b    = 0x0000000000000800ull;
+	const Yep64u YepX86IsaFeatureCmpxchg16b   = 0x0000000000001000ull;
+	const Yep64u YepX86IsaFeatureX64          = 0x0000000000002000ull;
+	const Yep64u YepX86IsaFeatureLahfSahf64   = 0x0000000000004000ull;
+	const Yep64u YepX86IsaFeatureFsGsBase     = 0x0000000000008000ull;
+	const Yep64u YepX86IsaFeatureMovbe        = 0x0000000000010000ull;
+	const Yep64u YepX86IsaFeaturePopcnt       = 0x0000000000020000ull;
+	const Yep64u YepX86IsaFeatureLzcnt        = 0x0000000000040000ull;
+	const Yep64u YepX86IsaFeatureBMI          = 0x0000000000080000ull;
+	const Yep64u YepX86IsaFeatureBMI2         = 0x0000000000100000ull;
+	const Yep64u YepX86IsaFeatureTBM          = 0x0000000000200000ull;
+	const Yep64u YepX86IsaFeatureRdrand       = 0x0000000000400000ull;
+	const Yep64u YepX86IsaFeatureACE          = 0x0000000000800000ull;
+	const Yep64u YepX86IsaFeatureACE2         = 0x0000000001000000ull;
+	const Yep64u YepX86IsaFeatureRNG          = 0x0000000002000000ull;
+	const Yep64u YepX86IsaFeaturePHE          = 0x0000000004000000ull;
+	const Yep64u YepX86IsaFeaturePMM          = 0x0000000008000000ull;
+	const Yep64u YepX86IsaFeatureAES          = 0x0000000010000000ull;
+	const Yep64u YepX86IsaFeaturePclmulqdq    = 0x0000000020000000ull;
+	const Yep64u YepX86IsaFeatureRdtscp       = 0x0000000040000000ull;
+	const Yep64u YepX86IsaFeatureLWP          = 0x0000000080000000ull;
+	const Yep64u YepX86IsaFeatureHLE          = 0x0000000100000000ull;
+	const Yep64u YepX86IsaFeatureRTM          = 0x0000000200000000ull;
+	const Yep64u YepX86IsaFeatureXtest        = 0x0000000400000000ull;
+	const Yep64u YepX86IsaFeatureRdseed       = 0x0000000800000000ull;
+	const Yep64u YepX86IsaFeatureADX          = 0x0000001000000000ull;
+#else
+	/** @anchor	x86_ISA_Extensions
+	 *  @name	x86 and x86-64 ISA Extensions
+	 *  @see	yepLibrary_GetCpuIsaFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief x87 FPU integrated on chip. */
+	#define YepX86IsaFeatureFPU                   0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief x87 CPUID instruction. */
+	#define YepX86IsaFeatureCpuid                 0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief RDTSC instruction. */
+	#define YepX86IsaFeatureRdtsc                 0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief CMOV, FCMOV, and FCOMI/FUCOMI instructions. */
+	#define YepX86IsaFeatureCMOV                  0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief SYSENTER and SYSEXIT instructions. */
+	#define YepX86IsaFeatureSYSENTER              0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief SYSCALL and SYSRET instructions. */
+	#define YepX86IsaFeatureSYSCALL               0x0000000000000020ull
+	/** @ingroup yepLibrary */
+	/** @brief RDMSR and WRMSR instructions. */
+	#define YepX86IsaFeatureMSR                   0x0000000000000040ull
+	/** @ingroup yepLibrary */
+	/** @brief CLFLUSH instruction. */
+	#define YepX86IsaFeatureClflush               0x0000000000000080ull
+	/** @ingroup yepLibrary */
+	/** @brief MONITOR and MWAIT instructions. */
+	#define YepX86IsaFeatureMONITOR               0x0000000000000100ull
+	/** @ingroup yepLibrary */
+	/** @brief FXSAVE and FXRSTOR instructions. */
+	#define YepX86IsaFeatureFXSAVE                0x0000000000000200ull
+	/** @ingroup yepLibrary */
+	/** @brief XSAVE, XRSTOR, XGETBV, and XSETBV instructions. */
+	#define YepX86IsaFeatureXSAVE                 0x0000000000000400ull
+	/** @ingroup yepLibrary */
+	/** @brief CMPXCHG8B instruction. */
+	#define YepX86IsaFeatureCmpxchg8b             0x0000000000000800ull
+	/** @ingroup yepLibrary */
+	/** @brief CMPXCHG16B instruction. */
+	#define YepX86IsaFeatureCmpxchg16b            0x0000000000001000ull
+	/** @ingroup yepLibrary */
+	/** @brief Support for 64-bit mode. */
+	#define YepX86IsaFeatureX64                   0x0000000000002000ull
+	/** @ingroup yepLibrary */
+	/** @brief Support for LAHF and SAHF instructions in 64-bit mode. */
+	#define YepX86IsaFeatureLahfSahf64            0x0000000000004000ull
+	/** @ingroup yepLibrary */
+	/** @brief RDFSBASE, RDGSBASE, WRFSBASE, and WRGSBASE instructions. */
+	#define YepX86IsaFeatureFsGsBase              0x0000000000008000ull
+	/** @ingroup yepLibrary */
+	/** @brief MOVBE instruction. */
+	#define YepX86IsaFeatureMovbe                 0x0000000000010000ull
+	/** @ingroup yepLibrary */
+	/** @brief POPCNT instruction. */
+	#define YepX86IsaFeaturePopcnt                0x0000000000020000ull
+	/** @ingroup yepLibrary */
+	/** @brief LZCNT instruction. */
+	#define YepX86IsaFeatureLzcnt                 0x0000000000040000ull
+	/** @ingroup yepLibrary */
+	/** @brief BMI instruction set. */
+	#define YepX86IsaFeatureBMI                   0x0000000000080000ull
+	/** @ingroup yepLibrary */
+	/** @brief BMI 2 instruction set. */
+	#define YepX86IsaFeatureBMI2                  0x0000000000100000ull
+	/** @ingroup yepLibrary */
+	/** @brief TBM instruction set. */
+	#define YepX86IsaFeatureTBM                   0x0000000000200000ull
+	/** @ingroup yepLibrary */
+	/** @brief RDRAND instruction. */
+	#define YepX86IsaFeatureRdrand                0x0000000000400000ull
+	/** @ingroup yepLibrary */
+	/** @brief Padlock Advanced Cryptography Engine on chip. */
+	#define YepX86IsaFeatureACE                   0x0000000000800000ull
+	/** @ingroup yepLibrary */
+	/** @brief Padlock Advanced Cryptography Engine 2 on chip. */
+	#define YepX86IsaFeatureACE2                  0x0000000001000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Padlock Random Number Generator on chip. */
+	#define YepX86IsaFeatureRNG                   0x0000000002000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Padlock Hash Engine on chip. */
+	#define YepX86IsaFeaturePHE                   0x0000000004000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Padlock Montgomery Multiplier on chip. */
+	#define YepX86IsaFeaturePMM                   0x0000000008000000ull
+	/** @ingroup yepLibrary */
+	/** @brief AES instruction set. */
+	#define YepX86IsaFeatureAES                   0x0000000010000000ull
+	/** @ingroup yepLibrary */
+	/** @brief PCLMULQDQ instruction. */
+	#define YepX86IsaFeaturePclmulqdq             0x0000000020000000ull
+	/** @ingroup yepLibrary */
+	/** @brief RDTSCP instruction. */
+	#define YepX86IsaFeatureRdtscp                0x0000000040000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Lightweight Profiling extension. */
+	#define YepX86IsaFeatureLWP                   0x0000000080000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Hardware Lock Elision extension. */
+	#define YepX86IsaFeatureHLE                   0x0000000100000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Restricted Transactional Memory extension. */
+	#define YepX86IsaFeatureRTM                   0x0000000200000000ull
+	/** @ingroup yepLibrary */
+	/** @brief XTEST instruction. */
+	#define YepX86IsaFeatureXtest                 0x0000000400000000ull
+	/** @ingroup yepLibrary */
+	/** @brief RDSEED instruction. */
+	#define YepX86IsaFeatureRdseed                0x0000000800000000ull
+	/** @ingroup yepLibrary */
+	/** @brief ADCX and ADOX instructions. */
+	#define YepX86IsaFeatureADX                   0x0000001000000000ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepX86SimdFeatureMMX                  = 0x0000000000000001ull;
+	const Yep64u YepX86SimdFeatureMMXPlus              = 0x0000000000000002ull;
+	const Yep64u YepX86SimdFeatureEMMX                 = 0x0000000000000004ull;
+	const Yep64u YepX86SimdFeature3dnow                = 0x0000000000000008ull;
+	const Yep64u YepX86SimdFeature3dnowPlus            = 0x0000000000000010ull;
+	const Yep64u YepX86SimdFeature3dnowPrefetch        = 0x0000000000000020ull;
+	const Yep64u YepX86SimdFeature3dnowGeode           = 0x0000000000000040ull;
+	const Yep64u YepX86SimdFeatureSSE                  = 0x0000000000000080ull;
+	const Yep64u YepX86SimdFeatureSSE2                 = 0x0000000000000100ull;
+	const Yep64u YepX86SimdFeatureSSE3                 = 0x0000000000000200ull;
+	const Yep64u YepX86SimdFeatureSSSE3                = 0x0000000000000400ull;
+	const Yep64u YepX86SimdFeatureSSE4_1               = 0x0000000000000800ull;
+	const Yep64u YepX86SimdFeatureSSE4_2               = 0x0000000000001000ull;
+	const Yep64u YepX86SimdFeatureSSE4A                = 0x0000000000002000ull;
+	const Yep64u YepX86SimdFeatureAVX                  = 0x0000000000004000ull;
+	const Yep64u YepX86SimdFeatureAVX2                 = 0x0000000000008000ull;
+	const Yep64u YepX86SimdFeatureXOP                  = 0x0000000000010000ull;
+	const Yep64u YepX86SimdFeatureF16C                 = 0x0000000000020000ull;
+	const Yep64u YepX86SimdFeatureFMA3                 = 0x0000000000040000ull;
+	const Yep64u YepX86SimdFeatureFMA4                 = 0x0000000000080000ull;
+	const Yep64u YepX86SimdFeatureKNF                  = 0x0000000000100000ull;
+	const Yep64u YepX86SimdFeatureKNC                  = 0x0000000000200000ull;
+#else
+	/** @anchor	x86_SIMD_Extensions
+	 *  @name	x86 and x86-64 SIMD Extensions
+	 *  @see	yepLibrary_GetCpuSimdFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief MMX instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_MMX_EXTENSION */
+	#define YepX86SimdFeatureMMX                  0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief MMX+ instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_MMXPLUS_EXTENSION */
+	#define YepX86SimdFeatureMMXPlus              0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief EMMX instruction set. */
+	#define YepX86SimdFeatureEMMX                 0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief 3dnow! instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_3DNOW_EXTENSION */
+	#define YepX86SimdFeature3dnow                0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief 3dnow!+ instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_3DNOWPLUS_EXTENSION */
+	#define YepX86SimdFeature3dnowPlus            0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief 3dnow! prefetch instructions. */
+	#define YepX86SimdFeature3dnowPrefetch        0x0000000000000020ull
+	/** @ingroup yepLibrary */
+	/** @brief Geode 3dnow! instructions. */
+	#define YepX86SimdFeature3dnowGeode           0x0000000000000040ull
+	/** @ingroup yepLibrary */
+	/** @brief SSE instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSE_EXTENSION */
+	#define YepX86SimdFeatureSSE                  0x0000000000000080ull
+	/** @ingroup yepLibrary */
+	/** @brief SSE 2 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSE2_EXTENSION */
+	#define YepX86SimdFeatureSSE2                 0x0000000000000100ull
+	/** @ingroup yepLibrary */
+	/** @brief SSE 3 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSE3_EXTENSION */
+	#define YepX86SimdFeatureSSE3                 0x0000000000000200ull
+	/** @ingroup yepLibrary */
+	/** @brief SSSE 3 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSSE3_EXTENSION */
+	#define YepX86SimdFeatureSSSE3                0x0000000000000400ull
+	/** @ingroup yepLibrary */
+	/** @brief SSE 4.1 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSE4_1_EXTENSION */
+	#define YepX86SimdFeatureSSE4_1               0x0000000000000800ull
+	/** @ingroup yepLibrary */
+	/** @brief SSE 4.2 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSE4_2_EXTENSION */
+	#define YepX86SimdFeatureSSE4_2               0x0000000000001000ull
+	/** @ingroup yepLibrary */
+	/** @brief SSE 4A instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_SSE4A_EXTENSION */
+	#define YepX86SimdFeatureSSE4A                0x0000000000002000ull
+	/** @ingroup yepLibrary */
+	/** @brief AVX instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_AVX_EXTENSION */
+	#define YepX86SimdFeatureAVX                  0x0000000000004000ull
+	/** @ingroup yepLibrary */
+	/** @brief AVX 2 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_AVX2_EXTENSION */
+	#define YepX86SimdFeatureAVX2                 0x0000000000008000ull
+	/** @ingroup yepLibrary */
+	/** @brief XOP instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_XOP_EXTENSION */
+	#define YepX86SimdFeatureXOP                  0x0000000000010000ull
+	/** @ingroup yepLibrary */
+	/** @brief F16C instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_F16C_EXTENSION */
+	#define YepX86SimdFeatureF16C                 0x0000000000020000ull
+	/** @ingroup yepLibrary */
+	/** @brief FMA3 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_FMA3_EXTENSION */
+	#define YepX86SimdFeatureFMA3                 0x0000000000040000ull
+	/** @ingroup yepLibrary */
+	/** @brief FMA4 instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_FMA4_EXTENSION */
+	#define YepX86SimdFeatureFMA4                 0x0000000000080000ull
+	/** @ingroup yepLibrary */
+	/** @brief Knights Ferry (aka Larrabee) instruction set. */
+	#define YepX86SimdFeatureKNF                  0x0000000000100000ull
+	/** @ingroup yepLibrary */
+	/** @brief Knights Corner (aka Xeon Phi) instruction set. */
+	/** @see YEP_COMPILER_SUPPORTS_X86_KNC_EXTENSION */
+	#define YepX86SimdFeatureKNC                  0x0000000000200000ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepX86SystemFeatureFPU                = 0x0000000100000000ull;
+	const Yep64u YepX86SystemFeatureSSE                = 0x0000000200000000ull;
+	const Yep64u YepX86SystemFeatureAVX                = 0x0000000400000000ull;
+	const Yep64u YepX86SystemFeatureMisalignedSSE      = 0x0000000800000000ull;
+	const Yep64u YepX86SystemFeatureACE                = 0x0000001000000000ull;
+	const Yep64u YepX86SystemFeatureACE2               = 0x0000002000000000ull;
+	const Yep64u YepX86SystemFeatureRNG                = 0x0000004000000000ull;
+	const Yep64u YepX86SystemFeaturePHE                = 0x0000008000000000ull;
+	const Yep64u YepX86SystemFeaturePMM                = 0x0000010000000000ull;
+	const Yep64u YepX86SystemFeatureMIC                = 0x0000020000000000ull;
+#else
+	/** @anchor	x86_CPU_and_System_Features
+	 *  @name	x86 and x86-64 CPU and System Features
+	 *  @see	yepLibrary_GetCpuSystemFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief The CPU has x87 FPU registers, and the operating systems preserves them during context switch. */
+	#define YepX86SystemFeatureFPU                0x0000000100000000ull
+	/** @ingroup yepLibrary */
+	/** @brief The CPU has SSE registers, and the operating systems preserves them during context switch. */
+	#define YepX86SystemFeatureSSE                0x0000000200000000ull
+	/** @ingroup yepLibrary */
+	/** @brief The CPU has AVX registers, and the operating systems preserves them during context switch. */
+	#define YepX86SystemFeatureAVX                0x0000000400000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Processor allows to use misaligned memory operands in SSE instructions other than loads and stores. */
+	#define YepX86SystemFeatureMisalignedSSE      0x0000000800000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine. */
+	#define YepX86SystemFeatureACE                0x0000001000000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine 2. */
+	#define YepX86SystemFeatureACE2               0x0000002000000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Processor and the operating system support the Padlock Random Number Generator. */
+	#define YepX86SystemFeatureRNG                0x0000004000000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Processor and the operating system support the Padlock Hash Engine. */
+	#define YepX86SystemFeaturePHE                0x0000008000000000ull
+	/** @ingroup yepLibrary */
+	/** @brief Processor and the operating system support the Padlock Montgomery Multiplier. */
+	#define YepX86SystemFeaturePMM                0x0000010000000000ull
+	/** @ingroup yepLibrary */
+	/** @brief The CPU has MIC registers, and the operating system preserves them during context switch. */
+	#define YepX86SystemFeatureMIC                0x0000020000000000ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepIA64IsaFeatureBrl                  = 0x0000000000000001ull;
+	const Yep64u YepIA64IsaFeatureAtomic128            = 0x0000000000000002ull;
+	const Yep64u YepIA64IsaFeatureClz                  = 0x0000000000000004ull;
+	const Yep64u YepIA64IsaFeatureMpy4                 = 0x0000000000000008ull;
+#else
+	/** @anchor	IA64_ISA_Extensions
+	 *  @name	IA64 ISA Extensions
+	 *  @see	yepLibrary_GetCpuIsaFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief Long branch instruction. */
+	#define YepIA64IsaFeatureBrl                  0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief Atomic 128-bit (16-byte) loads, stores, and CAS. */
+	#define YepIA64IsaFeatureAtomic128            0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief CLZ (count leading zeros) instruction. */
+	#define YepIA64IsaFeatureClz                  0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief MPY4 and MPYSHL4 (Truncated 32-bit multiplication) instructions. */
+	#define YepIA64IsaFeatureMpy4                 0x0000000000000008ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepARMIsaFeatureV4                    = 0x0000000000000001ull;
+	const Yep64u YepARMIsaFeatureV5                    = 0x0000000000000002ull;
+	const Yep64u YepARMIsaFeatureV5E                   = 0x0000000000000004ull;
+	const Yep64u YepARMIsaFeatureV6                    = 0x0000000000000008ull;
+	const Yep64u YepARMIsaFeatureV6K                   = 0x0000000000000010ull;
+	const Yep64u YepARMIsaFeatureV7                    = 0x0000000000000020ull;
+	const Yep64u YepARMIsaFeatureV7MP                  = 0x0000000000000040ull;
+	const Yep64u YepARMIsaFeatureThumb                 = 0x0000000000000080ull;
+	const Yep64u YepARMIsaFeatureThumb2                = 0x0000000000000100ull;
+	const Yep64u YepARMIsaFeatureThumbEE               = 0x0000000000000200ull;
+	const Yep64u YepARMIsaFeatureJazelle               = 0x0000000000000400ull;
+	const Yep64u YepARMIsaFeatureFPA                   = 0x0000000000000800ull;
+	const Yep64u YepARMIsaFeatureVFP                   = 0x0000000000001000ull;
+	const Yep64u YepARMIsaFeatureVFP2                  = 0x0000000000002000ull;
+	const Yep64u YepARMIsaFeatureVFP3                  = 0x0000000000004000ull;
+	const Yep64u YepARMIsaFeatureVFPd32                = 0x0000000000008000ull;
+	const Yep64u YepARMIsaFeatureVFP3HP                = 0x0000000000010000ull;
+	const Yep64u YepARMIsaFeatureVFP4                  = 0x0000000000020000ull;
+	const Yep64u YepARMIsaFeatureDiv                   = 0x0000000000040000ull;
+	const Yep64u YepARMIsaFeatureArmada                = 0x0000000000080000ull;
+#else
+	/** @anchor	ARM_ISA_Extensions
+	 *  @name	ARM ISA Extensions
+	 *  @see	yepLibrary_GetCpuIsaFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief ARMv4 instruction set. */
+	#define YepARMIsaFeatureV4                    0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief ARMv5 instruciton set. */
+	#define YepARMIsaFeatureV5                    0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief ARMv5 DSP instructions. */
+	#define YepARMIsaFeatureV5E                   0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief ARMv6 instruction set. */
+	#define YepARMIsaFeatureV6                    0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief ARMv6 Multiprocessing extensions. */
+	#define YepARMIsaFeatureV6K                   0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief ARMv7 instruction set. */
+	#define YepARMIsaFeatureV7                    0x0000000000000020ull
+	/** @ingroup yepLibrary */
+	/** @brief ARMv7 Multiprocessing extensions. */
+	#define YepARMIsaFeatureV7MP                  0x0000000000000040ull
+	/** @ingroup yepLibrary */
+	/** @brief Thumb mode. */
+	#define YepARMIsaFeatureThumb                 0x0000000000000080ull
+	/** @ingroup yepLibrary */
+	/** @brief Thumb 2 mode. */
+	#define YepARMIsaFeatureThumb2                0x0000000000000100ull
+	/** @ingroup yepLibrary */
+	/** @brief Thumb EE mode. */
+	#define YepARMIsaFeatureThumbEE               0x0000000000000200ull
+	/** @ingroup yepLibrary */
+	/** @brief Jazelle extensions. */
+	#define YepARMIsaFeatureJazelle               0x0000000000000400ull
+	/** @ingroup yepLibrary */
+	/** @brief FPA instructions. */
+	#define YepARMIsaFeatureFPA                   0x0000000000000800ull
+	/** @ingroup yepLibrary */
+	/** @brief VFP instruction set. */
+	#define YepARMIsaFeatureVFP                   0x0000000000001000ull
+	/** @ingroup yepLibrary */
+	/** @brief VFPv2 instruction set. */
+	#define YepARMIsaFeatureVFP2                  0x0000000000002000ull
+	/** @ingroup yepLibrary */
+	/** @brief VFPv3 instruction set. */
+	#define YepARMIsaFeatureVFP3                  0x0000000000004000ull
+	/** @ingroup yepLibrary */
+	/** @brief VFP implementation with 32 double-precision registers. */
+	#define YepARMIsaFeatureVFPd32                0x0000000000008000ull
+	/** @ingroup yepLibrary */
+	/** @brief VFPv3 half precision extension. */
+	#define YepARMIsaFeatureVFP3HP                0x0000000000010000ull
+	/** @ingroup yepLibrary */
+	/** @brief VFPv4 instruction set. */
+	#define YepARMIsaFeatureVFP4                  0x0000000000020000ull
+	/** @ingroup yepLibrary */
+	/** @brief SDIV and UDIV instructions. */
+	#define YepARMIsaFeatureDiv                   0x0000000000040000ull
+	/** @ingroup yepLibrary */
+	/** @brief Marvell Armada instruction extensions. */
+	#define YepARMIsaFeatureArmada                0x0000000000080000ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepARMSimdFeatureXScale               = 0x0000000000000001ull;
+	const Yep64u YepARMSimdFeatureWMMX                 = 0x0000000000000002ull;
+	const Yep64u YepARMSimdFeatureWMMX2                = 0x0000000000000004ull;
+	const Yep64u YepARMSimdFeatureNEON                 = 0x0000000000000008ull;
+	const Yep64u YepARMSimdFeatureNEONHP               = 0x0000000000000010ull;
+	const Yep64u YepARMSimdFeatureNEON2                = 0x0000000000000020ull;
+#else
+	/** @anchor	ARM_SIMD_Extensions
+	 *  @name	ARM SIMD Extensions
+	 *  @see	yepLibrary_GetCpuSimdFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief XScale instructions. */
+	#define YepARMSimdFeatureXScale               0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief Wireless MMX instruction set. */
+	#define YepARMSimdFeatureWMMX                 0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief Wireless MMX 2 instruction set. */
+	#define YepARMSimdFeatureWMMX2                0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief NEON (Advanced SIMD) instruction set. */
+	#define YepARMSimdFeatureNEON                 0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief NEON (Advanced SIMD) half-precision extension. */
+	#define YepARMSimdFeatureNEONHP               0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief NEON (Advanced SIMD) v2 instruction set. */
+	#define YepARMSimdFeatureNEON2                0x0000000000000020ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepARMSystemFeatureVFPVectorMode      = 0x0000000100000000ull;
+#else
+	/** @anchor	ARM_CPU_and_System_Features
+	 *  @name	ARM CPU and System Features
+	 *  @see	yepLibrary_GetCpuSystemFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief VFP vector mode is supported in hardware. */
+	#define YepARMSystemFeatureVFPVectorMode      0x0000000100000000ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepMIPSIsaFeatureR2            = 0x0000000000000001ull;
+	const Yep64u YepMIPSIsaFeatureMicroMIPS     = 0x0000000000000002ull;
+	const Yep64u YepMIPSIsaFeatureFPU           = 0x0000000000000004ull;
+	const Yep64u YepMIPSIsaFeatureMT            = 0x0000000000000008ull;
+	const Yep64u YepMIPSIsaFeatureMIPS16        = 0x0000000000000010ull;
+	const Yep64u YepMIPSIsaFeatureSmartMIPS     = 0x0000000000000020ull;
+#else
+	/** @anchor	MIPS_ISA_Extensions
+	 *  @name	MIPS ISA Extensions
+	 *  @see	yepLibrary_GetCpuIsaFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief MIPS32/MIPS64 Release 2 architecture. */
+	#define YepMIPSIsaFeatureR2                   0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief MicroMIPS extension. */
+	/** @bug Not detected in this @Yeppp release. */
+	#define YepMIPSIsaFeatureMicroMIPS            0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief FPU with S, D, and W formats and instructions. */
+	#define YepMIPSIsaFeatureFPU                  0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief Multi-threading extension. */
+	#define YepMIPSIsaFeatureMT                   0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief MIPS16 extension. */
+	#define YepMIPSIsaFeatureMIPS16               0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief SmartMIPS extension. */
+	#define YepMIPSIsaFeatureSmartMIPS            0x0000000000000020ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepMIPSSimdFeatureMDMX         = 0x0000000000000001ull;
+	const Yep64u YepMIPSSimdFeatureMIPS3D       = 0x0000000000000002ull;
+	const Yep64u YepMIPSSimdFeaturePairedSingle = 0x0000000000000004ull;
+	const Yep64u YepMIPSSimdFeatureDSP          = 0x0000000000000008ull;
+	const Yep64u YepMIPSSimdFeatureDSP2         = 0x0000000000000010ull;
+	const Yep64u YepMIPSSimdFeatureGodsonMMX    = 0x0000000000000020ull;
+	const Yep64u YepMIPSSimdFeatureIMX          = 0x0000000000000040ull;
+#else
+	/** @anchor	MIPS_SIMD_Extensions
+	 *  @name	MIPS SIMD Extensions
+	 *  @see	yepLibrary_GetCpuSimdFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary */
+	/** @brief MDMX instruction set. */
+	#define YepMIPSSimdFeatureMDMX                0x0000000000000001ull
+	/** @ingroup yepLibrary */
+	/** @brief MIPS3D instruction set. */
+	#define YepMIPSSimdFeatureMIPS3D              0x0000000000000002ull
+	/** @ingroup yepLibrary */
+	/** @brief Paired-single instructions. */
+	#define YepMIPSSimdFeaturePairedSingle        0x0000000000000004ull
+	/** @ingroup yepLibrary */
+	/** @brief MIPS DSP extension. */
+	#define YepMIPSSimdFeatureDSP                 0x0000000000000008ull
+	/** @ingroup yepLibrary */
+	/** @brief MIPS DSP Release 2 extension. */
+	#define YepMIPSSimdFeatureDSP2                0x0000000000000010ull
+	/** @ingroup yepLibrary */
+	/** @brief Loongson (Godson) MMX instruction set. */
+	/** @bug Not detected in this @Yeppp release. */
+	#define YepMIPSSimdFeatureGodsonMMX           0x0000000000000020ull
+	/** @ingroup yepLibrary */
+	/** @brief Ingenic Media Extension. */
+	#define YepMIPSSimdFeatureIMX                 0x0000000000000040ull
+	/**@}*/
+#endif
+	
 #ifdef __cplusplus
 }
 #endif
