@@ -20,7 +20,7 @@ def SCALAR_INT_ADD_SUB(xPointer, yPointer, zPointer, x_type, y_type, z_type, ope
 
 	STORE.ELEMENT( [zPointer], acc, z_type )
 
-def AddSub_VusVus_Vus_implementation(codegen, function_signature, module, function, inputs, outputs, arguments):
+def AddSub_VusVus_Vus_implementation(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract']:
@@ -147,7 +147,7 @@ def SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type):
 	
 	STORE.ELEMENT( [zPointer], acc, z_type )
 
-def Mul_VTuVTu_VTu_implementation(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Mul_VTuVTu_VTu_implementation(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -309,7 +309,7 @@ def Mul_VTuVTu_VTu_implementation(codegen, function_signature, module, function,
 
 				return codegen.end_function()
 
-def Mul_V16usV16us_V32us_implementation(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Mul_V16usV16us_V32us_implementation(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -412,7 +412,7 @@ def Mul_V16usV16us_V32us_implementation(codegen, function_signature, module, fun
 
 				return codegen.end_function()
 
-def Mul_V32usV32us_V64us_implementation(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Mul_V32usV32us_V64us_implementation(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -565,7 +565,7 @@ def Mul_V32usV32us_V64us_implementation(codegen, function_signature, module, fun
 
 				return codegen.end_function()
 
-def AddSubMulMinMax_VfVf_Vf_implementation(codegen, function_signature, module, function, inputs, outputs, arguments):
+def AddSubMulMinMax_VfVf_Vf_implementation(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract', 'Multiply', 'Min', 'Max']:
@@ -735,7 +735,7 @@ def AddSubMulMinMax_VfVf_Vf_implementation(codegen, function_signature, module, 
 
 				return codegen.end_function()
 
-def SumSquares_Vf_Sf_implementation_Nehalem(codegen, function_signature, module, function, inputs, outputs, arguments):
+def SumSquares_Vf_Sf_implementation_Nehalem(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumSquares']:
@@ -912,7 +912,7 @@ def SumSquares_Vf_Sf_implementation_Nehalem(codegen, function_signature, module,
 
 				return codegen.end_function()
 
-def SumSquares_Vf_Sf_implementation_SandyBridge(codegen, function_signature, module, function, inputs, outputs, arguments):
+def SumSquares_Vf_Sf_implementation_SandyBridge(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumSquares']:
@@ -1101,7 +1101,7 @@ def SumSquares_Vf_Sf_implementation_SandyBridge(codegen, function_signature, mod
 
 				return codegen.end_function()
 
-def SumSquares_Vf_Sf_implementation_Bulldozer(codegen, function_signature, module, function, inputs, outputs, arguments):
+def SumSquares_Vf_Sf_implementation_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumSquares']:
@@ -1272,7 +1272,7 @@ def SumSquares_Vf_Sf_implementation_Bulldozer(codegen, function_signature, modul
 
 				return codegen.end_function()
 
-def DotProduct_VfVf_Sf_implementation_SandyBridge(codegen, function_signature, module, function, inputs, outputs, arguments):
+def DotProduct_VfVf_Sf_implementation_SandyBridge(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
@@ -1416,7 +1416,7 @@ def DotProduct_VfVf_Sf_implementation_SandyBridge(codegen, function_signature, m
 
 				return codegen.end_function()
 
-def DotProduct_VfVf_Sf_implementation_Haswell(codegen, function_signature, module, function, inputs, outputs, arguments):
+def DotProduct_VfVf_Sf_implementation_Haswell(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
@@ -1559,7 +1559,7 @@ def DotProduct_VfVf_Sf_implementation_Haswell(codegen, function_signature, modul
 
 				return codegen.end_function()
 
-def DotProduct_VfVf_Sf_implementation_Nehalem(codegen, function_signature, module, function, inputs, outputs, arguments):
+def DotProduct_VfVf_Sf_implementation_Nehalem(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
@@ -1689,7 +1689,7 @@ def DotProduct_VfVf_Sf_implementation_Nehalem(codegen, function_signature, modul
 
 				return codegen.end_function()
 
-def DotProduct_VfVf_Sf_implementation_Bulldozer(codegen, function_signature, module, function, inputs, outputs, arguments):
+def DotProduct_VfVf_Sf_implementation_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
@@ -1821,7 +1821,7 @@ def DotProduct_VfVf_Sf_implementation_Bulldozer(codegen, function_signature, mod
 
 				return codegen.end_function()
 
-def DotProduct_V64fV64f_S64f_implementation_Bonnell(codegen, function_signature, module, function, inputs, outputs, arguments):
+def DotProduct_V64fV64f_S64f_implementation_Bonnell(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
