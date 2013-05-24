@@ -38,7 +38,6 @@ class Entropy {
 		System.out.println("Yeppp! implementation:");
 		System.out.println(String.format("\tEntropy = %f", entropyYeppp));
 		System.out.println(String.format("\tTime = %f secs", ulongToDouble(endTimeYeppp - startTimeYeppp) / ulongToDouble(frequency)));
-		
 	}
 	
 	/* The naive implementation of entropy computation using log function for LibM */

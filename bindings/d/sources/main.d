@@ -9,7 +9,9 @@
 pragma(lib, "yeppp-d.lib");
 pragma(lib, "yeppp.lib");
 
-import yeppp;
+import yeppp.types;
+import yeppp.library;
+
 static import std.stdio;
 static import std.conv;
 

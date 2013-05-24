@@ -1,13 +1,23 @@
 all: yeplibrary.mod yepcore.mod yepmath.mod
 
+ifeq ($(FC),gfortran)
+FFLAGS += -std=f2003
+FFLAGS += -fsyntax-only
+endif
+
+ifeq ($(FC),ifort)
+FFLAGS += -std03
+FFLAGS += -syntax-only
+endif
+
 yeplibrary.mod:
-	gfortran -std=f2003 -fsyntax-only yepLibrary.f90
+	$(FC) $(FFLAGS) yepLibrary.f90
 
 yepcore.mod:
-	gfortran -std=f2003 -fsyntax-only yepCore.f90
+	$(FC) $(FFLAGS) yepCore.f90
 
 yepmath.mod:
-	gfortran -std=f2003 -fsyntax-only yepMath.f90
+	$(FC) $(FFLAGS) yepMath.f90
 
 clean:
 	rm -f *.mod

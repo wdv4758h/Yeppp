@@ -1898,7 +1898,7 @@ def BATCH_LOG_FULL_Bulldozer(xPointer, yPointer):
 		VMOVUPD( [yPointer + i * 32], ymm_f[i].get_oword() )
 		VEXTRACTF128( [yPointer + i * 32 + 16], ymm_f[i], 1 )
 
-def Log_V64f_V64f_Bobcat(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Log_V64f_V64f_Bobcat(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Log':
@@ -1928,7 +1928,7 @@ def Log_V64f_V64f_Bobcat(codegen, function_signature, module, function, inputs, 
 
 				return codegen.end_function()
 
-def Log_V64f_V64f_K10(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Log_V64f_V64f_K10(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Log':
@@ -1958,7 +1958,7 @@ def Log_V64f_V64f_K10(codegen, function_signature, module, function, inputs, out
 
 				return codegen.end_function()
 
-def Log_V64f_V64f_Nehalem(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Log_V64f_V64f_Nehalem(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Log':
@@ -1988,7 +1988,7 @@ def Log_V64f_V64f_Nehalem(codegen, function_signature, module, function, inputs,
 
 				return codegen.end_function()
 
-def Log_V64f_V64f_SandyBridge(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Log_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Log':
@@ -2018,7 +2018,7 @@ def Log_V64f_V64f_SandyBridge(codegen, function_signature, module, function, inp
 
 				return codegen.end_function()
 
-def Log_V64f_V64f_Bulldozer(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Log_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Math':
 			if function == 'Log':
@@ -3851,7 +3851,7 @@ def BATCH_EXP_FULL_Haswell(xPointer, yPointer):
 		# *yPointer = rf
 		VMOVUPD( [yPointer + i * 32], ymm_rf[i] )
 
-def Exp_V64f_V64f_Bobcat(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Exp_V64f_V64f_Bobcat(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -3881,7 +3881,7 @@ def Exp_V64f_V64f_Bobcat(codegen, function_signature, module, function, inputs, 
 
 				return codegen.end_function()
 
-def Exp_V64f_V64f_K10(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Exp_V64f_V64f_K10(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -3911,7 +3911,7 @@ def Exp_V64f_V64f_K10(codegen, function_signature, module, function, inputs, out
 
 				return codegen.end_function()
 
-def Exp_V64f_V64f_Nehalem(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Exp_V64f_V64f_Nehalem(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -3941,7 +3941,7 @@ def Exp_V64f_V64f_Nehalem(codegen, function_signature, module, function, inputs,
 
 				return codegen.end_function()
 
-def Exp_V64f_V64f_SandyBridge(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Exp_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -3971,7 +3971,7 @@ def Exp_V64f_V64f_SandyBridge(codegen, function_signature, module, function, inp
 
 				return codegen.end_function()
 
-def Exp_V64f_V64f_Bulldozer(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Exp_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -4001,7 +4001,7 @@ def Exp_V64f_V64f_Bulldozer(codegen, function_signature, module, function, input
 
 				return codegen.end_function()
 
-def Exp_V64f_V64f_Haswell(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Exp_V64f_V64f_Haswell(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -4031,7 +4031,7 @@ def Exp_V64f_V64f_Haswell(codegen, function_signature, module, function, inputs,
 
 				return codegen.end_function()
 
-def Sin_V64f_V64f_Nehalem(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Sin_V64f_V64f_Nehalem(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
@@ -4264,7 +4264,7 @@ def Sin_V64f_V64f_Nehalem(codegen, function_signature, module, function, inputs,
 
 				return codegen.end_function()
 
-def Sin_V64f_V64f_SandyBridge(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Sin_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
@@ -4533,7 +4533,7 @@ def Sin_V64f_V64f_SandyBridge(codegen, function_signature, module, function, inp
 
 				return codegen.end_function()
 
-def Sin_V64f_V64f_Bulldozer(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Sin_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
@@ -4794,7 +4794,7 @@ def Sin_V64f_V64f_Bulldozer(codegen, function_signature, module, function, input
 
 				return codegen.end_function()
 
-def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, inputs, outputs, arguments):
+def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Tan':

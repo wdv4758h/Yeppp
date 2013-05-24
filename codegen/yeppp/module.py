@@ -3,12 +3,13 @@ import yeppp.codegen
 
 class Module:
 	def __init__(self, name, description):
-		self.name = name.title()
+		self.name = name
 		self.description = description
 		self.public_header_generator = None
 		self.module_header_generator = None
 		self.module_initialization_generator = None
 		self.java_class_generator = None
+		self.fortran_module_generator = None
 	
 	def __str__(self):
 		return self.name
@@ -56,6 +57,14 @@ class Module:
 		self.java_class_generator.dedent()
 		self.java_class_generator.add_line("}")
 		
+		self.fortran_module_generator = peachpy.codegen.CodeGenerator(use_tabs = False)
+		self.fortran_module_generator.add_fortran90_comment(yeppp.License.source_license)
+		self.fortran_module_generator.add_line()
+		self.fortran_module_generator.add_line("MODULE yep{0}".format(self.name))
+		self.fortran_module_generator.indent()
+		self.fortran_module_generator.add_line("INTERFACE")
+		self.fortran_module_generator.indent()
+		
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
@@ -72,6 +81,12 @@ class Module:
 			self.java_class_generator.dedent()
 			self.java_class_generator.add_line("}")
 			self.java_class_generator.add_line()
+
+			self.fortran_module_generator.dedent()
+			self.fortran_module_generator.add_line("END INTERFACE")
+			self.fortran_module_generator.dedent()
+			self.fortran_module_generator.add_line("END MODULE yep{0}".format(self.name))
+			self.fortran_module_generator.add_line()
 		
 			with open("library/sources/{0}/functions.h".format(self.name.lower()), "w+") as module_header_file:
 				module_header_file.write(self.module_header_generator.get_code())
@@ -82,12 +97,16 @@ class Module:
 		
 			with open("bindings/java/sources-java/info/yeppp/{0}.java".format(self.name), "w+") as java_class_file:
 				java_class_file.write(self.java_class_generator.get_code())
+		
+			with open("bindings/fortran/sources/yep{0}.f90".format(self.name), "w+") as fortran_module_file:
+				fortran_module_file.write(self.fortran_module_generator.get_code())
+
 		return False
 
 class Function:
 	def __init__(self, module, name, description):
 		self.module = module
-		self.name = name.title()
+		self.name = name
 		self.description = description
 		self.assembly_implementations = list()
 		self.function_generator = None
@@ -104,22 +123,18 @@ class Function:
 		self.function_generator.module_header_generator = self.module.module_header_generator
 		self.function_generator.module_initialization_generator = self.module.module_initialization_generator
 		self.function_generator.java_class_generator = self.module.java_class_generator
+		self.function_generator.fortran_module_generator = self.module.fortran_module_generator
 		self.function_generator.generate_group_prolog(str(self.module), self.name, self.description, yeppp.License.header_license, yeppp.License.source_license)
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
 		if exc_type is None:
-			self.function_generator.generate_group_epilog(str(self.module).lower(), self.name)
+			self.function_generator.generate_group_epilog(self.module.name, self.name)
 		return False
 
 	def generate(self, declaration):
-		self.function_generator.assembly_codegens = self.assembly_implementations
-		if self.c_documentation is not None:
-			self.function_generator.default_documentation = self.c_documentation
-		else:
-			if hasattr(self.function_generator, "default_documentation"):
-				delattr(self.function_generator, "default_documentation") 
-		if self.java_documentation is not None:
-			self.function_generator.java_documentation = self.java_documentation
-		self.function_generator.default_implementation_code = self.c_implementation
-		self.function_generator.generate_function(declaration)
+		self.function_generator.assembly_implementations = self.assembly_implementations
+		self.function_generator.default_documentation = self.c_documentation
+		self.function_generator.java_documentation = self.java_documentation
+		self.function_generator.default_implementation = self.c_implementation
+		self.function_generator.generate(declaration)
