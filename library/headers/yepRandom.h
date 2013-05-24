@@ -59,7 +59,7 @@ extern "C" {
 	 * @retval	#YepStatusNullPointer	The @a state pointer is null.
 	 * @retval	#YepStatusMisalignedPointer	The @a state pointer is not naturally aligned.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init(YepRandom_WELL1024a *YEP_RESTRICT state);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init(struct YepRandom_WELL1024a *YEP_RESTRICT state);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Initializes the state of WELL1024a pseudo-random number generator with the specified seed.
@@ -69,7 +69,7 @@ extern "C" {
 	 * @retval	#YepStatusNullPointer	Either @a state or @a seed pointer is null.
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a seed pointer is not naturally aligned.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init_V32u(YepRandom_WELL1024a *YEP_RESTRICT state, const Yep32u seed[32]);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init_V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, const Yep32u seed[32]);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random 32-bit samples with WELL1024a pseudo-random number generator.
@@ -81,7 +81,7 @@ extern "C" {
 	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random 32-bit samples in the specified range with WELL1024a pseudo-random number generator.
@@ -96,7 +96,7 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u(YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u supportMin, Yep32u supportMax, Yep32u *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u supportMin, Yep32u supportMax, Yep32u *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random single precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 32-bit accuracy.
@@ -111,7 +111,7 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax, or any of the bounds is not finite.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32(YepRandom_WELL1024a *YEP_RESTRICT state, Yep32f supportMin, Yep32f supportMax, Yep32f *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32f supportMin, Yep32f supportMax, Yep32f *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random single precision floating-point samples in the specified range with WELL1024a pseudo-random number generator.
@@ -126,7 +126,7 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax, or any of the bounds is not finite.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S32fS32f_V32f(YepRandom_WELL1024a *YEP_RESTRICT state, Yep32f supportMin, Yep32f supportMax, Yep32f *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S32fS32f_V32f(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32f supportMin, Yep32f supportMax, Yep32f *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random double precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 32-bit accuracy.
@@ -141,7 +141,7 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax, or any of the bounds is not finite.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc32(YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc32(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random double precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 64-bit accuracy.
@@ -156,7 +156,7 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax, or any of the bounds is not finite.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64(YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom
 	 * @brief	Generates random double precision floating-point samples in the specified range with WELL1024a pseudo-random number generator.
@@ -171,7 +171,7 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax, or any of the bounds is not finite.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S64fS64f_V64f(YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S64fS64f_V64f(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
 
 #ifdef __cplusplus
 }
