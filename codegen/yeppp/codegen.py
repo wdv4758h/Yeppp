@@ -420,8 +420,8 @@ class FunctionSpecialization:
 
 		if default_documentation:
 			documentation_lines = filter(bool, (default_documentation % self.documentation_macros).split("\n"))
+			documentation_lines.insert(0, "@ingroup\tyep%s" % self.module_name)
 			if self.assembly_functions['x86'] or self.assembly_functions['x64-sysv']:
-				documentation_lines.insert(0, "@ingroup\tyep%s" % self.module_name)
 				documentation_lines.append("@par\tOptimized implementations")
 				documentation_lines.append("\t\t<table>")
 				documentation_lines.append("\t\t\t<tr><th>Architecture</th><th>Target microarchitecture</th><th>Required instruction extensions</th></tr>")
