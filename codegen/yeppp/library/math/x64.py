@@ -10,18 +10,19 @@ __author__ = 'Marat'
 from peachpy.x64 import *
 from yeppp import Status
 from yeppp.library.math import *
+import math
 
-def Map_V64f_V64f(scalarFunction, batchFunctionFull, batchFunctionFast, xPointer, yPointer, length, sourceAlignment, batchElements):
+def Map_Vf_Vf(scalarFunction, batchFunctionFull, batchFunctionFast, xPointer, yPointer, length, sourceAlignment, batchBytes, elementSize):
 	TEST( xPointer, xPointer )
 	JZ( 'return_null_pointer' )
 	
-	TEST( xPointer, 8 - 1 )
+	TEST( xPointer, elementSize - 1 )
 	JNZ( 'return_misaligned_pointer' )
 	
 	TEST( yPointer, yPointer )
 	JZ( 'return_null_pointer' )
 	
-	TEST( yPointer, 8 - 1 )
+	TEST( yPointer, elementSize - 1 )
 	JNZ( 'return_misaligned_pointer' )
 	
 	TEST( length, length )
@@ -33,9 +34,9 @@ def Map_V64f_V64f(scalarFunction, batchFunctionFull, batchFunctionFast, xPointer
 	
 		# Alignment loop
 		LABEL( 'source_%db_misaligned' % sourceAlignment )
-		scalarFunction(xPointer, yPointer)
-		ADD( xPointer, 8 )
-		ADD( yPointer, 8 )
+		scalarFunction(xPointer, yPointer, is_prologue = True)
+		ADD( xPointer, elementSize )
+		ADD( yPointer, elementSize )
 		SUB( length, 1 )
 		JZ( 'return_ok' )
 		TEST( xPointer, sourceAlignment - 1 )
@@ -43,7 +44,7 @@ def Map_V64f_V64f(scalarFunction, batchFunctionFull, batchFunctionFast, xPointer
 	
 		LABEL( 'source_%db_aligned' % sourceAlignment )
 	
-		SUB( length, batchElements )
+		SUB( length, batchBytes / elementSize )
 		JB( 'process_restore' )
 	
 		ALIGN( 32 )
@@ -54,22 +55,22 @@ def Map_V64f_V64f(scalarFunction, batchFunctionFull, batchFunctionFast, xPointer
 		else:
 			LABEL( 'process_batch_full' )
 			batchFunctionFull(xPointer, yPointer)
-		ADD( xPointer, batchElements * 8 )
-		ADD( yPointer, batchElements * 8 )
-		SUB( length, batchElements )
+		ADD( xPointer, batchBytes )
+		ADD( yPointer, batchBytes )
+		SUB( length, batchBytes / elementSize )
 		if batchFunctionFast is not None:
 			JAE( 'process_batch_fast' )
 		else:
 			JAE( 'process_batch_full' )
 			
 		LABEL( 'process_restore' )
-		ADD( length, batchElements )
+		ADD( length, batchBytes / elementSize )
 		JZ( 'return_ok' )
 
 	LABEL( 'process_single')
-	scalarFunction(xPointer, yPointer)
-	ADD( xPointer, 8 )
-	ADD( yPointer, 8 )
+	scalarFunction(xPointer, yPointer, is_prologue = False)
+	ADD( xPointer, elementSize )
+	ADD( yPointer, elementSize )
 	SUB( length, 1 )
 	JNZ( 'process_single' )
 
@@ -92,7 +93,7 @@ def Map_V64f_V64f(scalarFunction, batchFunctionFull, batchFunctionFast, xPointer
 		batchFunctionFull(xPointer, yPointer)
 		JMP( 'process_batch_increment' )
 
-def SCALAR_LOG_SSE(xPointer, yPointer):
+def SCALAR_LOG_SSE(xPointer, yPointer, is_prologue):
 	microarchitecture = Function.get_current().microarchitecture
 	has_sse4_1 = microarchitecture.is_supported('SSE4.1')
 	has_64bit_units = microarchitecture.get_name() in ['Prescott', 'K8', 'Bobcat']
@@ -299,7 +300,7 @@ def SCALAR_LOG_SSE(xPointer, yPointer):
 		# *yPointer = f
 		MOVSD( [yPointer], xmm_f )
 
-def SCALAR_LOG_AVX(xPointer, yPointer):
+def SCALAR_LOG_AVX(xPointer, yPointer, is_prologue):
 	microarchitecture = Function.get_current().microarchitecture
 	has_fma4 = microarchitecture.is_supported('FMA4')
 
@@ -1924,7 +1925,7 @@ def Log_V64f_V64f_Bobcat(codegen, function_signature, module, function, argument
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_LOG_SSE, BATCH_LOG_FULL_Bobcat, BATCH_LOG_FAST_Bobcat, xPointer, yPointer, length, 16, 6)
+				Map_Vf_Vf(SCALAR_LOG_SSE, BATCH_LOG_FULL_Bobcat, BATCH_LOG_FAST_Bobcat, xPointer, yPointer, length, 16, 16 * 3, 8)
 
 				return codegen.end_function()
 
@@ -1954,7 +1955,7 @@ def Log_V64f_V64f_K10(codegen, function_signature, module, function, arguments):
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_LOG_SSE, BATCH_LOG_FULL_K10, BATCH_LOG_FAST_K10, xPointer, yPointer, length, 16, 16)
+				Map_Vf_Vf(SCALAR_LOG_SSE, BATCH_LOG_FULL_K10, BATCH_LOG_FAST_K10, xPointer, yPointer, length, 16, 16 * 8, 8)
 
 				return codegen.end_function()
 
@@ -1984,7 +1985,7 @@ def Log_V64f_V64f_Nehalem(codegen, function_signature, module, function, argumen
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_LOG_SSE, BATCH_LOG_FULL_Nehalem, BATCH_LOG_FAST_Nehalem, xPointer, yPointer, length, 16, 16)
+				Map_Vf_Vf(SCALAR_LOG_SSE, BATCH_LOG_FULL_Nehalem, BATCH_LOG_FAST_Nehalem, xPointer, yPointer, length, 16, 16 * 8, 8)
 
 				return codegen.end_function()
 
@@ -2014,7 +2015,7 @@ def Log_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arg
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_LOG_AVX, BATCH_LOG_FULL_SandyBridge, BATCH_LOG_FAST_SandyBridge, xPointer, yPointer, length, 32, 32)
+				Map_Vf_Vf(SCALAR_LOG_AVX, BATCH_LOG_FULL_SandyBridge, BATCH_LOG_FAST_SandyBridge, xPointer, yPointer, length, 32, 32 * 8, 8)
 
 				return codegen.end_function()
 
@@ -2049,11 +2050,11 @@ def Log_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 				LOAD.PARAMETER( yPointer, y_argument )
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_LOG_AVX, BATCH_LOG_FULL_Bulldozer, BATCH_LOG_FAST_Bulldozer, xPointer, yPointer, length, 32, 24)
+				Map_Vf_Vf(SCALAR_LOG_AVX, BATCH_LOG_FULL_Bulldozer, BATCH_LOG_FAST_Bulldozer, xPointer, yPointer, length, 32, 32 * 6, 8)
 
 				return codegen.end_function()
 
-def SCALAR_EXP_SSE(xPointer, yPointer):
+def SCALAR_EXP_SSE(xPointer, yPointer, is_prologue):
 	microarchitecture = Function.get_current().microarchitecture
 	has_sse4_1 = microarchitecture.is_supported('SSE4.1')
 	has_64bit_units = microarchitecture.get_name() in ['Prescott', 'K8', 'Bobcat']
@@ -2169,7 +2170,7 @@ def SCALAR_EXP_SSE(xPointer, yPointer):
 
 	MOVSD( [yPointer], xmm_rf )
 
-def SCALAR_EXP_AVX(xPointer, yPointer):
+def SCALAR_EXP_AVX(xPointer, yPointer, is_prologue):
 	microarchitecture = Function.get_current().microarchitecture
 	has_fma4 = microarchitecture.is_supported('FMA4')
 	has_fma3 = microarchitecture.is_supported('FMA3')
@@ -3877,7 +3878,7 @@ def Exp_V64f_V64f_Bobcat(codegen, function_signature, module, function, argument
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_EXP_SSE, BATCH_EXP_FULL_Bobcat, BATCH_EXP_FAST_Bobcat, xPointer, yPointer, length, 16, 8)
+				Map_Vf_Vf(SCALAR_EXP_SSE, BATCH_EXP_FULL_Bobcat, BATCH_EXP_FAST_Bobcat, xPointer, yPointer, length, 16, 16 * 4, 8)
 
 				return codegen.end_function()
 
@@ -3907,7 +3908,7 @@ def Exp_V64f_V64f_K10(codegen, function_signature, module, function, arguments):
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_EXP_SSE, BATCH_EXP_FULL_K10, BATCH_EXP_FAST_K10, xPointer, yPointer, length, 16, 16)
+				Map_Vf_Vf(SCALAR_EXP_SSE, BATCH_EXP_FULL_K10, BATCH_EXP_FAST_K10, xPointer, yPointer, length, 16, 16 * 8, 8)
 
 				return codegen.end_function()
 
@@ -3937,7 +3938,7 @@ def Exp_V64f_V64f_Nehalem(codegen, function_signature, module, function, argumen
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_EXP_SSE, BATCH_EXP_FULL_Nehalem, BATCH_EXP_FAST_Nehalem, xPointer, yPointer, length, 16, 16)
+				Map_Vf_Vf(SCALAR_EXP_SSE, BATCH_EXP_FULL_Nehalem, BATCH_EXP_FAST_Nehalem, xPointer, yPointer, length, 16, 16 * 8, 8)
 
 				return codegen.end_function()
 
@@ -3967,7 +3968,7 @@ def Exp_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arg
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_EXP_AVX, BATCH_EXP_FULL_SandyBridge, BATCH_EXP_FAST_SandyBridge, xPointer, yPointer, length, 32, 32)
+				Map_Vf_Vf(SCALAR_EXP_AVX, BATCH_EXP_FULL_SandyBridge, BATCH_EXP_FAST_SandyBridge, xPointer, yPointer, length, 32, 32 * 8, 8)
 
 				return codegen.end_function()
 
@@ -3997,7 +3998,7 @@ def Exp_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_EXP_AVX, BATCH_EXP_FULL_Bulldozer, BATCH_EXP_FAST_Bulldozer, xPointer, yPointer, length, 32, 20)
+				Map_Vf_Vf(SCALAR_EXP_AVX, BATCH_EXP_FULL_Bulldozer, BATCH_EXP_FAST_Bulldozer, xPointer, yPointer, length, 32, 32 * 5, 8)
 
 				return codegen.end_function()
 
@@ -4027,17 +4028,553 @@ def Exp_V64f_V64f_Haswell(codegen, function_signature, module, function, argumen
 				length = GeneralPurposeRegister64()
 				LOAD.PARAMETER( length, length_argument )
 
-				Map_V64f_V64f(SCALAR_EXP_AVX, BATCH_EXP_FULL_Haswell, BATCH_EXP_FAST_Haswell, xPointer, yPointer, length, 32, 32)
+				Map_Vf_Vf(SCALAR_EXP_AVX, BATCH_EXP_FULL_Haswell, BATCH_EXP_FAST_Haswell, xPointer, yPointer, length, 32, 32 * 8, 8)
 
 				return codegen.end_function()
+
+def SCALAR_SIN_SSE(xPointer, yPointer, is_prologue):
+	microarchitecture = Function.get_current().microarchitecture
+	has_sse4_1 = microarchitecture.is_supported('SSE4.1')
+	has_64bit_units = microarchitecture.get_name() in ['Prescott', 'K8', 'Bobcat']
+	if has_64bit_units:
+		def SCALAR_COPY(destination, source):
+			ASSUME.INITIALIZED( destination )
+			MOVSD( destination, source )
+	else:
+		def SCALAR_COPY(destination, source):
+			MOVAPS( destination, source )
+
+	# x = *xPointer
+	xmm_x = SSERegister()
+	MOVSD( xmm_x, [xPointer] )
+	# t = (x * (2/Pi)) + magic_bias
+	xmm_t = SSERegister()
+	SCALAR_COPY( xmm_t, xmm_x )
+	MULSD( xmm_t, Constant.float64(TrigReduction.two_over_pi) )
+	ADDSD( xmm_t, Constant.float64(Sin.magic_bias) )
+	# n = (int(t) % 4) << 62
+	xmm_n = xmm0
+	SCALAR_COPY( xmm_n, xmm_t )
+	PSLLQ( xmm_n, 62 )
+	# t -= magic_bias
+	SUBSD( xmm_t, Constant.float64(Sin.magic_bias) )
+	# x += t * (-pi/2)_hi
+	xmm_temp = SSERegister()
+	LOAD.CONSTANT( xmm_temp, Constant.float64(TrigReduction.minus_pi_o2_hi) )
+	MULSD( xmm_temp, xmm_t )
+	ADDSD( xmm_x, xmm_temp )
+	# x += t * (-pi/2)_me
+	xmm_a = SSERegister()
+	SCALAR_COPY( xmm_a, xmm_x )
+	xmm_temp = SSERegister()
+	LOAD.CONSTANT( xmm_temp, Constant.float64(TrigReduction.minus_pi_o2_me) )
+	MULSD( xmm_temp, xmm_t )
+	ADDSD( xmm_x, xmm_temp )
+	xmm_z = SSERegister()
+	SCALAR_COPY( xmm_z, xmm_x )
+	SUBSD( xmm_z, xmm_a )
+	SUBSD( xmm_temp, xmm_z )
+	# x += t * (-pi/2)_lo
+	MULSD( xmm_t, Constant.float64(TrigReduction.minus_pi_o2_lo) )
+	ADDSD( xmm_t, xmm_temp )
+	ADDSD( xmm_x, xmm_t )
+
+	# sqrx = x * x
+	xmm_sqrx = SSERegister()
+	SCALAR_COPY( xmm_sqrx, xmm_x )
+	MULSD( xmm_sqrx, xmm_sqrx )
+
+	xmm_sin = SSERegister()
+	xmm_cos = SSERegister()
+	LOAD.CONSTANT( xmm_cos, Constant.float64(Cos.c14) )
+	LOAD.CONSTANT( xmm_sin, Constant.float64(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		MULSD( acc, xmm_sqrx )
+		ADDSD( acc, coef )
+
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c12) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c11) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c10) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c8) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c6) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c4) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c2) )
+	MULSD( xmm_sin, xmm_sqrx )
+	MULSD( xmm_cos, xmm_sqrx )
+	MULSD( xmm_sin, xmm_x )
+	ADDSD( xmm_sin, xmm_x )
+	ADDSD( xmm_cos, Constant.float64(Cos.c0) )
+
+	xmm_sign = SSERegister()
+	LOAD.CONSTANT( xmm_sign, Constant.float64(Sin.sign_mask) )
+	PAND( xmm_sign, xmm_n )
+	PADDQ( xmm_n, xmm_n )
+	BLENDVPD( xmm_sin, xmm_cos, xmm_n )
+	XORPD( xmm_sin, xmm_sign )
+	MOVSD( [yPointer], xmm_sin )
+
+def SCALAR_SIN_AVX(xPointer, yPointer, is_prologue):
+	microarchitecture = Function.get_current().microarchitecture
+	has_fma4 = microarchitecture.is_supported('FMA4')
+	has_fma3 = microarchitecture.is_supported('FMA3')
+
+	# x = *xPointer
+	xmm_x = SSERegister()
+	VMOVSD( xmm_x, [xPointer] )
+	# t = (x * (2/Pi)) + magic_bias
+	xmm_t = SSERegister()
+	ASSUME.INITIALIZED( xmm_t )
+	VMULSD( xmm_t, xmm_x, Constant.float64(TrigReduction.two_over_pi) )
+	VADDSD( xmm_t, xmm_t, Constant.float64(Sin.magic_bias) )
+	# n = (int(t) % 4) << 62
+	xmm_n = SSERegister()
+	VPSLLQ( xmm_n, xmm_t, 62 )
+	# t -= magic_bias
+	VSUBSD( xmm_t, xmm_t, Constant.float64(Sin.magic_bias) )
+	# x += t * (-pi/2)_hi
+	xmm_temp = SSERegister()
+	ASSUME.INITIALIZED( xmm_temp )
+	VMULSD( xmm_temp, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_hi) )
+	VADDSD( xmm_x, xmm_x, xmm_temp )
+	# x += t * (-pi/2)_me
+	xmm_a = SSERegister()
+	VMOVAPS( xmm_a, xmm_x )
+	xmm_temp = SSERegister()
+	ASSUME.INITIALIZED( xmm_temp )
+	VMULSD( xmm_temp, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_me) )
+	VADDSD( xmm_x, xmm_temp )
+	xmm_z = SSERegister()
+	ASSUME.INITIALIZED( xmm_z )
+	VSUBSD( xmm_z, xmm_x, xmm_a )
+	VSUBSD( xmm_temp, xmm_temp, xmm_z )
+	# x += t * (-pi/2)_lo
+	VMULSD( xmm_t, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_lo) )
+	VADDSD( xmm_t, xmm_t, xmm_temp )
+	VADDSD( xmm_x, xmm_x, xmm_t )
+
+	# sqrx = x * x
+	xmm_sqrx = SSERegister()
+	ASSUME.INITIALIZED( xmm_sqrx )
+	VMULSD( xmm_sqrx, xmm_x, xmm_x )
+
+	xmm_sin = SSERegister()
+	xmm_cos = SSERegister()
+	LOAD.CONSTANT( xmm_cos, Constant.float64(Cos.c14) )
+	LOAD.CONSTANT( xmm_sin, Constant.float64(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		if has_fma4:
+			VFMADDSD( acc, acc, xmm_sqrx, coef )
+		elif has_fma3:
+			VFMADD213SD( acc, acc, xmm_sqrx, coef )
+		else:
+			VMULSD( acc, acc, xmm_sqrx )
+			VADDSD( acc, acc, coef )
+
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c12) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c11) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c10) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c8) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c6) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c4) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c2) )
+	VMULSD( xmm_sin, xmm_sin, xmm_sqrx )
+	if has_fma4:
+		VFMADDSD( xmm_cos, xmm_cos, xmm_sqrx, Constant.float64(Cos.c0) )
+		VFMADDSD( xmm_sin, xmm_sin, xmm_x, xmm_x )
+	elif has_fma3:
+		VFMADD213SD( xmm_cos, xmm_cos, xmm_sqrx, Constant.float64(Cos.c0) )
+		VFMADD213SD( xmm_sin, xmm_sin, xmm_x, xmm_x )
+	else:
+		VMULSD( xmm_cos, xmm_cos, xmm_sqrx )
+		VMULSD( xmm_sin, xmm_sin, xmm_x )
+		VADDSD( xmm_cos, xmm_cos, Constant.float64(Cos.c0) )
+		VADDSD( xmm_sin, xmm_sin, xmm_x )
+
+	xmm_sign = SSERegister()
+	LOAD.CONSTANT( xmm_sign, Constant.float64(Sin.sign_mask) )
+	VPAND( xmm_sign, xmm_n )
+	VPADDQ( xmm_n, xmm_n )
+	VBLENDVPD( xmm_sin, xmm_sin, xmm_cos, xmm_n )
+	VXORPD( xmm_sin, xmm_sign )
+	VMOVSD( [yPointer], xmm_sin )
+
+def BATCH_SIN_SSE(xPointer, yPointer):
+	xmm_x = [SSERegister() for i in range(5)]
+	xmm_t = [SSERegister() for i in range(5)]
+	xmm_r = [SSERegister() for i in range(5)]
+	n = [LocalVariable(SSERegister) for i in range(5)]
+	x = [LocalVariable(SSERegister) for i in range(5)]
+	for i in range(5):
+		xmm_n = SSERegister()
+
+		# x = *xPointer
+		MOVAPD( xmm_x[i], [xPointer + i * 16] )
+		# t = (x * (2/Pi)) + magicBias
+		MOVAPS( xmm_t[i], xmm_x[i] )
+		MULPD( xmm_t[i], Constant.float64x2(TrigReduction.two_over_pi) )
+		ADDPD( xmm_t[i], Constant.float64x2(Sin.magic_bias) )
+
+	for i in range(5):
+		# n = (int(t) % 4) << 62
+		MOVAPS( xmm_n, xmm_t[i] )
+		PSLLQ( xmm_n, 62 )
+		MOVDQA( n[i], xmm_n )
+		# t -= magicBias
+		SUBPD( xmm_t[i], Constant.float64x2(Sin.magic_bias) )
+
+	for i in range(5):
+		# x += t * minusPio2_hi
+		xmm_temp = SSERegister()
+		MOVAPS( xmm_temp, Constant.float64x2(TrigReduction.minus_pi_o2_hi) )
+		MULPD( xmm_temp, xmm_t[i] )
+		ADDPD( xmm_x[i], xmm_temp )
+
+	for i in range(5):
+		# x += t * minusPio2_me
+		xmm_a = SSERegister()
+		MOVAPS( xmm_a, xmm_x[i] )
+		MOVAPS( xmm_r[i], Constant.float64x2(TrigReduction.minus_pi_o2_me) )
+		MULPD( xmm_r[i], xmm_t[i] )
+		ADDPD( xmm_x[i], xmm_r[i] )
+		xmm_z = SSERegister()
+		MOVAPS( xmm_z, xmm_x[i] )
+		SUBPD( xmm_z, xmm_a )
+		SUBPD( xmm_r[i], xmm_z )
+		# x += t * minusPio2_lo
+		MULPD( xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_lo) )
+		ADDPD( xmm_t[i], xmm_r[i] )
+		ADDPD( xmm_x[i], xmm_t[i] )
+
+
+	xmm_sqrx = [SSERegister() for i in range(5)]
+	for i in range(5):
+		# sqrx = x * x
+		MOVAPD( x[i], xmm_x[i] )
+		MULPD( xmm_x[i], xmm_x[i] )
+		xmm_sqrx[i] = xmm_x[i]
+
+	xmm_sin = [SSERegister() for i in range(5)]
+	xmm_cos = [SSERegister() for i in range(5)]
+	for i in range(5):
+		LOAD.CONSTANT( xmm_cos[i], Constant.float64x2(Cos.c14) )
+		LOAD.CONSTANT( xmm_sin[i], Constant.float64x2(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		xmm_c = SSERegister()
+		LOAD.CONSTANT( xmm_c, coef )
+		for i in range(5):
+			MULPD( acc[i], xmm_sqrx[i] )
+			ADDPD( acc[i], xmm_c )
+
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c12) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c11) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c10) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c8) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c6) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c4) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c2) )
+
+	for i in range(5):
+		MULPD( xmm_sin[i], xmm_sqrx[i] )
+		MULPD( xmm_cos[i], xmm_sqrx[i] )
+		xmm_x = SSERegister()
+		MOVAPD( xmm_x, x[i] )
+		MULPD( xmm_sin[i], xmm_x )
+		ADDPD( xmm_sin[i], xmm_x )
+		ADDPD( xmm_cos[i], Constant.float64x2(Cos.c0) )
+
+	for i in range(5):
+		xmm_n = xmm0
+		MOVAPD( xmm_n, n[i] )
+		xmm_sign = SSERegister()
+		LOAD.CONSTANT( xmm_sign, Constant.float64x2(Sin.sign_mask) )
+		PAND( xmm_sign, xmm_n )
+		PADDQ( xmm_n, xmm_n )
+		BLENDVPD( xmm_sin[i], xmm_cos[i], xmm_n )
+		XORPD( xmm_sin[i], xmm_sign )
+		MOVUPD( [yPointer + 16 * i], xmm_sin[i] )
+
+def BATCH_SIN_Bulldozer(xPointer, yPointer):
+	xmm_x = [SSERegister() for i in range(5)]
+	xmm_t = [SSERegister() for i in range(5)]
+	n = [LocalVariable(SSERegister) for i in range(5)]
+	x = [LocalVariable(SSERegister) for i in range(5)]
+
+	xmm_two_over_pi = SSERegister()
+	xmm_magic_bias = SSERegister()
+	LOAD.CONSTANT( xmm_two_over_pi, Constant.float64x2(TrigReduction.two_over_pi) )
+	LOAD.CONSTANT( xmm_magic_bias, Constant.float64x2(Sin.magic_bias) )
+	for i in range(5):
+		# x = *xPointer
+		VMOVAPD( xmm_x[i], [xPointer + i * 16] )
+		# t = (x * (2/Pi)) + magicBias
+		VMULPD( xmm_t[i], xmm_x[i], xmm_two_over_pi )
+		VADDPD( xmm_t[i], xmm_t[i], xmm_magic_bias )
+
+	for i in range(5):
+		xmm_n = SSERegister()
+		# n = (int(t) % 4) << 62
+		VPSLLQ( xmm_n, xmm_t[i], 62 )
+		VMOVDQA( n[i], xmm_n )
+		# t -= magicBias
+		VSUBPD( xmm_t[i], xmm_t[i], xmm_magic_bias )
+
+	for i in range(5):
+		# x += t * minusPio2_hi
+		xmm_temp = SSERegister()
+		VMULPD( xmm_temp, xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_hi) )
+		VADDPD( xmm_x[i], xmm_x[i], xmm_temp )
+
+	for i in range(5):
+		xmm_temp = SSERegister()
+		# x += t * minusPio2_me
+		xmm_a = xmm_x[i]
+		xmm_x[i] = SSERegister()
+		VMULPD( xmm_temp, xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_me) )
+		VADDPD( xmm_x[i], xmm_a, xmm_temp )
+		xmm_z = SSERegister()
+		VSUBPD( xmm_z, xmm_x[i], xmm_a )
+		VSUBPD( xmm_temp, xmm_temp, xmm_z )
+		# x += t * minusPio2_lo
+		VMULPD( xmm_t[i], xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_lo) )
+		VADDPD( xmm_t[i], xmm_t[i], xmm_temp )
+		VADDPD( xmm_x[i], xmm_x[i], xmm_t[i] )
+
+	xmm_sqrx = [SSERegister() for i in range(5)]
+	for i in range(5):
+		# sqrx = x * x
+		VMOVAPD( x[i], xmm_x[i] )
+		VMULPD( xmm_sqrx[i], xmm_x[i], xmm_x[i] )
+
+	xmm_sin = [SSERegister() for i in range(5)]
+	xmm_cos = [SSERegister() for i in range(5)]
+
+	xmm_c14 = SSERegister()
+	xmm_c12 = SSERegister()
+	LOAD.CONSTANT( xmm_c14, Constant.float64x2(Cos.c14) )
+	LOAD.CONSTANT( xmm_c12, Constant.float64x2(Cos.c12) )
+	for i in range(5):
+		VFMADDPD( xmm_cos[i], xmm_c14, xmm_sqrx[i], xmm_c12 )
+
+	xmm_c13 = SSERegister()
+	xmm_c11 = SSERegister()
+	LOAD.CONSTANT( xmm_c13, Constant.float64x2(Sin.c13) )
+	LOAD.CONSTANT( xmm_c11, Constant.float64x2(Sin.c11) )
+	for i in range(5):
+		VFMADDPD( xmm_sin[i], xmm_c13, xmm_sqrx[i], xmm_c11 )
+
+	def HORNER_STEP(acc, coef):
+		xmm_c = SSERegister()
+		LOAD.CONSTANT( xmm_c, coef )
+		for i in range(5):
+			VFMADDPD( acc[i], acc[i], xmm_sqrx[i], xmm_c )
+
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c10) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c8) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c6) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c4) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.c2) )
+
+	for i in range(5):
+		VMULPD( xmm_sin[i], xmm_sqrx[i] )
+
+	xmm_c0 = SSERegister()
+	LOAD.CONSTANT( xmm_c0, Constant.float64x2(Cos.c0) )
+	for i in range(5):
+		VFMADDPD( xmm_cos[i], xmm_cos[i], xmm_sqrx[i], xmm_c0 )
+
+	for i in range(5):
+		xmm_x = SSERegister()
+		VMOVAPD( xmm_x, x[i] )
+		VFMADDPD( xmm_sin[i], xmm_sin[i], xmm_x, xmm_x )
+
+	xmm_sign_mask = SSERegister()
+	LOAD.CONSTANT( xmm_sign_mask, Constant.float64x2(Sin.sign_mask) )
+	for i in range(5):
+		xmm_n = SSERegister()
+		VMOVAPD( xmm_n, n[i] )
+		xmm_sign = SSERegister()
+		VANDPD( xmm_sign, xmm_n, xmm_sign_mask )
+		VPADDQ( xmm_n, xmm_n, xmm_n )
+		VBLENDVPD( xmm_sin[i], xmm_sin[i], xmm_cos[i], xmm_n )
+		VXORPD( xmm_sin[i], xmm_sign )
+		VMOVUPD( [yPointer + 16 * i], xmm_sin[i] )
+
+def BATCH_SIN_AVX(xPointer, yPointer):
+	microarchitecture = Function.get_current().microarchitecture
+	has_fma3 = microarchitecture.is_supported('FMA3')
+	has_avx2 = microarchitecture.is_supported('AVX2')
+	has_256bit_store_unit = microarchitecture.get_name() in ['Haswell']
+
+	ymm_x = [AVXRegister() for i in range(5)]
+	ymm_t = [AVXRegister() for i in range(5)]
+	n = [LocalVariable(AVXRegister) for i in range(5)]
+	x = [LocalVariable(AVXRegister) for i in range(5)]
+
+	ymm_two_over_pi = AVXRegister()
+	ymm_magic_bias = AVXRegister()
+	LOAD.CONSTANT( ymm_two_over_pi, Constant.float64x4(TrigReduction.two_over_pi) )
+	LOAD.CONSTANT( ymm_magic_bias, Constant.float64x4(Sin.magic_bias) )
+	for i in range(5):
+		# x = *xPointer
+		VMOVAPD( ymm_x[i], [xPointer + i * 32] )
+		# t = (x * (2/Pi)) + magicBias
+		VMULPD( ymm_t[i], ymm_x[i], ymm_two_over_pi )
+		VADDPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
+
+	for i in range(5):
+		xmm_n_lo = SSERegister()
+		xmm_n_hi = SSERegister()
+		# n = (int(t) % 4) << 62
+		VEXTRACTF128( xmm_n_hi, ymm_t[i], 1 )
+		VPSLLQ( xmm_n_lo, ymm_t[i].get_oword(), 62 )
+		VMOVDQA( n[i].get_low(), xmm_n_lo )
+		VPSLLQ( xmm_n_hi, xmm_n_hi, 62 )
+		VMOVDQA( n[i].get_high(), xmm_n_hi )
+		# t -= magicBias
+		VSUBPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
+
+	for i in range(5):
+		# x += t * minusPio2_hi
+		ymm_temp = AVXRegister()
+		VMULPD( ymm_temp, ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_hi) )
+		VADDPD( ymm_x[i], ymm_x[i], ymm_temp )
+
+	for i in range(5):
+		ymm_temp = AVXRegister()
+		# x += t * minusPio2_me
+		ymm_a = ymm_x[i]
+		ymm_x[i] = AVXRegister()
+		VMULPD( ymm_temp, ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_me) )
+		VADDPD( ymm_x[i], ymm_a, ymm_temp )
+		ymm_z = AVXRegister()
+		VSUBPD( ymm_z, ymm_x[i], ymm_a )
+		VSUBPD( ymm_temp, ymm_temp, ymm_z )
+		# x += t * minusPio2_lo
+		VMULPD( ymm_t[i], ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_lo) )
+		VADDPD( ymm_t[i], ymm_t[i], ymm_temp )
+		VADDPD( ymm_x[i], ymm_x[i], ymm_t[i] )
+
+	ymm_sqrx = [AVXRegister() for i in range(5)]
+	for i in range(5):
+		# sqrx = x * x
+		VMOVAPD( x[i], ymm_x[i] )
+		VMULPD( ymm_sqrx[i], ymm_x[i], ymm_x[i] )
+
+	ymm_sin = [AVXRegister() for i in range(5)]
+	ymm_cos = [AVXRegister() for i in range(5)]
+
+	ymm_c14 = AVXRegister()
+	ymm_c12 = AVXRegister()
+	LOAD.CONSTANT( ymm_c14, Constant.float64x4(Cos.c14) )
+	LOAD.CONSTANT( ymm_c12, Constant.float64x4(Cos.c12) )
+	for i in range(5):
+		if has_fma3:
+			VMOVAPD( ymm_cos[i], ymm_c14 )
+			VFMADD213PD( ymm_cos[i], ymm_cos[i], ymm_sqrx[i], ymm_c12 )
+		else:
+			VMULPD( ymm_cos[i], ymm_c14, ymm_sqrx[i] )
+			VADDPD( ymm_cos[i], ymm_cos[i], ymm_c12 )
+
+	ymm_c13 = AVXRegister()
+	ymm_c11 = AVXRegister()
+	LOAD.CONSTANT( ymm_c13, Constant.float64x4(Sin.c13) )
+	LOAD.CONSTANT( ymm_c11, Constant.float64x4(Sin.c11) )
+	for i in range(5):
+		if has_fma3:
+			VMOVAPD( ymm_sin[i], ymm_c13 )
+			VFMADD213PD( ymm_sin[i], ymm_sin[i], ymm_sqrx[i], ymm_c11 )
+		else:
+			VMULPD( ymm_sin[i], ymm_c13, ymm_sqrx[i] )
+			VADDPD( ymm_sin[i], ymm_sin[i], ymm_c11 )
+
+	def HORNER_STEP(acc, coef):
+		ymm_c = AVXRegister()
+		LOAD.CONSTANT( ymm_c, coef )
+		for i in range(5):
+			if has_fma3:
+				VFMADD213PD( acc[i], acc[i], ymm_sqrx[i], ymm_c )
+			else:
+				VMULPD( acc[i], acc[i], ymm_sqrx[i] )
+				VADDPD( acc[i], acc[i], ymm_c )
+
+	HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c10) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c9) )
+	HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c8) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c7) )
+	HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c6) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c5) )
+	HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c4) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c3) )
+	HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c2) )
+
+	for i in range(5):
+		VMULPD( ymm_sin[i], ymm_sqrx[i] )
+
+	ymm_c0 = AVXRegister()
+	LOAD.CONSTANT( ymm_c0, Constant.float64x4(Cos.c0) )
+	for i in range(5):
+		if has_fma3:
+			VFMADD213PD( ymm_cos[i], ymm_cos[i], ymm_sqrx[i], ymm_c0 )
+		else:
+			VMULPD( ymm_cos[i], ymm_sqrx[i] )
+			VADDPD( ymm_cos[i], ymm_c0 )
+
+	for i in range(5):
+		ymm_x = AVXRegister()
+		VMOVAPD( ymm_x, x[i] )
+		if has_fma3:
+			VFMADD213PD( ymm_sin[i], ymm_sin[i], ymm_x, ymm_x )
+		else:
+			VMULPD( ymm_sin[i], ymm_x )
+			VADDPD( ymm_sin[i], ymm_x )
+
+	ymm_sign_mask = AVXRegister()
+	LOAD.CONSTANT( ymm_sign_mask, Constant.float64x4(Sin.sign_mask) )
+	for i in range(5):
+		ymm_n = AVXRegister()
+		VMOVAPD( ymm_n, n[i] )
+		ymm_sign = AVXRegister()
+		VANDPD( ymm_sign, ymm_n, ymm_sign_mask )
+		if has_avx2:
+			VPADDQ( ymm_n, ymm_n, ymm_n )
+			VBLENDVPD( ymm_sin[i], ymm_sin[i], ymm_cos[i], ymm_n )
+		else:
+			VANDNPD( ymm_n, ymm_sign_mask, ymm_n )
+			# n = !(n & 1)
+			VCMPEQPD( ymm_n, ymm_n, ymm_sign )
+			VBLENDVPD( ymm_sin[i], ymm_cos[i], ymm_sin[i], ymm_n )
+		VXORPD( ymm_sin[i], ymm_sign )
+
+		if has_256bit_store_unit:
+			VMOVUPD( [yPointer + 32 * i], ymm_sin[i] )
+		else:
+			VMOVUPD( [yPointer + 32 * i], ymm_sin[i].get_oword() )
+			VEXTRACTF128( [yPointer + 32 * i + 16], ymm_sin[i], 1 )
 
 def Sin_V64f_V64f_Nehalem(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
-				x_argument = arguments[0]
-				y_argument = arguments[1]
-				length_argument = arguments[2]
+				x_argument, y_argument, length_argument = tuple(arguments)
 
 				x_type = x_argument.get_type().get_primitive_type()
 				y_type = y_argument.get_type().get_primitive_type()
@@ -4062,205 +4599,7 @@ def Sin_V64f_V64f_Nehalem(codegen, function_signature, module, function, argumen
 				LOAD.PARAMETER( yPointer, y_argument )
 				LOAD.PARAMETER( length, length_argument )
 
-				minusPio2_hi = Constant.float64x2('-0x1.921FB54440000p+0')
-				minusPio2_me = Constant.float64x2('-0x1.68C234C4C8000p-39')
-				minusPio2_lo = Constant.float64x2( '0x1.9D747F23E32EDp-79')
-				twoOPi = Constant.float64x2('0x1.45F306DC9C883p-1')
-				magicBias = Constant.float64x2('0x1.8000000000000p+52')
-
-				c0  = Constant.float64x2( '0x1.0000000000000p+0')
-				c2  = Constant.float64x2('-0x1.0000000000000p-1')
-				c3  = Constant.float64x2('-0x1.5555555555546p-3')
-				c4  = Constant.float64x2( '0x1.555555555554Bp-5')
-				c5  = Constant.float64x2( '0x1.111111110F51Ep-7')
-				c6  = Constant.float64x2('-0x1.6C16C16C15038p-10')
-				c7  = Constant.float64x2('-0x1.A01A019BB92C0p-13')
-				c8  = Constant.float64x2( '0x1.A01A019C94874p-16')
-				c9  = Constant.float64x2( '0x1.71DE3535C8A8Ap-19')
-				c10 = Constant.float64x2('-0x1.27E4F7F65104Fp-22')
-				c11 = Constant.float64x2('-0x1.AE5E38936D046p-26')
-				c12 = Constant.float64x2( '0x1.1EE9DF6693F7Ep-29')
-				c13 = Constant.float64x2( '0x1.5D8711D281543p-33')
-				c14 = Constant.float64x2('-0x1.8FA87EF79AE3Fp-37')
-
-				signMask = Constant.float64x2('-0x0.0000000000000p+0')
-
-				def SCALAR_SIN(xPointer, yPointer):
-					# x = *xPointer
-					xmm_x = SSERegister()
-					MOVSD( xmm_x, [xPointer] )
-					# t = (x * (2/Pi)) + magicBias
-					xmm_t = SSERegister()
-					MOVAPS( xmm_t, xmm_x )
-					MULPD( xmm_t, twoOPi )
-					ADDPD( xmm_t, magicBias )
-					# n = (int(t) % 4) << 62
-					xmm_n = xmm0
-					MOVAPS( xmm_n, xmm_t )
-					PSLLQ( xmm_n, 62 )
-					# t -= magicBias
-					SUBPD( xmm_t, magicBias )
-					# x += t * minusPio2_hi
-					xmm_temp = SSERegister()
-					MOVAPS( xmm_temp, minusPio2_hi )
-					MULPD( xmm_temp, xmm_t )
-					ADDPD( xmm_x, xmm_temp )
-					# x += t * minusPio2_me
-					xmm_a = SSERegister()
-					MOVAPS( xmm_a, xmm_x )
-					xmm_temp = SSERegister()
-					MOVAPS( xmm_temp, minusPio2_me )
-					MULPD( xmm_temp, xmm_t )
-					ADDPD( xmm_x, xmm_temp )
-					xmm_z = SSERegister()
-					MOVAPS( xmm_z, xmm_x )
-					SUBPD( xmm_z, xmm_a )
-					SUBPD( xmm_temp, xmm_z )
-					# x += t * minusPio2_lo
-					MULPD( xmm_t, minusPio2_lo )
-					ADDPD( xmm_t, xmm_temp )
-					ADDPD( xmm_x, xmm_t )
-
-					# sqrx = x * x
-					xmm_sqrx = SSERegister()
-					MOVAPS( xmm_sqrx, xmm_x )
-					MULPD( xmm_sqrx, xmm_sqrx )
-
-					xmm_sin = SSERegister()
-					xmm_cos = SSERegister()
-					LOAD.CONSTANT( xmm_cos, c14 )
-					LOAD.CONSTANT( xmm_sin, c13 )
-
-					def HORNER_STEP(acc, coef):
-						MULPD( acc, xmm_sqrx )
-						ADDPD( acc, coef )
-
-					HORNER_STEP(xmm_cos, c12 )
-					HORNER_STEP(xmm_sin, c11 )
-					HORNER_STEP(xmm_cos, c10 )
-					HORNER_STEP(xmm_sin, c9 )
-					HORNER_STEP(xmm_cos, c8 )
-					HORNER_STEP(xmm_sin, c7 )
-					HORNER_STEP(xmm_cos, c6 )
-					HORNER_STEP(xmm_sin, c5 )
-					HORNER_STEP(xmm_cos, c4 )
-					HORNER_STEP(xmm_sin, c3 )
-					HORNER_STEP(xmm_cos, c2 )
-					MULPD( xmm_sin, xmm_sqrx )
-					MULPD( xmm_cos, xmm_sqrx )
-					MULPD( xmm_sin, xmm_x )
-					ADDPD( xmm_sin, xmm_x )
-					ADDPD( xmm_cos, c0 )
-
-					xmm_sign = SSERegister()
-					LOAD.CONSTANT( xmm_sign, signMask )
-					PAND( xmm_sign, xmm_n )
-					PADDQ( xmm_n, xmm_n )
-					BLENDVPD( xmm_sin, xmm_cos, xmm_n )
-					XORPD( xmm_sin, xmm_sign )
-					MOVSD( [yPointer], xmm_sin )
-
-				def BATCH_SIN_FULL(xPointer, yPointer):
-					xmm_x = [SSERegister() for i in range(5)]
-					xmm_t = [SSERegister() for i in range(5)]
-					xmm_r = [SSERegister() for i in range(5)]
-					n = [LocalVariable(SSERegister) for i in range(5)]
-					x = [LocalVariable(SSERegister) for i in range(5)]
-					for i in range(5):
-						xmm_n = SSERegister()
-
-						# x = *xPointer
-						MOVAPD( xmm_x[i], [xPointer + i * 16] )
-						# t = (x * (2/Pi)) + magicBias
-						MOVAPS( xmm_t[i], xmm_x[i] )
-						MULPD( xmm_t[i], twoOPi )
-						ADDPD( xmm_t[i], magicBias )
-
-					for i in range(5):
-						# n = (int(t) % 4) << 62
-						MOVAPS( xmm_n, xmm_t[i] )
-						PSLLQ( xmm_n, 62 )
-						MOVDQA( n[i], xmm_n )
-						# t -= magicBias
-						SUBPD( xmm_t[i], magicBias )
-
-					for i in range(5):
-						# x += t * minusPio2_hi
-						xmm_temp = SSERegister()
-						MOVAPS( xmm_temp, minusPio2_hi )
-						MULPD( xmm_temp, xmm_t[i] )
-						ADDPD( xmm_x[i], xmm_temp )
-
-					for i in range(5):
-						# x += t * minusPio2_me
-						xmm_a = SSERegister()
-						MOVAPS( xmm_a, xmm_x[i] )
-						MOVAPS( xmm_r[i], minusPio2_me )
-						MULPD( xmm_r[i], xmm_t[i] )
-						ADDPD( xmm_x[i], xmm_r[i] )
-						xmm_z = SSERegister()
-						MOVAPS( xmm_z, xmm_x[i] )
-						SUBPD( xmm_z, xmm_a )
-						SUBPD( xmm_r[i], xmm_z )
-						# x += t * minusPio2_lo
-						MULPD( xmm_t[i], minusPio2_lo )
-						ADDPD( xmm_t[i], xmm_r[i] )
-						ADDPD( xmm_x[i], xmm_t[i] )
-
-
-					xmm_sqrx = [SSERegister() for i in range(5)]
-					for i in range(5):
-						# sqrx = x * x
-						MOVAPD( x[i], xmm_x[i] )
-						MULPD( xmm_x[i], xmm_x[i] )
-						xmm_sqrx[i] = xmm_x[i]
-
-					xmm_sin = [SSERegister() for i in range(5)]
-					xmm_cos = [SSERegister() for i in range(5)]
-					for i in range(5):
-						LOAD.CONSTANT( xmm_cos[i], c14 )
-						LOAD.CONSTANT( xmm_sin[i], c13 )
-
-					def HORNER_STEP(acc, coef):
-						xmm_c = SSERegister()
-						LOAD.CONSTANT( xmm_c, coef )
-						for i in range(5):
-							MULPD( acc[i], xmm_sqrx[i] )
-							ADDPD( acc[i], xmm_c )
-
-					HORNER_STEP(xmm_cos, c12 )
-					HORNER_STEP(xmm_sin, c11 )
-					HORNER_STEP(xmm_cos, c10 )
-					HORNER_STEP(xmm_sin, c9 )
-					HORNER_STEP(xmm_cos, c8 )
-					HORNER_STEP(xmm_sin, c7 )
-					HORNER_STEP(xmm_cos, c6 )
-					HORNER_STEP(xmm_sin, c5 )
-					HORNER_STEP(xmm_cos, c4 )
-					HORNER_STEP(xmm_sin, c3 )
-					HORNER_STEP(xmm_cos, c2 )
-
-					for i in range(5):
-						MULPD( xmm_sin[i], xmm_sqrx[i] )
-						MULPD( xmm_cos[i], xmm_sqrx[i] )
-						xmm_x = SSERegister()
-						MOVAPD( xmm_x, x[i] )
-						MULPD( xmm_sin[i], xmm_x )
-						ADDPD( xmm_sin[i], xmm_x )
-						ADDPD( xmm_cos[i], c0 )
-
-					for i in range(5):
-						xmm_n = xmm0
-						MOVAPD( xmm_n, n[i] )
-						xmm_sign = SSERegister()
-						LOAD.CONSTANT( xmm_sign, signMask )
-						PAND( xmm_sign, xmm_n )
-						PADDQ( xmm_n, xmm_n )
-						BLENDVPD( xmm_sin[i], xmm_cos[i], xmm_n )
-						XORPD( xmm_sin[i], xmm_sign )
-						MOVUPD( [yPointer + 16 * i], xmm_sin[i] )
-
-				Map_V64f_V64f(SCALAR_SIN, BATCH_SIN_FULL, None, xPointer, yPointer, length, 32, 10)
+				Map_Vf_Vf(SCALAR_SIN_SSE, BATCH_SIN_SSE, None, xPointer, yPointer, length, 32, 16 * 5, 8)
 
 				return codegen.end_function()
 
@@ -4268,9 +4607,682 @@ def Sin_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arg
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
-				x_argument = arguments[0]
-				y_argument = arguments[1]
-				length_argument = arguments[2]
+				x_argument, y_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not x_type.is_floating_point() or not y_type.is_floating_point():
+					return
+
+				x_size = x_type.get_size(codegen.abi)
+				y_size = y_type.get_size(codegen.abi)
+
+				if x_size != 8 or y_size != 8:
+					return
+
+				parameters = [x_argument, y_argument, length_argument]
+				codegen.begin_function(function_signature, parameters, 'SandyBridge')
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				Map_Vf_Vf(SCALAR_SIN_AVX, BATCH_SIN_AVX, None, xPointer, yPointer, length, 32, 32 * 5, 8)
+
+				return codegen.end_function()
+
+def Sin_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
+		if module == 'Math':
+			if function == 'Sin':
+				x_argument, y_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not x_type.is_floating_point() or not y_type.is_floating_point():
+					return
+
+				x_size = x_type.get_size(codegen.abi)
+				y_size = y_type.get_size(codegen.abi)
+
+				if x_size != 8 or y_size != 8:
+					return
+
+				parameters = [x_argument, y_argument, length_argument]
+				codegen.begin_function(function_signature, parameters, 'Bulldozer')
+
+				xPointer = GeneralPurposeRegister64()
+				yPointer = GeneralPurposeRegister64()
+				length = GeneralPurposeRegister64()
+
+				LOAD.PARAMETER( xPointer, x_argument )
+				LOAD.PARAMETER( yPointer, y_argument )
+				LOAD.PARAMETER( length, length_argument )
+
+				Map_Vf_Vf(SCALAR_SIN_AVX, BATCH_SIN_Bulldozer, None, xPointer, yPointer, length, 16, 16 * 5, 8)
+
+				return codegen.end_function()
+
+def Sin_V64f_V64f_Haswell(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
+		if module == 'Math':
+			if function == 'Sin':
+				x_argument, y_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not x_type.is_floating_point() or not y_type.is_floating_point():
+					return
+
+				x_size = x_type.get_size(codegen.abi)
+				y_size = y_type.get_size(codegen.abi)
+
+				if x_size != 8 or y_size != 8:
+					return
+
+				parameters = [x_argument, y_argument, length_argument]
+				codegen.begin_function(function_signature, parameters, 'Haswell')
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				Map_Vf_Vf(SCALAR_SIN_AVX, BATCH_SIN_AVX, None, xPointer, yPointer, length, 32, 32 * 5, 8)
+
+				return codegen.end_function()
+
+def SCALAR_COS_SSE(xPointer, yPointer, is_prologue):
+	microarchitecture = Function.get_current().microarchitecture
+	has_sse4_1 = microarchitecture.is_supported('SSE4.1')
+	has_64bit_units = microarchitecture.get_name() in ['Prescott', 'K8', 'Bobcat']
+	if has_64bit_units:
+		def SCALAR_COPY(destination, source):
+			ASSUME.INITIALIZED( destination )
+			MOVSD( destination, source )
+	else:
+		def SCALAR_COPY(destination, source):
+			MOVAPS( destination, source )
+
+	# x = *xPointer
+	xmm_x = SSERegister()
+	MOVSD( xmm_x, [xPointer] )
+	# t = (x * (2/Pi)) + magic_bias
+	xmm_t = SSERegister()
+	SCALAR_COPY( xmm_t, xmm_x )
+	MULSD( xmm_t, Constant.float64(TrigReduction.two_over_pi) )
+	ADDSD( xmm_t, Constant.float64(Cos.magic_bias) )
+	# n = (int(t) % 4) << 62
+	xmm_n = xmm0
+	SCALAR_COPY( xmm_n, xmm_t )
+	PSLLQ( xmm_n, 62 )
+	# t -= magic_bias
+	SUBSD( xmm_t, Constant.float64(Cos.magic_bias) )
+	# x += t * (-pi/2)_hi
+	xmm_temp = SSERegister()
+	LOAD.CONSTANT( xmm_temp, Constant.float64(TrigReduction.minus_pi_o2_hi) )
+	MULSD( xmm_temp, xmm_t )
+	ADDSD( xmm_x, xmm_temp )
+	# x += t * (-pi/2)_me
+	xmm_a = SSERegister()
+	SCALAR_COPY( xmm_a, xmm_x )
+	xmm_temp = SSERegister()
+	LOAD.CONSTANT( xmm_temp, Constant.float64(TrigReduction.minus_pi_o2_me) )
+	MULSD( xmm_temp, xmm_t )
+	ADDSD( xmm_x, xmm_temp )
+	xmm_z = SSERegister()
+	SCALAR_COPY( xmm_z, xmm_x )
+	SUBSD( xmm_z, xmm_a )
+	SUBSD( xmm_temp, xmm_z )
+	# x += t * (-pi/2)_lo
+	MULSD( xmm_t, Constant.float64(TrigReduction.minus_pi_o2_lo) )
+	ADDSD( xmm_t, xmm_temp )
+	ADDSD( xmm_x, xmm_t )
+
+	# sqrx = x * x
+	xmm_sqrx = SSERegister()
+	SCALAR_COPY( xmm_sqrx, xmm_x )
+	MULSD( xmm_sqrx, xmm_sqrx )
+
+	xmm_sin = SSERegister()
+	xmm_cos = SSERegister()
+	LOAD.CONSTANT( xmm_cos, Constant.float64(Cos.minus_c14) )
+	LOAD.CONSTANT( xmm_sin, Constant.float64(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		MULSD( acc, xmm_sqrx )
+		ADDSD( acc, coef )
+
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.minus_c12) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c11) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.minus_c10) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.minus_c8) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.minus_c6) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.minus_c4) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.minus_c2) )
+	MULSD( xmm_sin, xmm_sqrx )
+	MULSD( xmm_cos, xmm_sqrx )
+	MULSD( xmm_sin, xmm_x )
+	ADDSD( xmm_sin, xmm_x )
+	ADDSD( xmm_cos, Constant.float64(Cos.minus_c0) )
+
+	xmm_sign = SSERegister()
+	LOAD.CONSTANT( xmm_sign, Constant.float64(Sin.sign_mask) )
+	PAND( xmm_sign, xmm_n )
+	PADDQ( xmm_n, xmm_n )
+	BLENDVPD( xmm_cos, xmm_sin, xmm_n )
+	XORPD( xmm_cos, xmm_sign )
+	MOVSD( [yPointer], xmm_cos )
+
+def SCALAR_COS_AVX(xPointer, yPointer, is_prologue):
+	microarchitecture = Function.get_current().microarchitecture
+	has_fma4 = microarchitecture.is_supported('FMA4')
+	has_fma3 = microarchitecture.is_supported('FMA3')
+
+	# x = *xPointer
+	xmm_x = SSERegister()
+	VMOVSD( xmm_x, [xPointer] )
+	# t = (x * (2/Pi)) + magic_bias
+	xmm_t = SSERegister()
+	ASSUME.INITIALIZED( xmm_t )
+	VMULSD( xmm_t, xmm_x, Constant.float64(TrigReduction.two_over_pi) )
+	VADDSD( xmm_t, xmm_t, Constant.float64(Cos.magic_bias) )
+	# n = (int(t) % 4) << 62
+	xmm_n = SSERegister()
+	VPSLLQ( xmm_n, xmm_t, 62 )
+	# t -= magic_bias
+	VSUBSD( xmm_t, xmm_t, Constant.float64(Cos.magic_bias) )
+	# x += t * (-pi/2)_hi
+	xmm_temp = SSERegister()
+	ASSUME.INITIALIZED( xmm_temp )
+	VMULSD( xmm_temp, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_hi) )
+	VADDSD( xmm_x, xmm_x, xmm_temp )
+	# x += t * (-pi/2)_me
+	xmm_a = SSERegister()
+	VMOVAPS( xmm_a, xmm_x )
+	xmm_temp = SSERegister()
+	ASSUME.INITIALIZED( xmm_temp )
+	VMULSD( xmm_temp, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_me) )
+	VADDSD( xmm_x, xmm_temp )
+	xmm_z = SSERegister()
+	ASSUME.INITIALIZED( xmm_z )
+	VSUBSD( xmm_z, xmm_x, xmm_a )
+	VSUBSD( xmm_temp, xmm_temp, xmm_z )
+	# x += t * (-pi/2)_lo
+	VMULSD( xmm_t, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_lo) )
+	VADDSD( xmm_t, xmm_t, xmm_temp )
+	VADDSD( xmm_x, xmm_x, xmm_t )
+
+	# sqrx = x * x
+	xmm_sqrx = SSERegister()
+	ASSUME.INITIALIZED( xmm_sqrx )
+	VMULSD( xmm_sqrx, xmm_x, xmm_x )
+
+	xmm_sin = SSERegister()
+	xmm_minus_cos = SSERegister()
+	LOAD.CONSTANT( xmm_minus_cos, Constant.float64(Cos.minus_c14) )
+	LOAD.CONSTANT( xmm_sin, Constant.float64(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		if has_fma4:
+			VFMADDSD( acc, acc, xmm_sqrx, coef )
+		elif has_fma3:
+			VFMADD213SD( acc, acc, xmm_sqrx, coef )
+		else:
+			VMULSD( acc, acc, xmm_sqrx )
+			VADDSD( acc, acc, coef )
+
+	HORNER_STEP(xmm_minus_cos, Constant.float64(Cos.minus_c12) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c11) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64(Cos.minus_c10) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c9) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64(Cos.minus_c8) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c7) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64(Cos.minus_c6) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c5) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64(Cos.minus_c4) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c3) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64(Cos.minus_c2) )
+	VMULSD( xmm_sin, xmm_sin, xmm_sqrx )
+	if has_fma4:
+		VFMADDSD( xmm_minus_cos, xmm_minus_cos, xmm_sqrx, Constant.float64(Cos.minus_c0) )
+		VFMADDSD( xmm_sin, xmm_sin, xmm_x, xmm_x )
+	elif has_fma3:
+		VFMADD213SD( xmm_minus_cos, xmm_minus_cos, xmm_sqrx, Constant.float64(Cos.minus_c0) )
+		VFMADD213SD( xmm_sin, xmm_sin, xmm_x, xmm_x )
+	else:
+		VMULSD( xmm_minus_cos, xmm_minus_cos, xmm_sqrx )
+		VMULSD( xmm_sin, xmm_sin, xmm_x )
+		VADDSD( xmm_minus_cos, xmm_minus_cos, Constant.float64(Cos.minus_c0) )
+		VADDSD( xmm_sin, xmm_sin, xmm_x )
+
+	xmm_sign = SSERegister()
+	LOAD.CONSTANT( xmm_sign, Constant.float64(Sin.sign_mask) )
+	VPAND( xmm_sign, xmm_n )
+	VPADDQ( xmm_n, xmm_n )
+	
+	xmm_cos = SSERegister()
+	VBLENDVPD( xmm_cos, xmm_minus_cos, xmm_sin, xmm_n )
+	VXORPD( xmm_cos, xmm_sign )
+	VMOVSD( [yPointer], xmm_cos )
+
+def BATCH_COS_SSE(xPointer, yPointer):
+	xmm_x = [SSERegister() for i in range(5)]
+	xmm_t = [SSERegister() for i in range(5)]
+	xmm_r = [SSERegister() for i in range(5)]
+	n = [LocalVariable(SSERegister) for i in range(5)]
+	x = [LocalVariable(SSERegister) for i in range(5)]
+	for i in range(5):
+		xmm_n = SSERegister()
+
+		# x = *xPointer
+		MOVAPD( xmm_x[i], [xPointer + i * 16] )
+		# t = (x * (2/Pi)) + magicBias
+		MOVAPS( xmm_t[i], xmm_x[i] )
+		MULPD( xmm_t[i], Constant.float64x2(TrigReduction.two_over_pi) )
+		ADDPD( xmm_t[i], Constant.float64x2(Cos.magic_bias) )
+
+	for i in range(5):
+		# n = (int(t) % 4) << 62
+		MOVAPS( xmm_n, xmm_t[i] )
+		PSLLQ( xmm_n, 62 )
+		MOVDQA( n[i], xmm_n )
+		# t -= magicBias
+		SUBPD( xmm_t[i], Constant.float64x2(Cos.magic_bias) )
+
+	for i in range(5):
+		# x += t * minusPio2_hi
+		xmm_temp = SSERegister()
+		MOVAPS( xmm_temp, Constant.float64x2(TrigReduction.minus_pi_o2_hi) )
+		MULPD( xmm_temp, xmm_t[i] )
+		ADDPD( xmm_x[i], xmm_temp )
+
+	for i in range(5):
+		# x += t * minusPio2_me
+		xmm_a = SSERegister()
+		MOVAPS( xmm_a, xmm_x[i] )
+		MOVAPS( xmm_r[i], Constant.float64x2(TrigReduction.minus_pi_o2_me) )
+		MULPD( xmm_r[i], xmm_t[i] )
+		ADDPD( xmm_x[i], xmm_r[i] )
+		xmm_z = SSERegister()
+		MOVAPS( xmm_z, xmm_x[i] )
+		SUBPD( xmm_z, xmm_a )
+		SUBPD( xmm_r[i], xmm_z )
+		# x += t * minusPio2_lo
+		MULPD( xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_lo) )
+		ADDPD( xmm_t[i], xmm_r[i] )
+		ADDPD( xmm_x[i], xmm_t[i] )
+
+
+	xmm_sqrx = [SSERegister() for i in range(5)]
+	for i in range(5):
+		# sqrx = x * x
+		MOVAPD( x[i], xmm_x[i] )
+		MULPD( xmm_x[i], xmm_x[i] )
+		xmm_sqrx[i] = xmm_x[i]
+
+	xmm_sin = [SSERegister() for i in range(5)]
+	xmm_cos = [SSERegister() for i in range(5)]
+	for i in range(5):
+		LOAD.CONSTANT( xmm_cos[i], Constant.float64x2(Cos.minus_c14) )
+		LOAD.CONSTANT( xmm_sin[i], Constant.float64x2(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		xmm_c = SSERegister()
+		LOAD.CONSTANT( xmm_c, coef )
+		for i in range(5):
+			MULPD( acc[i], xmm_sqrx[i] )
+			ADDPD( acc[i], xmm_c )
+
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.minus_c12) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c11) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.minus_c10) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.minus_c8) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.minus_c6) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.minus_c4) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64x2(Cos.minus_c2) )
+
+	for i in range(5):
+		MULPD( xmm_sin[i], xmm_sqrx[i] )
+		MULPD( xmm_cos[i], xmm_sqrx[i] )
+		xmm_x = SSERegister()
+		MOVAPD( xmm_x, x[i] )
+		MULPD( xmm_sin[i], xmm_x )
+		ADDPD( xmm_sin[i], xmm_x )
+		ADDPD( xmm_cos[i], Constant.float64x2(Cos.minus_c0) )
+
+	for i in range(5):
+		xmm_n = xmm0
+		MOVAPD( xmm_n, n[i] )
+		xmm_sign = SSERegister()
+		LOAD.CONSTANT( xmm_sign, Constant.float64x2(Sin.sign_mask) )
+		PAND( xmm_sign, xmm_n )
+		PADDQ( xmm_n, xmm_n )
+		BLENDVPD( xmm_cos[i], xmm_sin[i], xmm_n )
+		XORPD( xmm_cos[i], xmm_sign )
+		MOVUPD( [yPointer + 16 * i], xmm_cos[i] )
+
+def BATCH_COS_Bulldozer(xPointer, yPointer):
+	xmm_x = [SSERegister() for i in range(5)]
+	xmm_t = [SSERegister() for i in range(5)]
+	n = [LocalVariable(SSERegister) for i in range(5)]
+	x = [LocalVariable(SSERegister) for i in range(5)]
+
+	xmm_two_over_pi = SSERegister()
+	xmm_magic_bias = SSERegister()
+	LOAD.CONSTANT( xmm_two_over_pi, Constant.float64x2(TrigReduction.two_over_pi) )
+	LOAD.CONSTANT( xmm_magic_bias, Constant.float64x2(Cos.magic_bias) )
+	for i in range(5):
+		# x = *xPointer
+		VMOVAPD( xmm_x[i], [xPointer + i * 16] )
+		# t = (x * (2/Pi)) + magicBias
+		VMULPD( xmm_t[i], xmm_x[i], xmm_two_over_pi )
+		VADDPD( xmm_t[i], xmm_t[i], xmm_magic_bias )
+
+	for i in range(5):
+		xmm_n = SSERegister()
+		# n = (int(t) % 4) << 62
+		VPSLLQ( xmm_n, xmm_t[i], 62 )
+		VMOVDQA( n[i], xmm_n )
+		# t -= magicBias
+		VSUBPD( xmm_t[i], xmm_t[i], xmm_magic_bias )
+
+	for i in range(5):
+		# x += t * minusPio2_hi
+		xmm_temp = SSERegister()
+		VMULPD( xmm_temp, xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_hi) )
+		VADDPD( xmm_x[i], xmm_x[i], xmm_temp )
+
+	for i in range(5):
+		xmm_temp = SSERegister()
+		# x += t * minusPio2_me
+		xmm_a = xmm_x[i]
+		xmm_x[i] = SSERegister()
+		VMULPD( xmm_temp, xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_me) )
+		VADDPD( xmm_x[i], xmm_a, xmm_temp )
+		xmm_z = SSERegister()
+		VSUBPD( xmm_z, xmm_x[i], xmm_a )
+		VSUBPD( xmm_temp, xmm_temp, xmm_z )
+		# x += t * minusPio2_lo
+		VMULPD( xmm_t[i], xmm_t[i], Constant.float64x2(TrigReduction.minus_pi_o2_lo) )
+		VADDPD( xmm_t[i], xmm_t[i], xmm_temp )
+		VADDPD( xmm_x[i], xmm_x[i], xmm_t[i] )
+
+	xmm_sqrx = [SSERegister() for i in range(5)]
+	for i in range(5):
+		# sqrx = x * x
+		VMOVAPD( x[i], xmm_x[i] )
+		VMULPD( xmm_sqrx[i], xmm_x[i], xmm_x[i] )
+
+	xmm_c14 = SSERegister()
+	xmm_c12 = SSERegister()
+	LOAD.CONSTANT( xmm_c14, Constant.float64x2(Cos.minus_c14) )
+	LOAD.CONSTANT( xmm_c12, Constant.float64x2(Cos.minus_c12) )
+	xmm_minus_cos = [SSERegister() for i in range(5)]
+	for i in range(5):
+		VFMADDPD( xmm_minus_cos[i], xmm_c14, xmm_sqrx[i], xmm_c12 )
+
+	xmm_c13 = SSERegister()
+	xmm_c11 = SSERegister()
+	LOAD.CONSTANT( xmm_c13, Constant.float64x2(Sin.c13) )
+	LOAD.CONSTANT( xmm_c11, Constant.float64x2(Sin.c11) )
+	xmm_sin = [SSERegister() for i in range(5)]
+	for i in range(5):
+		VFMADDPD( xmm_sin[i], xmm_c13, xmm_sqrx[i], xmm_c11 )
+
+	def HORNER_STEP(acc, coef):
+		xmm_c = SSERegister()
+		LOAD.CONSTANT( xmm_c, coef )
+		for i in range(5):
+			VFMADDPD( acc[i], acc[i], xmm_sqrx[i], xmm_c )
+
+	HORNER_STEP(xmm_minus_cos, Constant.float64x2(Cos.minus_c10) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c9) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64x2(Cos.minus_c8) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c7) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64x2(Cos.minus_c6) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c5) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64x2(Cos.minus_c4) )
+	HORNER_STEP(xmm_sin, Constant.float64x2(Sin.c3) )
+	HORNER_STEP(xmm_minus_cos, Constant.float64x2(Cos.minus_c2) )
+
+	for i in range(5):
+		VMULPD( xmm_sin[i], xmm_sqrx[i] )
+	
+	xmm_c0 = SSERegister()
+	LOAD.CONSTANT( xmm_c0, Constant.float64x2(Cos.minus_c0) )
+	for i in range(5):
+		VFMADDPD( xmm_minus_cos[i], xmm_minus_cos[i], xmm_sqrx[i], xmm_c0 )
+
+	for i in range(5):
+		xmm_x = SSERegister()
+		VMOVAPD( xmm_x, x[i] )
+		VFMADDPD( xmm_sin[i], xmm_sin[i], xmm_x, xmm_x )
+
+	xmm_sign_mask = SSERegister()
+	LOAD.CONSTANT( xmm_sign_mask, Constant.float64x2(Sin.sign_mask) )
+	for i in range(5):
+		xmm_n = SSERegister()
+		VMOVAPD( xmm_n, n[i] )
+		xmm_sign = SSERegister()
+		VANDPD( xmm_sign, xmm_n, xmm_sign_mask )
+		VPADDQ( xmm_n, xmm_n, xmm_n )
+		xmm_cos = SSERegister()
+		VBLENDVPD( xmm_cos, xmm_minus_cos[i], xmm_sin[i], xmm_n )
+		VXORPD( xmm_cos, xmm_sign )
+		VMOVUPD( [yPointer + 16 * i], xmm_cos )
+
+def BATCH_COS_AVX(xPointer, yPointer):
+	microarchitecture = Function.get_current().microarchitecture
+	has_fma3 = microarchitecture.is_supported('FMA3')
+	has_avx2 = microarchitecture.is_supported('AVX2')
+	has_256bit_store_unit = microarchitecture.get_name() in ['Haswell']
+
+	ymm_x = [AVXRegister() for i in range(5)]
+	ymm_t = [AVXRegister() for i in range(5)]
+	n = [LocalVariable(AVXRegister) for i in range(5)]
+	x = [LocalVariable(AVXRegister) for i in range(5)]
+
+	ymm_two_over_pi = AVXRegister()
+	ymm_magic_bias = AVXRegister()
+	LOAD.CONSTANT( ymm_two_over_pi, Constant.float64x4(TrigReduction.two_over_pi) )
+	LOAD.CONSTANT( ymm_magic_bias, Constant.float64x4(Cos.magic_bias) )
+	for i in range(5):
+		# x = *xPointer
+		VMOVAPD( ymm_x[i], [xPointer + i * 32] )
+		# t = (x * (2/Pi)) + magicBias
+		VMULPD( ymm_t[i], ymm_x[i], ymm_two_over_pi )
+		VADDPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
+
+	for i in range(5):
+		xmm_n_lo = SSERegister()
+		xmm_n_hi = SSERegister()
+		# n = (int(t) % 4) << 62
+		VEXTRACTF128( xmm_n_hi, ymm_t[i], 1 )
+		VPSLLQ( xmm_n_lo, ymm_t[i].get_oword(), 62 )
+		VMOVDQA( n[i].get_low(), xmm_n_lo )
+		VPSLLQ( xmm_n_hi, xmm_n_hi, 62 )
+		VMOVDQA( n[i].get_high(), xmm_n_hi )
+		# t -= magicBias
+		VSUBPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
+
+	for i in range(5):
+		# x += t * minusPio2_hi
+		ymm_temp = AVXRegister()
+		VMULPD( ymm_temp, ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_hi) )
+		VADDPD( ymm_x[i], ymm_x[i], ymm_temp )
+
+	for i in range(5):
+		ymm_temp = AVXRegister()
+		# x += t * minusPio2_me
+		ymm_a = ymm_x[i]
+		ymm_x[i] = AVXRegister()
+		VMULPD( ymm_temp, ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_me) )
+		VADDPD( ymm_x[i], ymm_a, ymm_temp )
+		ymm_z = AVXRegister()
+		VSUBPD( ymm_z, ymm_x[i], ymm_a )
+		VSUBPD( ymm_temp, ymm_temp, ymm_z )
+		# x += t * minusPio2_lo
+		VMULPD( ymm_t[i], ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_lo) )
+		VADDPD( ymm_t[i], ymm_t[i], ymm_temp )
+		VADDPD( ymm_x[i], ymm_x[i], ymm_t[i] )
+
+	ymm_sqrx = [AVXRegister() for i in range(5)]
+	for i in range(5):
+		# sqrx = x * x
+		VMOVAPD( x[i], ymm_x[i] )
+		VMULPD( ymm_sqrx[i], ymm_x[i], ymm_x[i] )
+
+	ymm_c14 = AVXRegister()
+	ymm_c12 = AVXRegister()
+	LOAD.CONSTANT( ymm_c14, Constant.float64x4(Cos.minus_c14) )
+	LOAD.CONSTANT( ymm_c12, Constant.float64x4(Cos.minus_c12) )
+	ymm_minus_cos = [AVXRegister() for i in range(5)]
+	for i in range(5):
+		if has_fma3:
+			VMOVAPD( ymm_minus_cos[i], ymm_c14 )
+			VFMADD132PD( ymm_minus_cos[i], ymm_minus_cos[i], ymm_sqrx[i], ymm_c12 )
+		else:
+			VMULPD( ymm_minus_cos[i], ymm_c14, ymm_sqrx[i] )
+			VADDPD( ymm_minus_cos[i], ymm_minus_cos[i], ymm_c12 )
+
+	ymm_c13 = AVXRegister()
+	ymm_c11 = AVXRegister()
+	LOAD.CONSTANT( ymm_c13, Constant.float64x4(Sin.c13) )
+	LOAD.CONSTANT( ymm_c11, Constant.float64x4(Sin.c11) )
+	ymm_sin = [AVXRegister() for i in range(5)]
+	for i in range(5):
+		if has_fma3:
+			VMOVAPD( ymm_sin[i], ymm_c13 )
+			VFMADD132PD( ymm_sin[i], ymm_sin[i], ymm_sqrx[i], ymm_c11 )
+		else:
+			VMULPD( ymm_sin[i], ymm_c13, ymm_sqrx[i] )
+			VADDPD( ymm_sin[i], ymm_sin[i], ymm_c11 )
+
+	def HORNER_STEP(acc, coef):
+		ymm_c = AVXRegister()
+		LOAD.CONSTANT( ymm_c, coef )
+		for i in range(5):
+			if has_fma3:
+				VFMADD132PD( acc[i], acc[i], ymm_sqrx[i], ymm_c )
+			else:
+				VMULPD( acc[i], acc[i], ymm_sqrx[i] )
+				VADDPD( acc[i], acc[i], ymm_c )
+
+	HORNER_STEP(ymm_minus_cos, Constant.float64x4(Cos.minus_c10) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c9) )
+	HORNER_STEP(ymm_minus_cos, Constant.float64x4(Cos.minus_c8) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c7) )
+	HORNER_STEP(ymm_minus_cos, Constant.float64x4(Cos.minus_c6) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c5) )
+	HORNER_STEP(ymm_minus_cos, Constant.float64x4(Cos.minus_c4) )
+	HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c3) )
+	HORNER_STEP(ymm_minus_cos, Constant.float64x4(Cos.minus_c2) )
+
+	for i in range(5):
+		VMULPD( ymm_sin[i], ymm_sqrx[i] )
+	
+	ymm_c0 = AVXRegister()
+	LOAD.CONSTANT( ymm_c0, Constant.float64x4(Cos.minus_c0) )
+	for i in range(5):
+		if has_fma3:
+			VFMADD132PD( ymm_minus_cos[i], ymm_minus_cos[i], ymm_sqrx[i], ymm_c0 )
+		else:
+			VMULPD( ymm_minus_cos[i], ymm_sqrx[i] )
+			VADDPD( ymm_minus_cos[i], ymm_c0 )
+
+	for i in range(5):
+		ymm_x = AVXRegister()
+		VMOVAPD( ymm_x, x[i] )
+		if has_fma3:
+			VFMADD132PD( ymm_sin[i], ymm_sin[i], ymm_x, ymm_x )
+		else:
+			VMULPD( ymm_sin[i], ymm_x )
+			VADDPD( ymm_sin[i], ymm_x )
+
+	ymm_sign_mask = AVXRegister()
+	LOAD.CONSTANT( ymm_sign_mask, Constant.float64x4(Sin.sign_mask) )
+	for i in range(5):
+		ymm_n = AVXRegister()
+		VMOVAPD( ymm_n, n[i] )
+		ymm_sign = AVXRegister()
+		VANDPD( ymm_sign, ymm_n, ymm_sign_mask )
+		if has_avx2:
+			VPADDQ( ymm_n, ymm_n, ymm_n )
+			ymm_cos = AVXRegister()
+			VBLENDVPD( ymm_cos, ymm_minus_cos[i], ymm_sin[i], ymm_n )
+		else:
+			VANDNPD( ymm_n, ymm_sign_mask, ymm_n )
+			# n = !(n & 1)
+			VCMPEQPD( ymm_n, ymm_n, ymm_sign )
+			ymm_cos = AVXRegister()
+			VBLENDVPD( ymm_cos, ymm_sin[i], ymm_minus_cos[i], ymm_n )
+		VXORPD( ymm_cos, ymm_sign )
+		
+		if has_256bit_store_unit:
+			VMOVUPD( [yPointer + 32 * i], ymm_cos )
+		else:
+			VMOVUPD( [yPointer + 32 * i], ymm_cos.get_oword() )
+			VEXTRACTF128( [yPointer + 32 * i + 16], ymm_cos, 1 )
+
+def Cos_V64f_V64f_Nehalem(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
+		if module == 'Math':
+			if function == 'Cos':
+				x_argument, y_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not x_type.is_floating_point() or not y_type.is_floating_point():
+					return
+
+				x_size = x_type.get_size(codegen.abi)
+				y_size = y_type.get_size(codegen.abi)
+
+				if x_size != 8 or y_size != 8:
+					return
+
+				parameters = [x_argument, y_argument, length_argument]
+				codegen.begin_function(function_signature, parameters, 'Nehalem')
+
+				xPointer = GeneralPurposeRegister64()
+				yPointer = GeneralPurposeRegister64()
+				length = GeneralPurposeRegister64()
+
+				LOAD.PARAMETER( xPointer, x_argument )
+				LOAD.PARAMETER( yPointer, y_argument )
+				LOAD.PARAMETER( length, length_argument )
+
+				Map_Vf_Vf(SCALAR_COS_SSE, BATCH_COS_SSE, None, xPointer, yPointer, length, 32, 16 * 5, 8)
+
+				return codegen.end_function()
+
+def Cos_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
+		if module == 'Math':
+			if function == 'Cos':
+				x_argument, y_argument, length_argument = tuple(arguments)
 
 				x_type = x_argument.get_type().get_primitive_type()
 				y_type = y_argument.get_type().get_primitive_type()
@@ -4295,251 +5307,15 @@ def Sin_V64f_V64f_SandyBridge(codegen, function_signature, module, function, arg
 				LOAD.PARAMETER( yPointer, y_argument )
 				LOAD.PARAMETER( length, length_argument )
 
-				def SCALAR_SIN(xPointer, yPointer):
-					minusPio2_hi = Constant.float64x2('-0x1.921FB54440000p+0')
-					minusPio2_me = Constant.float64x2('-0x1.68C234C4C8000p-39')
-					minusPio2_lo = Constant.float64x2( '0x1.9D747F23E32EDp-79')
-					twoOPi = Constant.float64x2('0x1.45F306DC9C883p-1')
-					magicBias = Constant.float64x2('0x1.8000000000000p+52')
-
-					c0  = Constant.float64x2( '0x1.0000000000000p+0')
-					c2  = Constant.float64x2('-0x1.0000000000000p-1')
-					c3  = Constant.float64x2('-0x1.5555555555546p-3')
-					c4  = Constant.float64x2( '0x1.555555555554Bp-5')
-					c5  = Constant.float64x2( '0x1.111111110F51Ep-7')
-					c6  = Constant.float64x2('-0x1.6C16C16C15038p-10')
-					c7  = Constant.float64x2('-0x1.A01A019BB92C0p-13')
-					c8  = Constant.float64x2( '0x1.A01A019C94874p-16')
-					c9  = Constant.float64x2( '0x1.71DE3535C8A8Ap-19')
-					c10 = Constant.float64x2('-0x1.27E4F7F65104Fp-22')
-					c11 = Constant.float64x2('-0x1.AE5E38936D046p-26')
-					c12 = Constant.float64x2( '0x1.1EE9DF6693F7Ep-29')
-					c13 = Constant.float64x2( '0x1.5D8711D281543p-33')
-					c14 = Constant.float64x2('-0x1.8FA87EF79AE3Fp-37')
-
-					signMask = Constant.float64x2('-0x0.0000000000000p+0')
-
-					# x = *xPointer
-					xmm_x = SSERegister()
-					VMOVSD( xmm_x, [xPointer] )
-					# t = (x * (2/Pi)) + magicBias
-					xmm_t = SSERegister()
-					VMULPD( xmm_t, xmm_x, twoOPi )
-					VADDPD( xmm_t, xmm_t, magicBias )
-					# n = (int(t) % 4) << 62
-					xmm_n = SSERegister()
-					VPSLLQ( xmm_n, xmm_t, 62 )
-					# t -= magicBias
-					VSUBPD( xmm_t, xmm_t, magicBias )
-					# x += t * minusPio2_hi
-					xmm_temp = SSERegister()
-					VMULPD( xmm_temp, xmm_t, minusPio2_hi )
-					VADDPD( xmm_x, xmm_x, xmm_temp )
-					# x += t * minusPio2_me
-					xmm_a = SSERegister()
-					VMOVAPS( xmm_a, xmm_x )
-					xmm_temp = SSERegister()
-					VMULPD( xmm_temp, xmm_t, minusPio2_me )
-					VADDPD( xmm_x, xmm_temp )
-					xmm_z = SSERegister()
-					VSUBPD( xmm_z, xmm_x, xmm_a )
-					VSUBPD( xmm_temp, xmm_temp, xmm_z )
-					# x += t * minusPio2_lo
-					VMULPD( xmm_t, xmm_t, minusPio2_lo )
-					VADDPD( xmm_t, xmm_t, xmm_temp )
-					VADDPD( xmm_x, xmm_x, xmm_t )
-
-					# sqrx = x * x
-					xmm_sqrx = SSERegister()
-					VMULPD( xmm_sqrx, xmm_x, xmm_x )
-
-					xmm_sin = SSERegister()
-					xmm_cos = SSERegister()
-					LOAD.CONSTANT( xmm_cos, c14 )
-					LOAD.CONSTANT( xmm_sin, c13 )
-
-					def HORNER_STEP(acc, coef):
-						VMULPD( acc, acc, xmm_sqrx )
-						VADDPD( acc, acc, coef )
-
-					HORNER_STEP(xmm_cos, c12 )
-					HORNER_STEP(xmm_sin, c11 )
-					HORNER_STEP(xmm_cos, c10 )
-					HORNER_STEP(xmm_sin, c9 )
-					HORNER_STEP(xmm_cos, c8 )
-					HORNER_STEP(xmm_sin, c7 )
-					HORNER_STEP(xmm_cos, c6 )
-					HORNER_STEP(xmm_sin, c5 )
-					HORNER_STEP(xmm_cos, c4 )
-					HORNER_STEP(xmm_sin, c3 )
-					HORNER_STEP(xmm_cos, c2 )
-					VMULPD( xmm_sin, xmm_sin, xmm_sqrx )
-					VMULPD( xmm_cos, xmm_cos, xmm_sqrx )
-					VMULPD( xmm_sin, xmm_sin, xmm_x )
-					VADDPD( xmm_sin, xmm_sin, xmm_x )
-					VADDPD( xmm_cos, xmm_cos, c0 )
-
-					xmm_sign = SSERegister()
-					LOAD.CONSTANT( xmm_sign, signMask )
-					VPAND( xmm_sign, xmm_n )
-					VPADDQ( xmm_n, xmm_n )
-					VBLENDVPD( xmm_sin, xmm_sin, xmm_cos, xmm_n )
-					VXORPD( xmm_sin, xmm_sign )
-					VMOVSD( [yPointer], xmm_sin )
-
-				def BATCH_SIN_FULL(xPointer, yPointer):
-					minusPio2_hi = Constant.float64x4('-0x1.921FB54440000p+0')
-					minusPio2_me = Constant.float64x4('-0x1.68C234C4C8000p-39')
-					minusPio2_lo = Constant.float64x4( '0x1.9D747F23E32EDp-79')
-					twoOPi = Constant.float64x4('0x1.45F306DC9C883p-1')
-					magicBias = Constant.float64x4('0x1.8000000000000p+52')
-
-					c0  = Constant.float64x4( '0x1.0000000000000p+0')
-					c2  = Constant.float64x4('-0x1.0000000000000p-1')
-					c3  = Constant.float64x4('-0x1.5555555555546p-3')
-					c4  = Constant.float64x4( '0x1.555555555554Bp-5')
-					c5  = Constant.float64x4( '0x1.111111110F51Ep-7')
-					c6  = Constant.float64x4('-0x1.6C16C16C15038p-10')
-					c7  = Constant.float64x4('-0x1.A01A019BB92C0p-13')
-					c8  = Constant.float64x4( '0x1.A01A019C94874p-16')
-					c9  = Constant.float64x4( '0x1.71DE3535C8A8Ap-19')
-					c10 = Constant.float64x4('-0x1.27E4F7F65104Fp-22')
-					c11 = Constant.float64x4('-0x1.AE5E38936D046p-26')
-					c12 = Constant.float64x4( '0x1.1EE9DF6693F7Ep-29')
-					c13 = Constant.float64x4( '0x1.5D8711D281543p-33')
-					c14 = Constant.float64x4('-0x1.8FA87EF79AE3Fp-37')
-
-					signMask = Constant.float64x4('-0x0.0000000000000p+0')
-
-					ymm_x = [AVXRegister() for i in range(5)]
-					ymm_t = [AVXRegister() for i in range(5)]
-					n = [LocalVariable(AVXRegister) for i in range(5)]
-					x = [LocalVariable(AVXRegister) for i in range(5)]
-
-					ymm_two_over_pi = AVXRegister()
-					ymm_magic_bias = AVXRegister()
-					LOAD.CONSTANT( ymm_two_over_pi, twoOPi )
-					LOAD.CONSTANT( ymm_magic_bias, magicBias )
-					for i in range(5):
-						# x = *xPointer
-						VMOVAPD( ymm_x[i], [xPointer + i * 32] )
-						# t = (x * (2/Pi)) + magicBias
-						VMULPD( ymm_t[i], ymm_x[i], ymm_two_over_pi )
-						VADDPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
-
-					for i in range(5):
-						xmm_n_lo = SSERegister()
-						xmm_n_hi = SSERegister()
-						# n = (int(t) % 4) << 62
-						VEXTRACTF128( xmm_n_hi, ymm_t[i], 1 )
-						VPSLLQ( xmm_n_lo, ymm_t[i].get_oword(), 62 )
-						VMOVDQA( n[i].get_low(), xmm_n_lo )
-						VPSLLQ( xmm_n_hi, xmm_n_hi, 62 )
-						VMOVDQA( n[i].get_high(), xmm_n_hi )
-						# t -= magicBias
-						VSUBPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
-
-					for i in range(5):
-						# x += t * minusPio2_hi
-						ymm_temp = AVXRegister()
-						VMULPD( ymm_temp, ymm_t[i], minusPio2_hi )
-						VADDPD( ymm_x[i], ymm_x[i], ymm_temp )
-
-					for i in range(5):
-						ymm_temp = AVXRegister()
-						# x += t * minusPio2_me
-						ymm_a = ymm_x[i]
-						ymm_x[i] = AVXRegister()
-						VMULPD( ymm_temp, ymm_t[i], minusPio2_me )
-						VADDPD( ymm_x[i], ymm_a, ymm_temp )
-						ymm_z = AVXRegister()
-						VSUBPD( ymm_z, ymm_x[i], ymm_a )
-						VSUBPD( ymm_temp, ymm_temp, ymm_z )
-						# x += t * minusPio2_lo
-						VMULPD( ymm_t[i], ymm_t[i], minusPio2_lo )
-						VADDPD( ymm_t[i], ymm_t[i], ymm_temp )
-						VADDPD( ymm_x[i], ymm_x[i], ymm_t[i] )
-
-					ymm_sqrx = [AVXRegister() for i in range(5)]
-					for i in range(5):
-						# sqrx = x * x
-						VMOVAPD( x[i], ymm_x[i] )
-						VMULPD( ymm_sqrx[i], ymm_x[i], ymm_x[i] )
-
-
-					ymm_sin = [AVXRegister() for i in range(5)]
-					ymm_cos = [AVXRegister() for i in range(5)]
-
-					ymm_c14 = AVXRegister()
-					ymm_c12 = AVXRegister()
-					LOAD.CONSTANT( ymm_c14, c14 )
-					LOAD.CONSTANT( ymm_c12, c12 )
-					for i in range(5):
-						VMULPD( ymm_cos[i], ymm_c14, ymm_sqrx[i] )
-						VADDPD( ymm_cos[i], ymm_cos[i], ymm_c12 )
-
-					ymm_c13 = AVXRegister()
-					ymm_c11 = AVXRegister()
-					LOAD.CONSTANT( ymm_c13, c13 )
-					LOAD.CONSTANT( ymm_c11, c11 )
-					for i in range(5):
-						VMULPD( ymm_sin[i], ymm_c13, ymm_sqrx[i] )
-						VADDPD( ymm_sin[i], ymm_sin[i], ymm_c11 )
-
-					def HORNER_STEP(acc, coef):
-						ymm_c = AVXRegister()
-						LOAD.CONSTANT( ymm_c, coef )
-						for i in range(5):
-							VMULPD( acc[i], acc[i], ymm_sqrx[i] )
-							VADDPD( acc[i], acc[i], ymm_c )
-
-					HORNER_STEP(ymm_cos, c10 )
-					HORNER_STEP(ymm_sin, c9 )
-					HORNER_STEP(ymm_cos, c8 )
-					HORNER_STEP(ymm_sin, c7 )
-					HORNER_STEP(ymm_cos, c6 )
-					HORNER_STEP(ymm_sin, c5 )
-					HORNER_STEP(ymm_cos, c4 )
-					HORNER_STEP(ymm_sin, c3 )
-					HORNER_STEP(ymm_cos, c2 )
-
-					ymm_c0 = AVXRegister()
-					LOAD.CONSTANT( ymm_c0, c0 )
-					for i in range(5):
-						VMULPD( ymm_sin[i], ymm_sqrx[i] )
-						VMULPD( ymm_cos[i], ymm_sqrx[i] )
-						ymm_x = AVXRegister()
-						VMOVAPD( ymm_x, x[i] )
-						VMULPD( ymm_sin[i], ymm_x )
-						VADDPD( ymm_sin[i], ymm_x )
-						VADDPD( ymm_cos[i], ymm_c0 )
-
-					ymm_sign_mask = AVXRegister()
-					LOAD.CONSTANT( ymm_sign_mask, signMask )
-					for i in range(5):
-						ymm_n = AVXRegister()
-						VMOVAPD( ymm_n, n[i] )
-						ymm_sign = AVXRegister()
-						VANDPD( ymm_sign, ymm_n, ymm_sign_mask )
-						VANDNPD( ymm_n, ymm_sign_mask, ymm_n )
-						# n = !(n & 1)
-						VCMPEQPD( ymm_n, ymm_n, ymm_sign )
-						VBLENDVPD( ymm_sin[i], ymm_cos[i], ymm_sin[i], ymm_n )
-						VXORPD( ymm_sin[i], ymm_sign )
-						VMOVUPD( [yPointer + 32 * i], ymm_sin[i].get_oword() )
-						VEXTRACTF128( [yPointer + 32 * i + 16], ymm_sin[i], 1 )
-
-				Map_V64f_V64f(SCALAR_SIN, BATCH_SIN_FULL, None, xPointer, yPointer, length, 32, 20)
+				Map_Vf_Vf(SCALAR_COS_AVX, BATCH_COS_AVX, None, xPointer, yPointer, length, 32, 32 * 5, 8)
 
 				return codegen.end_function()
 
-def Sin_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
+def Cos_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
-			if function == 'Sin':
-				x_argument = arguments[0]
-				y_argument = arguments[1]
-				length_argument = arguments[2]
+			if function == 'Cos':
+				x_argument, y_argument, length_argument = tuple(arguments)
 
 				x_type = x_argument.get_type().get_primitive_type()
 				y_type = y_argument.get_type().get_primitive_type()
@@ -4564,243 +5340,156 @@ def Sin_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 				LOAD.PARAMETER( yPointer, y_argument )
 				LOAD.PARAMETER( length, length_argument )
 
-				def SCALAR_SIN(xPointer, yPointer):
-					minusPio2_hi = Constant.float64x2('-0x1.921FB54440000p+0')
-					minusPio2_me = Constant.float64x2('-0x1.68C234C4C8000p-39')
-					minusPio2_lo = Constant.float64x2( '0x1.9D747F23E32EDp-79')
-					twoOPi = Constant.float64x2('0x1.45F306DC9C883p-1')
-					magicBias = Constant.float64x2('0x1.8000000000000p+52')
-
-					c0  = Constant.float64x2( '0x1.0000000000000p+0')
-					c2  = Constant.float64x2('-0x1.0000000000000p-1')
-					c3  = Constant.float64x2('-0x1.5555555555546p-3')
-					c4  = Constant.float64x2( '0x1.555555555554Bp-5')
-					c5  = Constant.float64x2( '0x1.111111110F51Ep-7')
-					c6  = Constant.float64x2('-0x1.6C16C16C15038p-10')
-					c7  = Constant.float64x2('-0x1.A01A019BB92C0p-13')
-					c8  = Constant.float64x2( '0x1.A01A019C94874p-16')
-					c9  = Constant.float64x2( '0x1.71DE3535C8A8Ap-19')
-					c10 = Constant.float64x2('-0x1.27E4F7F65104Fp-22')
-					c11 = Constant.float64x2('-0x1.AE5E38936D046p-26')
-					c12 = Constant.float64x2( '0x1.1EE9DF6693F7Ep-29')
-					c13 = Constant.float64x2( '0x1.5D8711D281543p-33')
-					c14 = Constant.float64x2('-0x1.8FA87EF79AE3Fp-37')
-
-					signMask = Constant.float64x2('-0x0.0000000000000p+0')
-
-					# x = *xPointer
-					xmm_x = SSERegister()
-					VMOVSD( xmm_x, [xPointer] )
-					# t = (x * (2/Pi)) + magicBias
-					xmm_t = SSERegister()
-					VMULPD( xmm_t, xmm_x, twoOPi )
-					VADDPD( xmm_t, xmm_t, magicBias )
-					# n = (int(t) % 4) << 62
-					xmm_n = SSERegister()
-					VPSLLQ( xmm_n, xmm_t, 62 )
-					# t -= magicBias
-					VSUBPD( xmm_t, xmm_t, magicBias )
-					# x += t * minusPio2_hi
-					xmm_temp = SSERegister()
-					VMULPD( xmm_temp, xmm_t, minusPio2_hi )
-					VADDPD( xmm_x, xmm_x, xmm_temp )
-					# x += t * minusPio2_me
-					xmm_a = SSERegister()
-					VMOVAPS( xmm_a, xmm_x )
-					xmm_temp = SSERegister()
-					VMULPD( xmm_temp, xmm_t, minusPio2_me )
-					VADDPD( xmm_x, xmm_temp )
-					xmm_z = SSERegister()
-					VSUBPD( xmm_z, xmm_x, xmm_a )
-					VSUBPD( xmm_temp, xmm_temp, xmm_z )
-					# x += t * minusPio2_lo
-					VMULPD( xmm_t, xmm_t, minusPio2_lo )
-					VADDPD( xmm_t, xmm_t, xmm_temp )
-					VADDPD( xmm_x, xmm_x, xmm_t )
-
-					# sqrx = x * x
-					xmm_sqrx = SSERegister()
-					VMULPD( xmm_sqrx, xmm_x, xmm_x )
-
-					xmm_sin = SSERegister()
-					xmm_cos = SSERegister()
-					LOAD.CONSTANT( xmm_cos, c14 )
-					LOAD.CONSTANT( xmm_sin, c13 )
-
-					def HORNER_STEP(acc, coef):
-						VFMADDPD( acc, acc, xmm_sqrx, coef )
-
-					HORNER_STEP(xmm_cos, c12 )
-					HORNER_STEP(xmm_sin, c11 )
-					HORNER_STEP(xmm_cos, c10 )
-					HORNER_STEP(xmm_sin, c9 )
-					HORNER_STEP(xmm_cos, c8 )
-					HORNER_STEP(xmm_sin, c7 )
-					HORNER_STEP(xmm_cos, c6 )
-					HORNER_STEP(xmm_sin, c5 )
-					HORNER_STEP(xmm_cos, c4 )
-					HORNER_STEP(xmm_sin, c3 )
-					HORNER_STEP(xmm_cos, c2 )
-					VMULPD( xmm_sin, xmm_sin, xmm_sqrx )
-					VFMADDPD( xmm_cos, xmm_cos, xmm_sqrx, c0 )
-					VFMADDPD( xmm_sin, xmm_sin, xmm_x, xmm_x )
-
-					xmm_sign = SSERegister()
-					LOAD.CONSTANT( xmm_sign, signMask )
-					VPAND( xmm_sign, xmm_n )
-					VPADDQ( xmm_n, xmm_n )
-					VBLENDVPD( xmm_sin, xmm_sin, xmm_cos, xmm_n )
-					VXORPD( xmm_sin, xmm_sign )
-					VMOVSD( [yPointer], xmm_sin )
-
-				def BATCH_SIN_FULL(xPointer, yPointer):
-					minusPio2_hi = Constant.float64x4('-0x1.921FB54440000p+0')
-					minusPio2_me = Constant.float64x4('-0x1.68C234C4C8000p-39')
-					minusPio2_lo = Constant.float64x4( '0x1.9D747F23E32EDp-79')
-					twoOPi = Constant.float64x4('0x1.45F306DC9C883p-1')
-					magicBias = Constant.float64x4('0x1.8000000000000p+52')
-
-					c0  = Constant.float64x4( '0x1.0000000000000p+0')
-					c2  = Constant.float64x4('-0x1.0000000000000p-1')
-					c3  = Constant.float64x4('-0x1.5555555555546p-3')
-					c4  = Constant.float64x4( '0x1.555555555554Bp-5')
-					c5  = Constant.float64x4( '0x1.111111110F51Ep-7')
-					c6  = Constant.float64x4('-0x1.6C16C16C15038p-10')
-					c7  = Constant.float64x4('-0x1.A01A019BB92C0p-13')
-					c8  = Constant.float64x4( '0x1.A01A019C94874p-16')
-					c9  = Constant.float64x4( '0x1.71DE3535C8A8Ap-19')
-					c10 = Constant.float64x4('-0x1.27E4F7F65104Fp-22')
-					c11 = Constant.float64x4('-0x1.AE5E38936D046p-26')
-					c12 = Constant.float64x4( '0x1.1EE9DF6693F7Ep-29')
-					c13 = Constant.float64x4( '0x1.5D8711D281543p-33')
-					c14 = Constant.float64x4('-0x1.8FA87EF79AE3Fp-37')
-
-					signMask = Constant.float64x4('-0x0.0000000000000p+0')
-
-					ymm_x = [AVXRegister() for i in range(5)]
-					ymm_t = [AVXRegister() for i in range(5)]
-					n = [LocalVariable(AVXRegister) for i in range(5)]
-					x = [LocalVariable(AVXRegister) for i in range(5)]
-
-					ymm_two_over_pi = AVXRegister()
-					ymm_magic_bias = AVXRegister()
-					LOAD.CONSTANT( ymm_two_over_pi, twoOPi )
-					LOAD.CONSTANT( ymm_magic_bias, magicBias )
-					for i in range(5):
-						# x = *xPointer
-						VMOVAPD( ymm_x[i], [xPointer + i * 32] )
-						# t = (x * (2/Pi)) + magicBias
-						VMULPD( ymm_t[i], ymm_x[i], ymm_two_over_pi )
-						VADDPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
-
-					for i in range(5):
-						xmm_n_lo = SSERegister()
-						xmm_n_hi = SSERegister()
-						# n = (int(t) % 4) << 62
-						VEXTRACTF128( xmm_n_hi, ymm_t[i], 1 )
-						VPSLLQ( xmm_n_lo, ymm_t[i].get_oword(), 62 )
-						VMOVDQA( n[i].get_low(), xmm_n_lo )
-						VPSLLQ( xmm_n_hi, xmm_n_hi, 62 )
-						VMOVDQA( n[i].get_high(), xmm_n_hi )
-						# t -= magicBias
-						VSUBPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
-
-					for i in range(5):
-						# x += t * minusPio2_hi
-						ymm_temp = AVXRegister()
-						VMULPD( ymm_temp, ymm_t[i], minusPio2_hi )
-						VADDPD( ymm_x[i], ymm_x[i], ymm_temp )
-
-					for i in range(5):
-						ymm_temp = AVXRegister()
-						# x += t * minusPio2_me
-						ymm_a = ymm_x[i]
-						ymm_x[i] = AVXRegister()
-						VMULPD( ymm_temp, ymm_t[i], minusPio2_me )
-						VADDPD( ymm_x[i], ymm_a, ymm_temp )
-						ymm_z = AVXRegister()
-						VSUBPD( ymm_z, ymm_x[i], ymm_a )
-						VSUBPD( ymm_temp, ymm_temp, ymm_z )
-						# x += t * minusPio2_lo
-						VMULPD( ymm_t[i], ymm_t[i], minusPio2_lo )
-						VADDPD( ymm_t[i], ymm_t[i], ymm_temp )
-						VADDPD( ymm_x[i], ymm_x[i], ymm_t[i] )
-
-					ymm_sqrx = [AVXRegister() for i in range(5)]
-					for i in range(5):
-						# sqrx = x * x
-						VMOVAPD( x[i], ymm_x[i] )
-						VMULPD( ymm_sqrx[i], ymm_x[i], ymm_x[i] )
-
-
-					ymm_sin = [AVXRegister() for i in range(5)]
-					ymm_cos = [AVXRegister() for i in range(5)]
-
-					ymm_c14 = AVXRegister()
-					ymm_c12 = AVXRegister()
-					LOAD.CONSTANT( ymm_c14, c14 )
-					LOAD.CONSTANT( ymm_c12, c12 )
-					for i in range(5):
-						VFMADDPD( ymm_cos[i], ymm_c14, ymm_sqrx[i], ymm_c12 )
-
-					ymm_c13 = AVXRegister()
-					ymm_c11 = AVXRegister()
-					LOAD.CONSTANT( ymm_c13, c13 )
-					LOAD.CONSTANT( ymm_c11, c11 )
-					for i in range(5):
-						VFMADDPD( ymm_sin[i], ymm_c13, ymm_sqrx[i], ymm_c11 )
-
-					def HORNER_STEP(acc, coef):
-						ymm_c = AVXRegister()
-						LOAD.CONSTANT( ymm_c, coef )
-						for i in range(5):
-							VFMADDPD( acc[i], acc[i], ymm_sqrx[i], ymm_c )
-
-					HORNER_STEP(ymm_cos, c10 )
-					HORNER_STEP(ymm_sin, c9 )
-					HORNER_STEP(ymm_cos, c8 )
-					HORNER_STEP(ymm_sin, c7 )
-					HORNER_STEP(ymm_cos, c6 )
-					HORNER_STEP(ymm_sin, c5 )
-					HORNER_STEP(ymm_cos, c4 )
-					HORNER_STEP(ymm_sin, c3 )
-					HORNER_STEP(ymm_cos, c2 )
-
-					ymm_c0 = AVXRegister()
-					LOAD.CONSTANT( ymm_c0, c0 )
-					for i in range(5):
-						VMULPD( ymm_sin[i], ymm_sqrx[i] )
-						VFMADDPD( ymm_cos[i], ymm_cos[i], ymm_sqrx[i], ymm_c0 )
-						ymm_x = AVXRegister()
-						VMOVAPD( ymm_x, x[i] )
-						VFMADDPD( ymm_sin[i], ymm_sin[i], ymm_x, ymm_x )
-
-					ymm_sign_mask = AVXRegister()
-					LOAD.CONSTANT( ymm_sign_mask, signMask )
-					for i in range(5):
-						ymm_n = AVXRegister()
-						VMOVAPD( ymm_n, n[i] )
-						ymm_sign = AVXRegister()
-						VANDPD( ymm_sign, ymm_n, ymm_sign_mask )
-						VANDNPD( ymm_n, ymm_sign_mask, ymm_n )
-						# n = !(n & 1)
-						VCMPEQPD( ymm_n, ymm_n, ymm_sign )
-						VBLENDVPD( ymm_sin[i], ymm_cos[i], ymm_sin[i], ymm_n )
-						VXORPD( ymm_sin[i], ymm_sign )
-						VMOVUPD( [yPointer + 32 * i], ymm_sin[i].get_oword() )
-						VEXTRACTF128( [yPointer + 32 * i + 16], ymm_sin[i], 1 )
-
-				Map_V64f_V64f(SCALAR_SIN, BATCH_SIN_FULL, None, xPointer, yPointer, length, 32, 20)
+				Map_Vf_Vf(SCALAR_COS_AVX, BATCH_COS_Bulldozer, None, xPointer, yPointer, length, 16, 16 * 5, 8)
 
 				return codegen.end_function()
+
+def Cos_V64f_V64f_Haswell(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
+		if module == 'Math':
+			if function == 'Cos':
+				x_argument, y_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not x_type.is_floating_point() or not y_type.is_floating_point():
+					return
+
+				x_size = x_type.get_size(codegen.abi)
+				y_size = y_type.get_size(codegen.abi)
+
+				if x_size != 8 or y_size != 8:
+					return
+
+				parameters = [x_argument, y_argument, length_argument]
+				codegen.begin_function(function_signature, parameters, 'Haswell')
+
+				xPointer = GeneralPurposeRegister64()
+				yPointer = GeneralPurposeRegister64()
+				length = GeneralPurposeRegister64()
+
+				LOAD.PARAMETER( xPointer, x_argument )
+				LOAD.PARAMETER( yPointer, y_argument )
+				LOAD.PARAMETER( length, length_argument )
+
+				Map_Vf_Vf(SCALAR_COS_AVX, BATCH_COS_AVX, None, xPointer, yPointer, length, 32, 32 * 5, 8)
+
+				return codegen.end_function()
+
+def SCALAR_TAN_AVX(xPointer, yPointer, is_prologue):
+	# x = *xPointer
+	xmm_x = SSERegister()
+	VMOVSD( xmm_x, [xPointer] )
+	# t = (x * (2/Pi)) + magic_bias
+	xmm_t = SSERegister()
+	ASSUME.INITIALIZED( xmm_t )
+	VMULSD( xmm_t, xmm_x, Constant.float64(TrigReduction.two_over_pi) )
+	VADDSD( xmm_t, xmm_t, Constant.float64(Tan.magic_bias) )
+	# n = (int(t) % 4) << 63
+	xmm_n = SSERegister()
+	VPSLLQ( xmm_n, xmm_t, 63 )
+	# t -= magic_bias
+	VSUBSD( xmm_t, xmm_t, Constant.float64(Tan.magic_bias) )
+	# x += t * (-pi/2)_hi
+	xmm_temp = SSERegister()
+	ASSUME.INITIALIZED( xmm_temp )
+	VMULSD( xmm_temp, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_hi) )
+	VADDSD( xmm_x, xmm_x, xmm_temp )
+	# x += t * (-pi/2)_me
+	xmm_a = SSERegister()
+	VMOVAPS( xmm_a, xmm_x )
+	xmm_temp = SSERegister()
+	ASSUME.INITIALIZED( xmm_temp )
+	VMULSD( xmm_temp, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_me) )
+	VADDSD( xmm_x, xmm_temp )
+	xmm_z = SSERegister()
+	ASSUME.INITIALIZED( xmm_z )
+	VSUBSD( xmm_z, xmm_x, xmm_a )
+	VSUBSD( xmm_temp, xmm_temp, xmm_z )
+	# x += t * (-pi/2)_lo
+	VMULSD( xmm_t, xmm_t, Constant.float64(TrigReduction.minus_pi_o2_lo) )
+	VADDSD( xmm_t, xmm_t, xmm_temp )
+	VADDSD( xmm_x, xmm_x, xmm_t )
+
+	# sqrx = x * x
+	xmm_sqrx = SSERegister()
+	ASSUME.INITIALIZED( xmm_sqrx )
+	VMULSD( xmm_sqrx, xmm_x, xmm_x )
+
+	xmm_sin = SSERegister()
+	xmm_cos = SSERegister()
+	LOAD.CONSTANT( xmm_cos, Constant.float64(Cos.c14) )
+	LOAD.CONSTANT( xmm_sin, Constant.float64(Sin.c13) )
+
+	def HORNER_STEP(acc, coef):
+		VFMADDSD( acc, acc, xmm_sqrx, coef )
+
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c12) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c11) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c10) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c9) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c8) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c7) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c6) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c5) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c4) )
+	HORNER_STEP(xmm_sin, Constant.float64(Sin.c3) )
+	HORNER_STEP(xmm_cos, Constant.float64(Cos.c2) )
+	VMULSD( xmm_sin, xmm_sin, xmm_sqrx )
+	VFMADDSD( xmm_cos, xmm_cos, xmm_sqrx, Constant.float64(Cos.c0) )
+	VFMADDSD( xmm_sin, xmm_sin, xmm_x, xmm_x )
+
+	xmm_p = SSERegister()
+	xmm_q = SSERegister()
+	VXORPD( xmm_sin, xmm_sin, xmm_n )
+	VBLENDVPD( xmm_p, xmm_sin, xmm_cos, xmm_n )
+	VBLENDVPD( xmm_q, xmm_cos, xmm_sin, xmm_n )
+	xmm_tan = SSERegister()
+	# VDIVPD( xmm_tan, xmm_p, xmm_q )
+
+	xmm_exponent_mask = SSERegister()
+	LOAD.CONSTANT(xmm_exponent_mask, Constant.float64(Tan.exponent_mask) )
+
+	xmm_q_exponent = SSERegister()
+	VANDPD( xmm_q_exponent, xmm_q, xmm_exponent_mask )
+	VXORPD( xmm_q_exponent, xmm_q_exponent, xmm_exponent_mask )
+	VMULSD( xmm_q_exponent, Constant.float64(Tan.half) )
+	xmm_q_mantissa = SSERegister()
+	VANDNPD( xmm_q_mantissa, xmm_exponent_mask, xmm_q )
+	VORPS( xmm_q_mantissa, xmm_q_mantissa, Constant.float64x2(Tan.one) )
+
+	xmm_q_mantissa_32f = SSERegister()
+	VCVTPD2PS( xmm_q_mantissa_32f, xmm_q_mantissa )
+	VRCPPS( xmm_q_mantissa_32f, xmm_q_mantissa_32f )
+	xmm_q_mantissa_reciprocal = SSERegister()
+	VCVTPS2PD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_32f )
+
+	xmm_epsilon = SSERegister()
+	ASSUME.INITIALIZED( xmm_epsilon )
+	VFNMADDSD( xmm_epsilon, xmm_q_mantissa_reciprocal, xmm_q_mantissa, Constant.float64(Tan.one) )
+	VFMADDSD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_reciprocal, xmm_epsilon, xmm_q_mantissa_reciprocal )
+	VFNMADDSD( xmm_epsilon, xmm_q_mantissa_reciprocal, xmm_q_mantissa, Constant.float64(Tan.one) )
+	VFMADDSD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_reciprocal, xmm_epsilon, xmm_q_mantissa_reciprocal )
+	VFNMADDSD( xmm_epsilon, xmm_q_mantissa_reciprocal, xmm_q_mantissa, Constant.float64(Tan.one) )
+	VFMADDSD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_reciprocal, xmm_epsilon, xmm_q_mantissa_reciprocal )
+
+	xmm_q_reciprocal = SSERegister()
+	ASSUME.INITIALIZED( xmm_q_reciprocal )
+	VMULSD( xmm_q_reciprocal, xmm_q_mantissa_reciprocal, xmm_q_exponent )
+
+	ASSUME.INITIALIZED( xmm_tan )
+	VMULSD( xmm_tan, xmm_p, xmm_q_reciprocal )
+	VFNMADDSD( xmm_epsilon, xmm_q, xmm_tan, xmm_p )
+	VFMADDSD( xmm_tan, xmm_epsilon, xmm_q_reciprocal, xmm_tan )
+
+	VMOVSD( [yPointer], xmm_tan )
 
 def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Tan':
-				x_argument = arguments[0]
-				y_argument = arguments[1]
-				length_argument = arguments[2]
+				x_argument, y_argument, length_argument = tuple(arguments)
 
 				x_type = x_argument.get_type().get_primitive_type()
 				y_type = y_argument.get_type().get_primitive_type()
@@ -4825,158 +5514,7 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 				LOAD.PARAMETER( yPointer, y_argument )
 				LOAD.PARAMETER( length, length_argument )
 
-				def SCALAR_TAN(xPointer, yPointer):
-					minusPio2_hi = Constant.float64x2('-0x1.921FB54440000p+0')
-					minusPio2_me = Constant.float64x2('-0x1.68C234C4C8000p-39')
-					minusPio2_lo = Constant.float64x2( '0x1.9D747F23E32EDp-79')
-					twoOPi = Constant.float64x2('0x1.45F306DC9C883p-1')
-					magicBias = Constant.float64x2('0x1.8000000000000p+52')
-					half  = Constant.float64x2( '0x1.0000000000000p-1')
-					one = Constant.float64x2( '0x1.0000000000000p+0')
-
-					c2  = Constant.float64x2('-0x1.0000000000000p-1')
-					c3  = Constant.float64x2('-0x1.5555555555546p-3')
-					c4  = Constant.float64x2( '0x1.555555555554Bp-5')
-					c5  = Constant.float64x2( '0x1.111111110F51Ep-7')
-					c6  = Constant.float64x2('-0x1.6C16C16C15038p-10')
-					c7  = Constant.float64x2('-0x1.A01A019BB92C0p-13')
-					c8  = Constant.float64x2( '0x1.A01A019C94874p-16')
-					c9  = Constant.float64x2( '0x1.71DE3535C8A8Ap-19')
-					c10 = Constant.float64x2('-0x1.27E4F7F65104Fp-22')
-					c11 = Constant.float64x2('-0x1.AE5E38936D046p-26')
-					c12 = Constant.float64x2( '0x1.1EE9DF6693F7Ep-29')
-					c13 = Constant.float64x2( '0x1.5D8711D281543p-33')
-					c14 = Constant.float64x2('-0x1.8FA87EF79AE3Fp-37')
-
-					exponent_mask = Constant.uint64x2(0x7FF0000000000000L)
-
-					# x = *xPointer
-					xmm_x = SSERegister()
-					VMOVSD( xmm_x, [xPointer] )
-					# t = (x * (2/Pi)) + magicBias
-					xmm_t = SSERegister()
-					VMULPD( xmm_t, xmm_x, twoOPi )
-					VADDPD( xmm_t, xmm_t, magicBias )
-					# n = (int(t) % 4) << 63
-					xmm_n = SSERegister()
-					VPSLLQ( xmm_n, xmm_t, 63 )
-					# t -= magicBias
-					VSUBPD( xmm_t, xmm_t, magicBias )
-					# x += t * minusPio2_hi
-					xmm_temp = SSERegister()
-					VMULPD( xmm_temp, xmm_t, minusPio2_hi )
-					VADDPD( xmm_x, xmm_x, xmm_temp )
-					# x += t * minusPio2_me
-					xmm_a = SSERegister()
-					VMOVAPS( xmm_a, xmm_x )
-					xmm_temp = SSERegister()
-					VMULPD( xmm_temp, xmm_t, minusPio2_me )
-					VADDPD( xmm_x, xmm_temp )
-					xmm_z = SSERegister()
-					VSUBPD( xmm_z, xmm_x, xmm_a )
-					VSUBPD( xmm_temp, xmm_temp, xmm_z )
-					# x += t * minusPio2_lo
-					VMULPD( xmm_t, xmm_t, minusPio2_lo )
-					VADDPD( xmm_t, xmm_t, xmm_temp )
-					VADDPD( xmm_x, xmm_x, xmm_t )
-
-					# sqrx = x * x
-					xmm_sqrx = SSERegister()
-					VMULPD( xmm_sqrx, xmm_x, xmm_x )
-
-					xmm_sin = SSERegister()
-					xmm_cos = SSERegister()
-					LOAD.CONSTANT( xmm_cos, c14 )
-					LOAD.CONSTANT( xmm_sin, c13 )
-
-					def HORNER_STEP(acc, coef):
-						VFMADDPD( acc, acc, xmm_sqrx, coef )
-
-					HORNER_STEP(xmm_cos, c12 )
-					HORNER_STEP(xmm_sin, c11 )
-					HORNER_STEP(xmm_cos, c10 )
-					HORNER_STEP(xmm_sin, c9 )
-					HORNER_STEP(xmm_cos, c8 )
-					HORNER_STEP(xmm_sin, c7 )
-					HORNER_STEP(xmm_cos, c6 )
-					HORNER_STEP(xmm_sin, c5 )
-					HORNER_STEP(xmm_cos, c4 )
-					HORNER_STEP(xmm_sin, c3 )
-					HORNER_STEP(xmm_cos, c2 )
-					VMULPD( xmm_sin, xmm_sin, xmm_sqrx )
-					VFMADDPD( xmm_cos, xmm_cos, xmm_sqrx, one )
-					VFMADDPD( xmm_sin, xmm_sin, xmm_x, xmm_x )
-
-					xmm_p = SSERegister()
-					xmm_q = SSERegister()
-					VXORPD( xmm_sin, xmm_sin, xmm_n )
-					VBLENDVPD( xmm_p, xmm_sin, xmm_cos, xmm_n )
-					VBLENDVPD( xmm_q, xmm_cos, xmm_sin, xmm_n )
-					xmm_tan = SSERegister()
-					# VDIVPD( xmm_tan, xmm_p, xmm_q )
-
-					xmm_exponent_mask = SSERegister()
-					LOAD.CONSTANT(xmm_exponent_mask, exponent_mask)
-
-					xmm_q_exponent = SSERegister()
-					VANDPD( xmm_q_exponent, xmm_q, xmm_exponent_mask )
-					VXORPD( xmm_q_exponent, xmm_q_exponent, xmm_exponent_mask )
-					VMULPD( xmm_q_exponent, half )
-					xmm_q_mantissa = SSERegister()
-					VANDNPD( xmm_q_mantissa, xmm_exponent_mask, xmm_q )
-					VORPS( xmm_q_mantissa, xmm_q_mantissa, one )
-
-					xmm_q_mantissa_32f = SSERegister()
-					VCVTPD2PS( xmm_q_mantissa_32f, xmm_q_mantissa )
-					VRCPPS( xmm_q_mantissa_32f, xmm_q_mantissa_32f )
-					xmm_q_mantissa_reciprocal = SSERegister()
-					VCVTPS2PD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_32f )
-
-					xmm_epsilon = SSERegister()
-					VFNMADDPD( xmm_epsilon, xmm_q_mantissa_reciprocal, xmm_q_mantissa, one )
-					VFMADDPD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_reciprocal, xmm_epsilon, xmm_q_mantissa_reciprocal )
-					VFNMADDPD( xmm_epsilon, xmm_q_mantissa_reciprocal, xmm_q_mantissa, one )
-					VFMADDPD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_reciprocal, xmm_epsilon, xmm_q_mantissa_reciprocal )
-					VFNMADDPD( xmm_epsilon, xmm_q_mantissa_reciprocal, xmm_q_mantissa, one )
-					VFMADDPD( xmm_q_mantissa_reciprocal, xmm_q_mantissa_reciprocal, xmm_epsilon, xmm_q_mantissa_reciprocal )
-
-					xmm_q_reciprocal = SSERegister()
-					VMULPD( xmm_q_reciprocal, xmm_q_mantissa_reciprocal, xmm_q_exponent )
-
-					VMULPD( xmm_tan, xmm_p, xmm_q_reciprocal )
-					VFNMADDPD( xmm_epsilon, xmm_q, xmm_tan, xmm_p )
-					VFMADDPD( xmm_tan, xmm_epsilon, xmm_q_reciprocal, xmm_tan )
-
-					VMOVSD( [yPointer], xmm_tan )
-
 				def BATCH_TAN_FULL(xPointer, yPointer):
-					minusPio2_hi = Constant.float64x4('-0x1.921FB54440000p+0')
-					minusPio2_me = Constant.float64x4('-0x1.68C234C4C8000p-39')
-					minusPio2_lo = Constant.float64x4( '0x1.9D747F23E32EDp-79')
-					twoOPi = Constant.float64x4('0x1.45F306DC9C883p-1')
-					magicBias = Constant.float64x4('0x1.8000000000000p+52')
-
-					half  = Constant.float64x4( '0x1.0000000000000p-1')
-					one  = Constant.float64x4( '0x1.0000000000000p+0')
-					c0  = Constant.float64x4( '0x1.0000000000000p+0')
-					c2  = Constant.float64x4('-0x1.0000000000000p-1')
-					c3  = Constant.float64x4('-0x1.5555555555546p-3')
-					c4  = Constant.float64x4( '0x1.555555555554Bp-5')
-					c5  = Constant.float64x4( '0x1.111111110F51Ep-7')
-					c6  = Constant.float64x4('-0x1.6C16C16C15038p-10')
-					c7  = Constant.float64x4('-0x1.A01A019BB92C0p-13')
-					c8  = Constant.float64x4( '0x1.A01A019C94874p-16')
-					c9  = Constant.float64x4( '0x1.71DE3535C8A8Ap-19')
-					c10 = Constant.float64x4('-0x1.27E4F7F65104Fp-22')
-					c11 = Constant.float64x4('-0x1.AE5E38936D046p-26')
-					c12 = Constant.float64x4( '0x1.1EE9DF6693F7Ep-29')
-					c13 = Constant.float64x4( '0x1.5D8711D281543p-33')
-					c14 = Constant.float64x4('-0x1.8FA87EF79AE3Fp-37')
-
-					exponent_mask = Constant.uint64x4(0x7FF0000000000000L)
-
-					signMask = Constant.float64x4('-0x0.0000000000000p+0')
-
 					ymm_x = [AVXRegister() for i in range(5)]
 					ymm_t = [AVXRegister() for i in range(5)]
 					n = [LocalVariable(AVXRegister) for i in range(5)]
@@ -4984,8 +5522,8 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 
 					ymm_two_over_pi = AVXRegister()
 					ymm_magic_bias = AVXRegister()
-					LOAD.CONSTANT( ymm_two_over_pi, twoOPi )
-					LOAD.CONSTANT( ymm_magic_bias, magicBias )
+					LOAD.CONSTANT( ymm_two_over_pi, Constant.float64x4(TrigReduction.two_over_pi) )
+					LOAD.CONSTANT( ymm_magic_bias, Constant.float64x4(Tan.magic_bias) )
 					for i in range(5):
 						# x = *xPointer
 						VMOVAPD( ymm_x[i], [xPointer + i * 32] )
@@ -5006,23 +5544,23 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 						VSUBPD( ymm_t[i], ymm_t[i], ymm_magic_bias )
 
 					for i in range(5):
-						# x += t * minusPio2_hi
+						# x += t * (-pi/2)_hi
 						ymm_temp = AVXRegister()
-						VMULPD( ymm_temp, ymm_t[i], minusPio2_hi )
+						VMULPD( ymm_temp, ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_hi) )
 						VADDPD( ymm_x[i], ymm_x[i], ymm_temp )
 
 					for i in range(5):
 						ymm_temp = AVXRegister()
-						# x += t * minusPio2_me
+						# x += t * (-pi/2)_me
 						ymm_a = ymm_x[i]
 						ymm_x[i] = AVXRegister()
-						VMULPD( ymm_temp, ymm_t[i], minusPio2_me )
+						VMULPD( ymm_temp, ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_me) )
 						VADDPD( ymm_x[i], ymm_a, ymm_temp )
 						ymm_z = AVXRegister()
 						VSUBPD( ymm_z, ymm_x[i], ymm_a )
 						VSUBPD( ymm_temp, ymm_temp, ymm_z )
-						# x += t * minusPio2_lo
-						VMULPD( ymm_t[i], ymm_t[i], minusPio2_lo )
+						# x += t * (-pi/2)_lo
+						VMULPD( ymm_t[i], ymm_t[i], Constant.float64x4(TrigReduction.minus_pi_o2_lo) )
 						VADDPD( ymm_t[i], ymm_t[i], ymm_temp )
 						VADDPD( ymm_x[i], ymm_x[i], ymm_t[i] )
 
@@ -5038,15 +5576,15 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 
 					ymm_c14 = AVXRegister()
 					ymm_c12 = AVXRegister()
-					LOAD.CONSTANT( ymm_c14, c14 )
-					LOAD.CONSTANT( ymm_c12, c12 )
+					LOAD.CONSTANT( ymm_c14, Constant.float64x4(Cos.c14) )
+					LOAD.CONSTANT( ymm_c12, Constant.float64x4(Cos.c12) )
 					for i in range(5):
 						VFMADDPD( ymm_cos[i], ymm_c14, ymm_sqrx[i], ymm_c12 )
 
 					ymm_c13 = AVXRegister()
 					ymm_c11 = AVXRegister()
-					LOAD.CONSTANT( ymm_c13, c13 )
-					LOAD.CONSTANT( ymm_c11, c11 )
+					LOAD.CONSTANT( ymm_c13, Constant.float64x4(Sin.c13) )
+					LOAD.CONSTANT( ymm_c11, Constant.float64x4(Sin.c11) )
 					for i in range(5):
 						VFMADDPD( ymm_sin[i], ymm_c13, ymm_sqrx[i], ymm_c11 )
 
@@ -5056,18 +5594,18 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 						for i in range(5):
 							VFMADDPD( acc[i], acc[i], ymm_sqrx[i], ymm_c )
 
-					HORNER_STEP(ymm_cos, c10 )
-					HORNER_STEP(ymm_sin, c9 )
-					HORNER_STEP(ymm_cos, c8 )
-					HORNER_STEP(ymm_sin, c7 )
-					HORNER_STEP(ymm_cos, c6 )
-					HORNER_STEP(ymm_sin, c5 )
-					HORNER_STEP(ymm_cos, c4 )
-					HORNER_STEP(ymm_sin, c3 )
-					HORNER_STEP(ymm_cos, c2 )
+					HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c10) )
+					HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c9) )
+					HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c8) )
+					HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c7) )
+					HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c6) )
+					HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c5) )
+					HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c4) )
+					HORNER_STEP(ymm_sin, Constant.float64x4(Sin.c3) )
+					HORNER_STEP(ymm_cos, Constant.float64x4(Cos.c2) )
 
 					ymm_c0 = AVXRegister()
-					LOAD.CONSTANT( ymm_c0, c0 )
+					LOAD.CONSTANT( ymm_c0, Constant.float64x4(Cos.c0) )
 					for i in range(5):
 						VMULPD( ymm_sin[i], ymm_sqrx[i] )
 						VFMADDPD( ymm_cos[i], ymm_cos[i], ymm_sqrx[i], ymm_c0 )
@@ -5075,21 +5613,11 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 						VMOVAPD( ymm_x, x[i] )
 						VFMADDPD( ymm_sin[i], ymm_sin[i], ymm_x, ymm_x )
 
-					# ymm_sign_mask = AVXRegister()
-					# LOAD.CONSTANT( ymm_sign_mask, signMask )
-
 					ymm_p = [AVXRegister() for i in range(5)]
 					ymm_q = [AVXRegister() for i in range(5)]
 					for i in range(5):
 						ymm_n = AVXRegister()
 						VMOVAPD( ymm_n, n[i] )
-						# ymm_sign = AVXRegister()
-						# VANDPD( ymm_sign, ymm_n, ymm_sign_mask )
-						# VANDNPD( ymm_n, ymm_sign_mask, ymm_n )
-						# n = !(n & 1)
-						# VCMPEQPD( ymm_n, ymm_n, ymm_sign )
-						# VBLENDVPD( ymm_sin[i], ymm_cos[i], ymm_sin[i], ymm_n )
-						# VXORPD( ymm_sin[i], ymm_sign )
 
 						VXORPD( ymm_sin[i], ymm_sin[i], ymm_n )
 						VBLENDVPD( ymm_p[i], ymm_sin[i], ymm_cos[i], ymm_n )
@@ -5097,8 +5625,8 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 
 					ymm_exponent_mask = AVXRegister()
 					ymm_one = AVXRegister()
-					VMOVAPD(ymm_exponent_mask, exponent_mask)
-					VMOVAPD(ymm_one, one)
+					VMOVAPD(ymm_exponent_mask, Constant.float64x4(Tan.exponent_mask) )
+					VMOVAPD(ymm_one, Constant.float64x4(Tan.one) )
 					for i in range(5):
 						ymm_tan = AVXRegister()
 						# VDIVPD( ymm_tan, ymm_p[i], ymm_q[i] )
@@ -5106,7 +5634,7 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 						ymm_q_exponent = AVXRegister()
 						VANDPD( ymm_q_exponent, ymm_q[i], ymm_exponent_mask )
 						VXORPD( ymm_q_exponent, ymm_q_exponent, ymm_exponent_mask )
-						VMULPD( ymm_q_exponent, half )
+						VMULPD( ymm_q_exponent, Constant.float64x4(Tan.half) )
 						ymm_q_mantissa = AVXRegister()
 						VANDNPD( ymm_q_mantissa, ymm_exponent_mask, ymm_q[i] )
 						VORPS( ymm_q_mantissa, ymm_q_mantissa, ymm_one )
@@ -5135,7 +5663,744 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 						VMOVUPD( [yPointer + 32 * i], ymm_tan.get_oword() )
 						VEXTRACTF128( [yPointer + 32 * i + 16], ymm_tan, 1 )
 
-				Map_V64f_V64f(SCALAR_TAN, BATCH_TAN_FULL, None, xPointer, yPointer, length, 32, 20)
+				Map_Vf_Vf(SCALAR_TAN_AVX, BATCH_TAN_FULL, None, xPointer, yPointer, length, 32, 32 * 5, 8)
+
+				return codegen.end_function()
+
+def SCALAR_POLYNOMIAL_EVALUATION_SSE(cPointer, xPointer, yPointer, count, is_prologue, element_size):
+	scalar_polevl_finish = Label("prologue_scalar_polevl_finish" if is_prologue else "epilogue_scalar_polevl_finish")
+	scalar_polevl_next   = Label("prologue_scalar_polevl_next" if is_prologue else "epilogue_scalar_polevl_next")
+	MOV_SCALAR = {4: MOVSS, 8: MOVSD }[element_size]
+	MUL_SCALAR = {4: MULSS, 8: MULSD }[element_size]
+	ADD_SCALAR = {4: ADDSS, 8: ADDSD }[element_size]
+	
+	xmm_x = SSERegister()
+	MOV_SCALAR( xmm_x, [xPointer] )
+	
+	ccPointer = GeneralPurposeRegister64()
+	MOV( ccPointer, count )
+	SUB( ccPointer, 1 )
+	SHL( ccPointer, int(math.log(element_size, 2)) )
+	ADD( ccPointer, cPointer )
+	
+	xmm_y = SSERegister()
+	MOV_SCALAR( xmm_y, [ccPointer] )
+	
+	SUB( ccPointer, element_size )
+	CMP( ccPointer, cPointer )
+	JB( scalar_polevl_finish )
+	
+	LABEL( scalar_polevl_next )
+	MUL_SCALAR( xmm_y, xmm_x )
+	ADD_SCALAR( xmm_y, [ccPointer] )
+	SUB( ccPointer, element_size )
+	CMP( ccPointer, cPointer )
+	JAE( scalar_polevl_next )
+	
+	LABEL( scalar_polevl_finish )
+	MOV_SCALAR( [yPointer], xmm_y )
+
+def SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_prologue, element_size):
+	microarchitecture = Function.get_current().microarchitecture
+	has_fma4 = microarchitecture.is_supported('FMA4')
+	has_fma3 = microarchitecture.is_supported('FMA3')
+
+	scalar_polevl_finish = Label("prologue_scalar_polevl_finish" if is_prologue else "epilogue_scalar_polevl_finish")
+	scalar_polevl_next   = Label("prologue_scalar_polevl_next" if is_prologue else "epilogue_scalar_polevl_next")
+	
+	MOV_SCALAR = {4: VMOVSS, 8: VMOVSD }[element_size]
+	MUL_SCALAR = {4: VMULSS, 8: VMULSD }[element_size]
+	ADD_SCALAR = {4: VADDSS, 8: VADDSD }[element_size]
+	if has_fma4:
+		FMA_SCALAR = {4: VFMADDSS, 8: VFMADDSD }[element_size]
+	elif has_fma3:
+		FMA_SCALAR = {4: VFMADD213SS, 8: VFMADD213SD }[element_size]
+	
+	xmm_x = SSERegister()
+	MOV_SCALAR( xmm_x, [xPointer] )
+	
+	ccPointer = GeneralPurposeRegister64()
+	MOV( ccPointer, count )
+	SUB( ccPointer, 1 )
+	SHL( ccPointer, int(math.log(element_size, 2)) )
+	ADD( ccPointer, cPointer )
+	
+	xmm_y = SSERegister()
+	MOV_SCALAR( xmm_y, [ccPointer] )
+	
+	SUB( ccPointer, element_size )
+	CMP( ccPointer, cPointer )
+	JB( scalar_polevl_finish )
+	
+	LABEL( scalar_polevl_next )
+	if has_fma4 or has_fma3:
+		FMA_SCALAR( xmm_y, xmm_y, xmm_x, [ccPointer] )
+	else:
+		MUL_SCALAR( xmm_y, xmm_y, xmm_x )
+		ADD_SCALAR( xmm_y, xmm_y, [ccPointer] )
+
+	SUB( ccPointer, element_size )
+	CMP( ccPointer, cPointer )
+	JAE( scalar_polevl_next )
+	
+	LABEL( scalar_polevl_finish )
+	MOV_SCALAR( [yPointer], xmm_y )
+
+
+def EvaluatePolynomial_VfVf_Vf_SSE2(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if len(set([type.get_size() for type in (c_type, x_type, y_type)])) != 1:
+					return
+				else:
+					element_size = x_type.get_size()
+
+				codegen.begin_function(function_signature, arguments, 'Unknown')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+				
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_SSE(cPointer, xPointer, yPointer, count, is_prologue, element_size)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					if element_size == 4:
+						def SIMD_DUPLICATE( xmm_dest, mem_src ):
+							MOVSS( xmm_dest, mem_src )
+							SHUFPS( xmm_dest, xmm_dest, 0 )
+					else:
+						def SIMD_DUPLICATE( xmm_dest, mem_src ):
+							MOVSD( xmm_dest, mem_src )
+							UNPCKLPD( xmm_dest, xmm_dest )
+					SIMD_LOAD      = { 4: MOVAPS, 8: MOVAPD }[element_size]
+					SIMD_MOV       = { 4: MOVAPS, 8: MOVAPD }[element_size]
+					SIMD_STORE     = { 4: MOVUPS, 8: MOVUPD }[element_size]
+					SIMD_MUL       = { 4: MULPS, 8: MULPD }[element_size] 
+					SIMD_ADD       = { 4: ADDPS, 8: ADDPD }[element_size] 
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, int(math.log(element_size, 2)) )
+					ADD( ccPointer, cPointer )
+
+					xmm_y = [SSERegister() for i in range(6)]
+					SIMD_DUPLICATE( xmm_y[0], [ccPointer] )
+					for i in range(1, 6):
+						SIMD_MOV( xmm_y[i], xmm_y[0] )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					xmm_c = SSERegister()
+					SIMD_DUPLICATE( xmm_c, [ccPointer] )
+					xmm_x = [SSERegister() for i in range(6)]
+					for i in range(6):
+						SIMD_LOAD( xmm_x[i], [xPointer + i * 16] )
+						SIMD_MUL( xmm_y[i], xmm_x[i] )
+						SIMD_ADD( xmm_y[i], xmm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					xmm_c = SSERegister()
+					SIMD_DUPLICATE( xmm_c, [ccPointer] )
+					for i in range(6):
+						SIMD_MUL( xmm_y[i], xmm_x[i] )
+						SIMD_ADD( xmm_y[i], xmm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					for i in range(6):
+						SIMD_STORE( [yPointer + i * 16], xmm_y[i] )
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 6, element_size)
+
+				return codegen.end_function()
+
+def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if not all(type.get_size() == 8 for type in (c_type, x_type, y_type)):
+					return
+
+				codegen.begin_function(function_signature, arguments, 'Bonnell')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+				
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_SSE(cPointer, xPointer, yPointer, count, is_prologue, 8)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					x = [SSERegister()] + [[xPointer + i * 8] for i in range(1, 14)]
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, 3 )
+					ADD( ccPointer, cPointer )
+
+					xmm_y = [SSERegister() for i in range(14)]
+					MOVSD( xmm_y[0], [ccPointer] )
+					for i in range(14):
+						if i != 0:
+							MOVAPS( xmm_y[i], xmm_y[0] )
+						if isinstance(x[i], SSERegister):
+							MOVSD( x[i], [xPointer + i * 8] )
+
+					SUB( ccPointer, 8 )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					xmm_c = SSERegister()
+					MOVSD( xmm_c, [ccPointer] )
+					MULSD( xmm_y[0], x[0] )
+					MULSD( xmm_y[1], x[1] )
+					for i in range(2, 14):
+						MULSD( xmm_y[i], x[i] )
+						ADDSD( xmm_y[i - 2], xmm_c )
+
+					SUB( ccPointer, 8 )
+					ADDSD( xmm_y[12], xmm_c )
+					CMP( ccPointer, cPointer )
+					ADDSD( xmm_y[13], xmm_c )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					for i in range(14):
+						MOVSD( [yPointer + i * 8], xmm_y[i] )
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 8 * 14, 8)
+
+				return codegen.end_function()
+
+def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if not all(type.get_size() == 4 for type in (c_type, x_type, y_type)):
+					return
+
+				codegen.begin_function(function_signature, arguments, 'Bonnell')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+				
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_SSE(cPointer, xPointer, yPointer, count, is_prologue, 4)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					x = [SSERegister()] + [[xPointer + i * 16] for i in range(1, 14)]
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, 2 )
+					ADD( ccPointer, cPointer )
+
+					xmm_y = [SSERegister() for i in range(14)]
+					MOVSS( xmm_y[0], [ccPointer] )
+					SHUFPS( xmm_y[0], xmm_y[0], 0x00 )
+					for i in range(14):
+						if isinstance(x[i], SSERegister):
+							MOVAPS( x[i], [xPointer + i * 16] )
+						if i != 0:
+							MOVAPS( xmm_y[i], xmm_y[0] )
+
+					SUB( ccPointer, 4 )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					xmm_c = SSERegister()
+					MOVSS( xmm_c, [ccPointer] )
+					MULPS( xmm_y[0], x[0] )
+					SHUFPS( xmm_c, xmm_c, 0x00 )
+					MULPS( xmm_y[1], x[1] )
+					for i in range(2, 14):
+						MULPS( xmm_y[i], x[i] )
+						ADDPS( xmm_y[i - 2], xmm_c )
+
+					SUB( ccPointer, 4 )
+					ADDPS( xmm_y[12], xmm_c )
+					CMP( ccPointer, cPointer )
+					ADDPS( xmm_y[13], xmm_c )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					for i in range(14):
+						MOVUPS( [yPointer + i * 16], xmm_y[i] )
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 14, 4)
+
+				return codegen.end_function()
+
+def EvaluatePolynomial_VfVf_Vf_Nehalem(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if len(set([type.get_size() for type in (c_type, x_type, y_type)])) != 1:
+					return
+				else:
+					element_size = x_type.get_size()
+
+				codegen.begin_function(function_signature, arguments, 'Nehalem')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+				
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_SSE(cPointer, xPointer, yPointer, count, is_prologue, element_size)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					if element_size == 4:
+						def SIMD_DUPLICATE( xmm_dest, mem_src ):
+							MOVSS( xmm_dest, mem_src )
+							SHUFPS( xmm_dest, xmm_dest, 0 )
+					else:
+						SIMD_DUPLICATE = MOVDDUP
+					SIMD_LOAD      = MOVAPS
+					SIMD_MOV       = MOVAPS
+					SIMD_STORE     = MOVUPS 
+					SIMD_MUL       = { 4: MULPS, 8: MULPD }[element_size] 
+					SIMD_ADD       = { 4: ADDPS, 8: ADDPD }[element_size] 
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, int(math.log(element_size, 2)) )
+					ADD( ccPointer, cPointer )
+
+					xmm_y = [SSERegister() for i in range(10)]
+					SIMD_DUPLICATE( xmm_y[0], [ccPointer] )
+					for i in range(1, 10):
+						SIMD_MOV( xmm_y[i], xmm_y[0] )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					xmm_c = SSERegister()
+					SIMD_DUPLICATE( xmm_c, [ccPointer] )
+					x = [SSERegister(), [xPointer + 1 * 16], SSERegister(), [xPointer + 3 * 16], SSERegister(),
+						[xPointer + 5 * 16], SSERegister(), [xPointer + 7 * 16], SSERegister(), [xPointer + 9 * 16]]
+					for i in range(10):
+						if isinstance(x[i], SSERegister):
+							SIMD_LOAD( x[i], [xPointer + i * 16] )
+						SIMD_MUL( xmm_y[i], x[i] )
+						SIMD_ADD( xmm_y[i], xmm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					xmm_c = SSERegister()
+					SIMD_DUPLICATE( xmm_c, [ccPointer] )
+					for i in range(10):
+						SIMD_MUL( xmm_y[i], x[i] )
+						SIMD_ADD( xmm_y[i], xmm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					for i in range(10):
+						SIMD_STORE( [yPointer + i * 16], xmm_y[i] )
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 10, element_size)
+
+				return codegen.end_function()
+
+def EvaluatePolynomial_VfVf_Vf_Bulldozer(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if len(set([type.get_size() for type in (c_type, x_type, y_type)])) != 1:
+					return
+				else:
+					element_size = x_type.get_size()
+
+				codegen.begin_function(function_signature, arguments, 'Bulldozer')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+				
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_prologue, element_size)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					SIMD_BROADCAST = { 4: VBROADCASTSS, 8: VBROADCASTSD }[element_size]
+					SIMD_LOAD      = { 4: VMOVAPS, 8: VMOVAPD }[element_size]
+					SIMD_MOV       = { 4: VMOVAPS, 8: VMOVAPD }[element_size]
+					SIMD_STORE     = { 4: VMOVUPS, 8: VMOVUPD }[element_size] 
+					SIMD_FMA       = { 4: VFMADDPS, 8: VFMADDPD }[element_size] 
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, int(math.log(element_size, 2)) )
+					ADD( ccPointer, cPointer )
+
+					ymm_y = [SSERegister(), SSERegister(), AVXRegister(), AVXRegister(), AVXRegister(), AVXRegister()]
+					SIMD_BROADCAST( ymm_y[5], [ccPointer] )
+					for i in range(5):
+						if isinstance(ymm_y[i], SSERegister):
+							SIMD_MOV( ymm_y[i], ymm_y[5].get_oword() )
+						else:
+							SIMD_MOV( ymm_y[i], ymm_y[5] )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					ymm_c = AVXRegister()
+					SIMD_BROADCAST( ymm_c, [ccPointer] )
+					ymm_x = [SSERegister(), SSERegister(), AVXRegister(), AVXRegister(), AVXRegister(), AVXRegister()]
+					xOffset = 0
+					for i in range(6):
+						SIMD_LOAD( ymm_x[i], [xPointer + xOffset] )
+						xOffset += ymm_x[i].size / 8
+						if isinstance(ymm_y[i], SSERegister):
+							SIMD_FMA( ymm_y[i], ymm_y[i], ymm_x[i], ymm_c.get_oword() )
+						else:
+							SIMD_FMA( ymm_y[i], ymm_y[i], ymm_x[i], ymm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					ymm_c = AVXRegister()
+					SIMD_BROADCAST( ymm_c, [ccPointer] )
+					for i in range(6):
+						if isinstance(ymm_y[i], SSERegister):
+							SIMD_FMA( ymm_y[i], ymm_y[i], ymm_x[i], ymm_c.get_oword() )
+						else:
+							SIMD_FMA( ymm_y[i], ymm_y[i], ymm_x[i], ymm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					yOffset = 0
+					for i in range(6):
+						if isinstance( ymm_y[i], SSERegister):
+							SIMD_STORE( [yPointer + yOffset], ymm_y[i] )
+						else:
+							SIMD_STORE( [yPointer + yOffset], ymm_y[i].get_oword() )
+							VEXTRACTF128( [yPointer + yOffset + 16], ymm_y[i], 1 )
+						yOffset += ymm_y[i].size / 8
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 32, 160, element_size)
+
+				return codegen.end_function()
+
+def EvaluatePolynomial_VfVf_Vf_SandyBridge(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if len(set([type.get_size() for type in (c_type, x_type, y_type)])) != 1:
+					return
+				else:
+					element_size = x_type.get_size()
+
+				codegen.begin_function(function_signature, arguments, 'SandyBridge')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_prologue, element_size)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					SIMD_BROADCAST = { 4: VBROADCASTSS, 8: VBROADCASTSD }[element_size]
+					SIMD_LOAD      = { 4: VMOVAPS, 8: VMOVAPD }[element_size]
+					SIMD_MOV       = { 4: VMOVAPS, 8: VMOVAPD }[element_size]
+					SIMD_STORE     = { 4: VMOVUPS, 8: VMOVUPD }[element_size] 
+					SIMD_MUL       = { 4: VMULPS, 8: VMULPD }[element_size] 
+					SIMD_ADD       = { 4: VADDPS, 8: VADDPD }[element_size] 
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, int(math.log(element_size, 2)) )
+					ADD( ccPointer, cPointer )
+
+					ymm_y = [AVXRegister() for i in range(8)]
+					SIMD_BROADCAST( ymm_y[0], [ccPointer] )
+					for i in range(1, 8):
+						SIMD_MOV( ymm_y[i], ymm_y[0] )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					ymm_c = AVXRegister()
+					SIMD_BROADCAST( ymm_c, [ccPointer] )
+					x = [AVXRegister() for i in range(3)] + [[xPointer + 3 * 32]] + [AVXRegister() for i in range(4)]
+					for i in range(8):
+						if isinstance(x[i], AVXRegister):
+							SIMD_LOAD( x[i], [xPointer + i * 32] )
+						SIMD_MUL( ymm_y[i], ymm_y[i], x[i] )
+						SIMD_ADD( ymm_y[i], ymm_y[i], ymm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					ymm_c = AVXRegister()
+					SIMD_BROADCAST( ymm_c, [ccPointer] )
+					for i in range(8):
+						SIMD_MUL( ymm_y[i], ymm_y[i], x[i] )
+						SIMD_ADD( ymm_y[i], ymm_y[i], ymm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					for i in range(8):
+						SIMD_STORE( [yPointer + i * 32], ymm_y[i] )
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 32, 32 * 8, element_size)
+
+				return codegen.end_function()
+
+def EvaluatePolynomial_VfVf_Vf_Haswell(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-sysv']:
+		if module == 'Math':
+			if function == 'EvaluatePolynomial':
+				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
+
+				c_type = c_argument.get_type().get_primitive_type()
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+
+				if not all(type.is_floating_point() for type in (c_type, x_type, y_type)):
+					return
+
+				if len(set([type.get_size() for type in (c_type, x_type, y_type)])) != 1:
+					return
+				else:
+					element_size = x_type.get_size()
+
+				codegen.begin_function(function_signature, arguments, 'Haswell')
+
+				cPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( cPointer, c_argument )
+
+				xPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( xPointer, x_argument )
+
+				yPointer = GeneralPurposeRegister64()
+				LOAD.PARAMETER( yPointer, y_argument )
+
+				count = GeneralPurposeRegister64()
+				LOAD.PARAMETER( count, count_argument )
+
+				length = GeneralPurposeRegister64()
+				LOAD.PARAMETER( length, length_argument )
+
+				def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer, is_prologue):
+					SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_prologue, element_size)
+
+				def BATCH_POLYNOMIAL_EVALUATION(xPointer, yPointer):
+					SIMD_BROADCAST = { 4: VBROADCASTSS, 8: VBROADCASTSD }[element_size]
+					SIMD_LOAD      = { 4: VMOVAPS, 8: VMOVAPD }[element_size]
+					SIMD_MOV       = { 4: VMOVAPS, 8: VMOVAPD }[element_size]
+					SIMD_STORE     = { 4: VMOVUPS, 8: VMOVUPD }[element_size] 
+					SIMD_FMA       = { 4: VFMADD132PS, 8: VFMADD132PD }[element_size] 
+
+					ccPointer = GeneralPurposeRegister64()
+					MOV( ccPointer, count )
+					SUB( ccPointer, 1 )
+					SHL( ccPointer, int(math.log(element_size, 2)) )
+					ADD( ccPointer, cPointer )
+
+					ymm_y = [AVXRegister() for i in range(10)]
+					SIMD_BROADCAST( ymm_y[0], [ccPointer] )
+					for i in range(1, 10):
+						SIMD_MOV( ymm_y[i], ymm_y[0] )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					ymm_c = AVXRegister()
+					SIMD_BROADCAST( ymm_c, [ccPointer] )
+					x = [AVXRegister(), [xPointer + 1 * 32], AVXRegister(), [xPointer + 3 * 32], AVXRegister(),
+						[xPointer + 5 * 32], AVXRegister(), [xPointer + 7 * 32], AVXRegister(), [xPointer + 9 * 32]]
+					for i in range(10):
+						if isinstance(x[i], AVXRegister):
+							SIMD_LOAD( x[i], [xPointer + i * 32] )
+						SIMD_FMA( ymm_y[i], ymm_y[i], x[i], ymm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JB( 'batch_polevl_finish' )
+
+					LABEL( 'batch_polevl_next' )
+
+					ymm_c = AVXRegister()
+					SIMD_BROADCAST( ymm_c, [ccPointer] )
+					for i in range(10):
+						SIMD_FMA( ymm_y[i], ymm_y[i], x[i], ymm_c )
+
+					SUB( ccPointer, element_size )
+					CMP( ccPointer, cPointer )
+					JAE( 'batch_polevl_next' )
+
+					LABEL( 'batch_polevl_finish' )
+					for i in range(10):
+						SIMD_STORE( [yPointer + i * 32], ymm_y[i] )
+
+				Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 32, 32 * 10, element_size)
 
 				return codegen.end_function()
 
