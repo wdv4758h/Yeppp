@@ -1714,7 +1714,6 @@
 			case 10:
 				/* Erase "Eight-Core" in AMD processors, e.g.
 				 *   "AMD FX(tm)-8150 Eight-Core Processor"
-				 *   "AMD FX(tm)-4170 Quad-Core Processor"
 				 */
 				if (eraseMatching(wordStart, wordLength, "Eight-Core")) {
 					state.previousWord_Core = wordEnd;
