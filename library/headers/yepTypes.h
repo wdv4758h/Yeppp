@@ -52,6 +52,14 @@
  *  - ARM on Linux and Android.
  *  - MIPS on Android.
  *
+ * @example Entropy.c
+ *
+ * This example shows how to use @Yeppp library to compute the entropy of a distribution given by its probabilities:
+ *
+ * @example Polynomial.c
+ *
+ * This example demonstrates the use of @Yeppp library to evaluate a polynomial on an array:
+ *
  * @example CpuInfo.c
  *
  * This example shows how to use @Yeppp library to get information about processor and supported instruction extensions:
@@ -63,10 +71,6 @@
  * @example CpuCycles.c
  *
  * This example shows how to use @Yeppp library to measure the execution time in CPU cycles:
- *
- * @example Entropy.c
- *
- * This example shows how to use @Yeppp library to compute the entropy of a distribution given by its probabilities:
  *
  */
 
