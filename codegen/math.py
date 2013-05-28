@@ -171,7 +171,7 @@ return YepStatusOk;
 
 def generate_tan(module):
 	with yeppp.module.Function(module, 'Tan', 'Tangent') as function:
-# 		function.assembly_implementations.append(yeppp.library.math.x64.Tan_V64f_V64f_Bulldozer)
+		function.assembly_implementations.append(yeppp.library.math.x64.Tan_V64f_V64f_Bulldozer)
 	
 		function.c_documentation = """
 @brief	Computes tangent on %(InputType0)s elements.
