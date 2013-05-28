@@ -12,6 +12,7 @@ import info.yeppp.ebuilda.filesystem.RelativeDirectoryPath;
 import info.yeppp.ebuilda.filesystem.RelativeFilePath;
 import info.yeppp.ebuilda.sdk.AndroidNDK;
 import info.yeppp.ebuilda.sdk.AndroidToolchain;
+import info.yeppp.ebuilda.sdk.WindowsSDK;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,8 @@ public class CLIBuild {
 		for (final String abiName : args) {
 			final ABI abi = ABI.parse(abiName);
 			final Toolchain toolchain = getToolchain(abi);
-			setup(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, yepppRoot);
-			build(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, yepppRoot);
+			setup(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, yepppRoot);
+			build(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, yepppRoot);
 		}
 	}
 
@@ -35,14 +36,23 @@ public class CLIBuild {
 			this.cppCompiler = cppCompiler;
 			this.assembler = assembler;
 			this.linker = linker;
+			this.microsoftResourceCompiler = null;
+		}
+
+		public Toolchain(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler) {
+			this.cppCompiler = cppCompiler;
+			this.assembler = assembler;
+			this.linker = linker;
+			this.microsoftResourceCompiler = microsoftResourceCompiler;
 		}
 
 		final CppCompiler cppCompiler;
 		final Assembler assembler;
 		final Linker linker;
+		final MicrosoftResourceCompiler microsoftResourceCompiler;
 	}
 
-	public static void setup(CppCompiler cppCompiler, Assembler assembler, Linker linker, AbsoluteDirectoryPath yepppRoot) {
+	public static void setup(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, AbsoluteDirectoryPath yepppRoot) {
 		final ABI abi = cppCompiler.getABI();
 
 		final AbsoluteDirectoryPath sourceDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/sources"));
@@ -64,6 +74,15 @@ public class CLIBuild {
 		cppCompiler.setOptimization(CppCompiler.Optimization.MaxSpeedOptimization);
 		cppCompiler.addIncludeDirectory(cppCompiler.getSourceDirectory());
 		cppCompiler.addIncludeDirectory(new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/headers")));
+
+		if (microsoftResourceCompiler != null) {
+			microsoftResourceCompiler.setSourceDirectory(sourceDirectory);
+			microsoftResourceCompiler.setObjectDirectory(objectDirectory);
+			microsoftResourceCompiler.addDefaultGlobalIncludeDirectories();
+			microsoftResourceCompiler.setVerboseBuild(true);
+			microsoftResourceCompiler.addIncludeDirectory(sourceDirectory);
+			microsoftResourceCompiler.addIncludeDirectory(new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/headers")));
+		}
 
 		if (assembler != null) {
 			assembler.setSourceDirectory(sourceDirectory);
@@ -110,13 +129,14 @@ public class CLIBuild {
 		}
 	}
 
-	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, AbsoluteDirectoryPath yepppRoot) {
+	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, AbsoluteDirectoryPath yepppRoot) {
 		final ABI abi = cppCompiler.getABI();
 		final Architecture architecture = abi.getArchitecture();
 		final OperatingSystem operatingSystem = abi.getOperatingSystem();
 		final AbsoluteFilePath libraryBinaryPath = new AbsoluteFilePath(linker.getBinariesDirectory(), new RelativeFilePath("yeppp"));
 		final BuildMessages buildMessages = new BuildMessages();
 		final List<AbsoluteFilePath> cppSources = cppCompiler.getSourceDirectory().getFiles(Pattern.compile(".+\\.cpp"), true);
+		final List<AbsoluteFilePath> rcSources = cppCompiler.getSourceDirectory().getFiles(Pattern.compile(".+\\.rc"), true);
 		final List<AbsoluteFilePath> asmSources = assembler.getSourceDirectory().getFiles(getAssemblyPattern(abi), true);
 		final List<AbsoluteFilePath> objects = new ArrayList<AbsoluteFilePath>(cppSources.size());
 		for (final AbsoluteFilePath source : cppSources) {
@@ -142,6 +162,12 @@ public class CLIBuild {
 			buildMessages.add(cppCompiler.compile(source));
 			objects.add(cppCompiler.getObjectPath(source));
 		}
+		if (abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
+			for (final AbsoluteFilePath source : rcSources) {
+				buildMessages.add(microsoftResourceCompiler.compile(source));
+				objects.add(microsoftResourceCompiler.getObjectPath(source));
+			}
+		}
 		for (final AbsoluteFilePath source : asmSources) {
 			buildMessages.add(assembler.assemble(source));
 			objects.add(assembler.getObjectPath(source));
@@ -159,13 +185,8 @@ public class CLIBuild {
 			{
 				final VisualStudio visualStudio = VisualStudio.enumerate(Machine.getLocal(), abi).getNewest();
 				final NASM nasm = NASM.enumerate(Machine.getLocal(), abi).getNewest();
-				return new Toolchain(visualStudio.getCppCompiler(), nasm, visualStudio.getLinker());
-			}
-			case IA64_Windows_Microsoft_Default:
-			{
-				final VisualStudio visualStudio = VisualStudio.enumerate(Machine.getLocal(), abi).getNewest();
-				final NASM nasm = NASM.enumerate(Machine.getLocal(), ABI.X86_Windows_Default_i586).getNewest();
-				return new Toolchain(visualStudio.getCppCompiler(), nasm, visualStudio.getLinker());
+				final MicrosoftResourceCompiler resourceCompiler = visualStudio.getWindowsSDK().getResourceCompiler();
+				return new Toolchain(visualStudio.getCppCompiler(), nasm, visualStudio.getLinker(), resourceCompiler);
 			}
 			case ARM_Linux_SoftEABI_Android:
 			case ARM_Linux_SoftEABI_AndroidV7A:
