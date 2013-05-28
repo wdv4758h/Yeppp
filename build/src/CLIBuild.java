@@ -26,8 +26,8 @@ public class CLIBuild {
 		for (final String abiName : args) {
 			final ABI abi = ABI.parse(abiName);
 			final Toolchain toolchain = getToolchain(abi);
-			setup(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, yepppRoot);
-			build(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, yepppRoot);
+			setup(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, toolchain.gnuStrip, toolchain.gnuObjCopy, yepppRoot);
+			build(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, toolchain.gnuStrip, toolchain.gnuObjCopy, yepppRoot);
 		}
 	}
 
@@ -37,6 +37,8 @@ public class CLIBuild {
 			this.assembler = assembler;
 			this.linker = linker;
 			this.microsoftResourceCompiler = null;
+			this.gnuStrip = null;
+			this.gnuObjCopy = null;
 		}
 
 		public Toolchain(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler) {
@@ -44,15 +46,28 @@ public class CLIBuild {
 			this.assembler = assembler;
 			this.linker = linker;
 			this.microsoftResourceCompiler = microsoftResourceCompiler;
+			this.gnuStrip = null;
+			this.gnuObjCopy = null;
+		}
+
+		public Toolchain(CppCompiler cppCompiler, Assembler assembler, Linker linker, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy) {
+			this.cppCompiler = cppCompiler;
+			this.assembler = assembler;
+			this.linker = linker;
+			this.microsoftResourceCompiler = null;
+			this.gnuStrip = gnuStrip;
+			this.gnuObjCopy = gnuObjCopy;
 		}
 
 		final CppCompiler cppCompiler;
 		final Assembler assembler;
 		final Linker linker;
 		final MicrosoftResourceCompiler microsoftResourceCompiler;
+		final GnuStrip gnuStrip;
+		final GnuObjCopy gnuObjCopy;
 	}
 
-	public static void setup(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, AbsoluteDirectoryPath yepppRoot) {
+	public static void setup(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AbsoluteDirectoryPath yepppRoot) {
 		final ABI abi = cppCompiler.getABI();
 
 		final AbsoluteDirectoryPath sourceDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/sources"));
@@ -87,10 +102,19 @@ public class CLIBuild {
 		if (assembler != null) {
 			assembler.setSourceDirectory(sourceDirectory);
 			assembler.setObjectDirectory(objectDirectory);
+			assembler.setVerboseBuild(true);
 			if (assembler instanceof NASM) {
 				final NASM nasm = (NASM)assembler;
 				nasm.setOptimization(NASM.Optimization.Multipass);
 			}
+		}
+
+		if (gnuObjCopy != null) {
+			gnuObjCopy.setVerboseBuild(true);
+		}
+
+		if (gnuStrip != null) {
+			gnuStrip.setVerboseBuild(true);
 		}
 
 		linker.setObjectDirectory(objectDirectory);
@@ -129,7 +153,7 @@ public class CLIBuild {
 		}
 	}
 
-	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, AbsoluteDirectoryPath yepppRoot) {
+	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AbsoluteDirectoryPath yepppRoot) {
 		final ABI abi = cppCompiler.getABI();
 		final Architecture architecture = abi.getArchitecture();
 		final OperatingSystem operatingSystem = abi.getOperatingSystem();
@@ -173,6 +197,13 @@ public class CLIBuild {
 			objects.add(assembler.getObjectPath(source));
 		}
 		buildMessages.add(linker.linkDynamicLibrary(libraryBinaryPath, objects));
+		if ((gnuStrip != null) && (gnuObjCopy != null)) {
+			final AbsoluteFilePath libraryBinary = new AbsoluteFilePath(linker.getBinariesDirectory(), new RelativeFilePath("libyeppp.so"));
+			final AbsoluteFilePath debugBinary = new AbsoluteFilePath(linker.getBinariesDirectory(), new RelativeFilePath("libyeppp.dbg"));
+			buildMessages.add(gnuStrip.extractDebugInformation(libraryBinary, debugBinary));
+			buildMessages.add(gnuStrip.strip(libraryBinary));
+			buildMessages.add(gnuObjCopy.addGnuDebugLink(libraryBinary, debugBinary));
+		}
 		for (BuildMessage buildMessage : buildMessages.iterable()) {
 			System.out.println(buildMessage.toString());
 		}
@@ -195,14 +226,14 @@ public class CLIBuild {
 			{
 				final AndroidNDK androidNDK = AndroidNDK.enumerate(Machine.getLocal()).getNewest();
 				final AndroidToolchain androidToolchain = androidNDK.enumerateToolchains(abi, AndroidToolchain.Type.GNU).getNewest();
-				return new Toolchain(androidToolchain.getCppCompiler(), androidToolchain.getAssembler(), androidToolchain.getLinker());
+				return new Toolchain(androidToolchain.getCppCompiler(), androidToolchain.getAssembler(), androidToolchain.getLinker(), androidToolchain.getStrip(), androidToolchain.getObjCopy());
 			}
 			case X64_Linux_SystemV_Default:
 			case X86_Linux_Pic_i586:
 			{
 				final GnuToolchain gnuToolchain = GnuToolchain.enumerate(Machine.getLocal(), abi).getNewest();
 				final NASM nasm = NASM.enumerate(Machine.getLocal(), abi).getNewest();
-				return new Toolchain(gnuToolchain.getCppCompiler(), nasm, gnuToolchain.getLinker());
+				return new Toolchain(gnuToolchain.getCppCompiler(), nasm, gnuToolchain.getLinker(), gnuToolchain.getStrip(), gnuToolchain.getObjCopy());
 			}
 			case X64_Linux_KNC_Default:
 			case ARM_Linux_HardEABI_V7A:
