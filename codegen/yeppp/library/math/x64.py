@@ -5748,7 +5748,7 @@ def SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_pro
 
 
 def EvaluatePolynomial_VfVf_Vf_SSE2(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
@@ -5848,7 +5848,7 @@ def EvaluatePolynomial_VfVf_Vf_SSE2(codegen, function_signature, module, functio
 				return codegen.end_function()
 
 def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
@@ -5929,7 +5929,7 @@ def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module
 				return codegen.end_function()
 
 def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
@@ -6012,7 +6012,7 @@ def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module
 				return codegen.end_function()
 
 def EvaluatePolynomial_VfVf_Vf_Nehalem(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
@@ -6112,7 +6112,7 @@ def EvaluatePolynomial_VfVf_Vf_Nehalem(codegen, function_signature, module, func
 				return codegen.end_function()
 
 def EvaluatePolynomial_VfVf_Vf_Bulldozer(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
@@ -6219,7 +6219,7 @@ def EvaluatePolynomial_VfVf_Vf_Bulldozer(codegen, function_signature, module, fu
 				return codegen.end_function()
 
 def EvaluatePolynomial_VfVf_Vf_SandyBridge(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
@@ -6313,7 +6313,7 @@ def EvaluatePolynomial_VfVf_Vf_SandyBridge(codegen, function_signature, module, 
 				return codegen.end_function()
 
 def EvaluatePolynomial_VfVf_Vf_Haswell(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-sysv']:
+	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
 				c_argument, x_argument, y_argument, count_argument, length_argument = tuple(arguments)
