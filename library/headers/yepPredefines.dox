@@ -7,7 +7,9 @@
 
 #pragma once
 
-/** @defgroup yepPredefines	yepPredefines.h: predefined macros for C, C++, and CUDA. */
+/** @defgroup yepPredefines	yepPredefines.h: predefined macros.
+ *  @note	This module can be used from C, C++, or CUDA.
+ */
 
 /** @name	Compiler Identification */
 /**@{*/
