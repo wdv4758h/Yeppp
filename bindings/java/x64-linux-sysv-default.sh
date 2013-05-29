@@ -31,7 +31,11 @@ $CC -Os $CFLAGS -o binaries/x64-linux-sysv-default/math/Exp.o sources-jni/math/E
 
 $CC -Os $CFLAGS -o binaries/x64-linux-sysv-default/math/Sin.o sources-jni/math/Sin.c
 
+$CC -Os $CFLAGS -o binaries/x64-linux-sysv-default/math/Cos.o sources-jni/math/Cos.c
+
 $CC -Os $CFLAGS -o binaries/x64-linux-sysv-default/math/Tan.o sources-jni/math/Tan.c
+
+$CC -Os $CFLAGS -o binaries/x64-linux-sysv-default/math/EvaluatePolynomial.o sources-jni/math/EvaluatePolynomial.c
 
 $CC -Os $CFLAGS -o binaries/x64-linux-sysv-default/library/Init.o sources-jni/library/Init.c
 

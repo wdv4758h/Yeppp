@@ -30,7 +30,11 @@ mkdir "binaries/mips-linux-o32-android/math" >NUL 2>NUL
 
 %CC% -Os %CFLAGS% -o binaries/mips-linux-o32-android/math/Sin.o sources-jni/math/Sin.c
 
+%CC% -Os %CFLAGS% -o binaries/mips-linux-o32-android/math/Cos.o sources-jni/math/Cos.c
+
 %CC% -Os %CFLAGS% -o binaries/mips-linux-o32-android/math/Tan.o sources-jni/math/Tan.c
+
+%CC% -Os %CFLAGS% -o binaries/mips-linux-o32-android/math/EvaluatePolynomial.o sources-jni/math/EvaluatePolynomial.c
 
 %CC% -Os %CFLAGS% -o binaries/mips-linux-o32-android/library/Init.o sources-jni/library/Init.c
 

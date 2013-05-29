@@ -31,7 +31,11 @@ $CC -Os $CFLAGS -o binaries/x86-linux-pic-i586/math/Exp.o sources-jni/math/Exp.c
 
 $CC -Os $CFLAGS -o binaries/x86-linux-pic-i586/math/Sin.o sources-jni/math/Sin.c
 
+$CC -Os $CFLAGS -o binaries/x86-linux-pic-i586/math/Cos.o sources-jni/math/Cos.c
+
 $CC -Os $CFLAGS -o binaries/x86-linux-pic-i586/math/Tan.o sources-jni/math/Tan.c
+
+$CC -Os $CFLAGS -o binaries/x86-linux-pic-i586/math/EvaluatePolynomial.o sources-jni/math/EvaluatePolynomial.c
 
 $CC -Os $CFLAGS -o binaries/x86-linux-pic-i586/library/Init.o sources-jni/library/Init.c
 
