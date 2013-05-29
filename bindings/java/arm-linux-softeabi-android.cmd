@@ -30,7 +30,11 @@ mkdir "binaries/arm-linux-softeabi-android/math" >NUL 2>NUL
 
 %CC% -Os %CFLAGS% -o binaries/arm-linux-softeabi-android/math/Sin.o sources-jni/math/Sin.c
 
+%CC% -Os %CFLAGS% -o binaries/arm-linux-softeabi-android/math/Cos.o sources-jni/math/Cos.c
+
 %CC% -Os %CFLAGS% -o binaries/arm-linux-softeabi-android/math/Tan.o sources-jni/math/Tan.c
+
+%CC% -Os %CFLAGS% -o binaries/arm-linux-softeabi-android/math/EvaluatePolynomial.o sources-jni/math/EvaluatePolynomial.c
 
 %CC% -Os %CFLAGS% -o binaries/arm-linux-softeabi-android/library/Init.o sources-jni/library/Init.c
 

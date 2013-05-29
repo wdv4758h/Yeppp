@@ -31,7 +31,11 @@ $CC -Os $CFLAGS -o binaries/arm-linux-softeabi-v5t/math/Exp.o sources-jni/math/E
 
 $CC -Os $CFLAGS -o binaries/arm-linux-softeabi-v5t/math/Sin.o sources-jni/math/Sin.c
 
+$CC -Os $CFLAGS -o binaries/arm-linux-softeabi-v5t/math/Cos.o sources-jni/math/Cos.c
+
 $CC -Os $CFLAGS -o binaries/arm-linux-softeabi-v5t/math/Tan.o sources-jni/math/Tan.c
+
+$CC -Os $CFLAGS -o binaries/arm-linux-softeabi-v5t/math/EvaluatePolynomial.o sources-jni/math/EvaluatePolynomial.c
 
 $CC -Os $CFLAGS -o binaries/arm-linux-softeabi-v5t/library/Init.o sources-jni/library/Init.c
 

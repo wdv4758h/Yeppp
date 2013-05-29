@@ -30,7 +30,11 @@ mkdir "binaries/x86-linux-pic-android/math" >NUL 2>NUL
 
 %CC% -Os %CFLAGS% -o binaries/x86-linux-pic-android/math/Sin.o sources-jni/math/Sin.c
 
+%CC% -Os %CFLAGS% -o binaries/x86-linux-pic-android/math/Cos.o sources-jni/math/Cos.c
+
 %CC% -Os %CFLAGS% -o binaries/x86-linux-pic-android/math/Tan.o sources-jni/math/Tan.c
+
+%CC% -Os %CFLAGS% -o binaries/x86-linux-pic-android/math/EvaluatePolynomial.o sources-jni/math/EvaluatePolynomial.c
 
 %CC% -Os %CFLAGS% -o binaries/x86-linux-pic-android/library/Init.o sources-jni/library/Init.c
 

@@ -19,16 +19,13 @@ def generate_log(module):
 		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f_Bulldozer)
 
 		function.c_documentation = """
-@brief	Computes logarithm on %(InputType0)s elements.
-@param[in]	x	Pointer the input array.
-@param[out]	y	Pointer the output array.
-@param[in]	length	The length of the arrays pointed by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a xPointer or @a yPointer arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a xPointer or @a yPointer arguments is not properly aligned.
+@brief	Computes natural logarithm on an array of %(InputType0)s elements.
+@param[in]	x	Pointer to the array of elements on which logarithm will be computed.
+@param[out]	y	Pointer the array where the computed logarithms will be stored.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
 """
 		function.java_documentation = """
-@brief	Computes logarithm on %(InputType0)s elements.
+@brief	Computes natural logarithm on %(InputType0)s elements.
 @param[in]	xArray	Input array.
 @param[in]   xOffset Offset of the first element in @a xArray.
 @param[out]	yArray	Output array.
@@ -60,13 +57,10 @@ def generate_exp(module):
 		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_Haswell)
 
 		function.c_documentation = """
-@brief	Computes exponent on %(InputType0)s elements.
-@param[in]	x	Pointer the input array.
-@param[out]	y	Pointer the output array.
-@param[in]	length	The length of the arrays pointed by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x or @a y arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x or @a y arguments is not properly aligned.
+@brief	Computes base-e exponent on an array of %(InputType0)s elements.
+@param[in]	x	Pointer to the array of elements on which exponent will be computed.
+@param[out]	y	Pointer the array where the computed exponents will be stored.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
 """
 		function.java_documentation = """
 @brief	Computes exponent on %(InputType0)s elements.
@@ -74,7 +68,7 @@ def generate_exp(module):
 @param[in]   xOffset Offset of the first element in @a xArray.
 @param[out]	yArray	Output array.
 @param[in]   yOffset Offset of the first element in @a yArray.
-@param[in]	length	The length of the subarrays to be used in computation.
+@param[in]	length	Length of the subarrays to be used in computation.
 @throws	NullPointerException	If @a xArray or @a yArray argument is null.
 @throws	InvalidArgumentException	If the @a xOffset or @a yOffset argument is negative.
 @throws	NegativeArraySizeException	If the @a length argument is null.
@@ -99,13 +93,10 @@ def generate_sin(module):
 		function.assembly_implementations.append(yeppp.library.math.x64.Sin_V64f_V64f_Haswell)
 
 		function.c_documentation = """
-@brief	Computes sine on %(InputType0)s elements.
-@param[in]	x	Pointer the input array.
-@param[out]	y	Pointer the output array.
-@param[in]	length	The length of the arrays pointed by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x or @a y arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x or @a y arguments is not properly aligned.
+@brief	Computes sine on an array of %(InputType0)s elements.
+@param[in]	x	Pointer to the array of elements on which sine will be computed.
+@param[out]	y	Pointer the array where the computed sines will be stored.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
 """
 		function.java_documentation = """
 @brief	Computes sine on %(InputType0)s elements.
@@ -138,13 +129,10 @@ def generate_cos(module):
 		function.assembly_implementations.append(yeppp.library.math.x64.Cos_V64f_V64f_Haswell)
 
 		function.c_documentation = """
-@brief	Computes cosine on %(InputType0)s elements.
-@param[in]	x	Pointer the input array.
-@param[out]	y	Pointer the output array.
-@param[in]	length	The length of the arrays pointed by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x or @a y arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x or @a y arguments is not properly aligned.
+@brief	Computes cosine on an array of %(InputType0)s elements.
+@param[in]	x	Pointer to the array of elements on which cosine will be computed.
+@param[out]	y	Pointer the array where the computed cosines will be stored.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
 """
 		function.java_documentation = """
 @brief	Computes cosine on %(InputType0)s elements.
@@ -174,13 +162,10 @@ def generate_tan(module):
 		function.assembly_implementations.append(yeppp.library.math.x64.Tan_V64f_V64f_Bulldozer)
 	
 		function.c_documentation = """
-@brief	Computes tangent on %(InputType0)s elements.
-@param[in]	x	Pointer the array of elements to compute tangent on.
-@param[out]	y	Pointer the output array.
-@param[in]	length	The length of the arrays pointed by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x or @a y arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x or @a y arguments is not properly aligned.
+@brief	Computes tangent on an array of %(InputType0)s elements.
+@param[in]	x	Pointer to the array of elements on which tangent will be computed.
+@param[out]	y	Pointer the array where the computed tangents will be stored.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
 """
 		function.java_documentation = """
 @brief	Computes tangent on %(InputType0)s elements.
@@ -220,11 +205,9 @@ def generate_evaluate_polynomial(module):
 @param[in]	x	Pointer to the array of elements on which the polynomial will be evaluated.
 @param[in]	coef	Pointer to the array of polynomial coefficients.
 @param[out]	y	Pointer the array where the result of polynomial evaluation will be stored.
-@param[in]	coefCount	Number of polynomial coefficients. This should equal the polynomial degree plus one.
-@param[in]	length	Number of elements in the arrays specified by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	Either @a x or @a y arguments is null.
-@retval	#YepStatusMisalignedPointer	Either @a x or @a y arguments is not properly aligned.
+@param[in]	coefCount	Number of polynomial coefficients. Should equal the polynomial degree plus one.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
+@retval	#YepStatusInvalidArgument	@a coefCount is zero.
 """
 		function.c_implementation = """
 if YEP_UNLIKELY(coefCount == 0) {

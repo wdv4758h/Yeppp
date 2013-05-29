@@ -13,14 +13,11 @@ import yeppp.library.core.x64
 def generate_add(module):
 	with yeppp.module.Function(module, 'Add', 'Addition') as function:
 		function.c_documentation = """
-@brief	Computes pairwise sums of %(InputType0)s elements in two arrays, producing an array of %(OutputType0)s elements.
-@param[in]	x	Pointer the first input array of %(InputType0)s elements to be added.
-@param[in]	y	Pointer the second input array of %(InputType1)s elements to be added.
-@param[out]	sum	Pointer the output array of %(OutputType0)s elements of the pairwise sums.
-@param[in]	length	The length of the arrays pointed by @a x, @a y, and @a sum.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x, @a y, or @a sum arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x, @a y, or @a sum arguments is not properly aligned.
+@brief	Adds corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
+@param[in]	x	Pointer the first array of %(InputType0)s elements to be added.
+@param[in]	y	Pointer the second array of %(InputType1)s elements to be added.
+@param[out]	sum	Pointer the array of %(OutputType0)s elements where the pairwise sums will be stored.
+@param[in]	length	The length of the arrays specified by @a x and @a y, and @a sum.
 """
 		function.assembly_implementations = [yeppp.library.core.x64.AddSub_VusVus_Vus_implementation,
 											 yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_implementation]
@@ -46,75 +43,72 @@ return YepStatusOk;
 		function.generate("yepCore_Add_V32fV32f_V32f(x, y, sum, YepSize length)")
 		function.generate("yepCore_Add_V64fV64f_V64f(x, y, sum, YepSize length)")
 
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	const Yep%(OutputType0)s x = *xPointer++;
-	const Yep%(OutputType0)s sum = x + y;
-	*sumPointer++ = sum;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Add_V8uS8u_V8u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V8uS8u_V16u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V8sS8s_V16s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V16uS16u_V16u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V16uS16u_V32u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V16sS16s_V32s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32uS32u_V32u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32uS32u_V64u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32sS32s_V64s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V64uS64u_V64u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32fS32f_V32f(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V64fS64f_V64f(x, y, sum, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	const Yep%(OutputType0)s y = *yPointer++;
-	x += y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Add_IV8uV8u_IV8u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV16uV16u_IV16u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32uV32u_IV32u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64uV64u_IV64u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32fV32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64fV64f_IV64f(x, y, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	x += y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Add_IV8uS8u_IV8u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV16uS16u_IV16u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32uS32u_IV32u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64uS64u_IV64u(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32fS32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64fS64f_IV64f(x, y, YepSize length)")
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	const Yep%(OutputType0)s x = *xPointer++;
+# 	const Yep%(OutputType0)s sum = x + y;
+# 	*sumPointer++ = sum;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Add_V8uS8u_V8u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V8uS8u_V16u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V8sS8s_V16s(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V16uS16u_V16u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V16uS16u_V32u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V16sS16s_V32s(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V32uS32u_V32u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V32uS32u_V64u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V32sS32s_V64s(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V64uS64u_V64u(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V32fS32f_V32f(x, y, sum, YepSize length)")
+# 		function.generate("yepCore_Add_V64fS64f_V64f(x, y, sum, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	Yep%(OutputType0)s x = *xPointer;
+# 	const Yep%(OutputType0)s y = *yPointer++;
+# 	x += y;
+# 	*xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Add_IV8uV8u_IV8u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV16uV16u_IV16u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV32uV32u_IV32u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV64uV64u_IV64u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV32fV32f_IV32f(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV64fV64f_IV64f(x, y, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	Yep%(OutputType0)s x = *xPointer;
+# 	x += y;
+# 	*xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Add_IV8uS8u_IV8u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV16uS16u_IV16u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV32uS32u_IV32u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV64uS64u_IV64u(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV32fS32f_IV32f(x, y, YepSize length)")
+# 		function.generate("yepCore_Add_IV64fS64f_IV64f(x, y, YepSize length)")
 
 def generate_subtract(module):
 	with yeppp.module.Function(module, 'Subtract', 'Subtraction') as function:
 		function.c_documentation = """
-@brief	Computes pairwise differences of %(InputType0)s elements in two arrays, producing an array of %(OutputType0)s elements.
-@param[in]	x	Pointer the first input array of %(InputType0)s elements to be subtracted from.
-@param[in]	y	Pointer the second input array of %(InputType1)s elements to be subtracted.
-@param[out]	difference	Pointer the output array of %(OutputType0)s elements of the pairwise differences.
-@param[in]	length	The length of the arrays pointed by @a x, @a y, and @a difference.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x, @a y, or @a difference arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x, @a y, or @a difference arguments is not properly aligned.
+@brief	Subtracts corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
+@param[in]	x	Pointer the minuend array of %(InputType0)s elements to be subtracted from.
+@param[in]	y	Pointer the subtrahend array of %(InputType1)s elements to be subtracted.
+@param[out]	difference	Pointer the array of %(OutputType0)s elements where the pairwise differences will be stored.
+@param[in]	length	The length of the arrays specified by @a x and @a y, and @a sum.
 """
 		function.assembly_implementations = [yeppp.library.core.x64.AddSub_VusVus_Vus_implementation,
 											 yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_implementation]
@@ -140,126 +134,126 @@ return YepStatusOk;
 		function.generate("yepCore_Subtract_V32fV32f_V32f(x, y, difference, YepSize length)")
 		function.generate("yepCore_Subtract_V64fV64f_V64f(x, y, difference, YepSize length)")
 	
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	const Yep%(OutputType0)s x = *xPointer++;
-	const Yep%(OutputType0)s difference = x - y;
-	*differencePointer++ = difference;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Subtract_V8uS8u_V8u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V8uS8u_V16u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V8sS8s_V16s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V16uS16u_V16u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V16uS16u_V32u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V16sS16s_V32s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32uS32u_V32u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32uS32u_V64u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32sS32s_V64s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V64uS64u_V64u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32fS32f_V32f(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V64fS64f_V64f(x, y, difference, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	const Yep%(OutputType0)s y = *yPointer++;
-	const Yep%(OutputType0)s difference = x - y;
-	*differencePointer++ = difference;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Subtract_S8uV8u_V8u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S8uV8u_V16u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S8sV8s_V16s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S16uV16u_V16u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S16uV16u_V32u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S16sV16s_V32s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S32uV32u_V32u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S32uV32u_V64u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S32sV32s_V64s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S64uV64u_V64u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S32fV32f_V32f(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_S64fV64f_V64f(x, y, difference, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	const Yep%(OutputType0)s y = *yPointer++;
-	x -= y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Subtract_IV8uV8u_IV8u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV16uV16u_IV16u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV32uV32u_IV32u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV64uV64u_IV64u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV32fV32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV64fV64f_IV64f(x, y, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	const Yep%(OutputType0)s x = *xPointer++;
-	Yep%(OutputType0)s y = *yPointer;
-	y = x - y;
-	*yPointer++ = y;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Subtract_V8uIV8u_IV8u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_V16uIV16u_IV16u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_V32uIV32u_IV32u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_V64uIV64u_IV64u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_V32fIV32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_V64fIV64f_IV64f(x, y, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	x -= y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Subtract_IV8uS8u_IV8u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV16uS16u_IV16u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV32uS32u_IV32u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV64uS64u_IV64u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV32fS32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_IV64fS64f_IV64f(x, y, YepSize length)")
-
-		function.c_documentation = None
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s y = *yPointer;
-	y = x - y;
-	*yPointer++ = y;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Subtract_S8uIV8u_IV8u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_S16uIV16u_IV16u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_S32uIV32u_IV32u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_S64uIV64u_IV64u(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_S32fIV32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Subtract_S64fIV64f_IV64f(x, y, YepSize length)")
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	const Yep%(OutputType0)s x = *xPointer++;
+# 	const Yep%(OutputType0)s difference = x - y;
+# 	*differencePointer++ = difference;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Subtract_V8uS8u_V8u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V8uS8u_V16u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V8sS8s_V16s(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V16uS16u_V16u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V16uS16u_V32u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V16sS16s_V32s(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V32uS32u_V32u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V32uS32u_V64u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V32sS32s_V64s(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V64uS64u_V64u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V32fS32f_V32f(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_V64fS64f_V64f(x, y, difference, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	const Yep%(OutputType0)s y = *yPointer++;
+# 	const Yep%(OutputType0)s difference = x - y;
+# 	*differencePointer++ = difference;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Subtract_S8uV8u_V8u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S8uV8u_V16u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S8sV8s_V16s(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S16uV16u_V16u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S16uV16u_V32u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S16sV16s_V32s(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S32uV32u_V32u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S32uV32u_V64u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S32sV32s_V64s(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S64uV64u_V64u(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S32fV32f_V32f(x, y, difference, YepSize length)")
+# 		function.generate("yepCore_Subtract_S64fV64f_V64f(x, y, difference, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	Yep%(OutputType0)s x = *xPointer;
+# 	const Yep%(OutputType0)s y = *yPointer++;
+# 	x -= y;
+# 	*xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Subtract_IV8uV8u_IV8u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV16uV16u_IV16u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV32uV32u_IV32u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV64uV64u_IV64u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV32fV32f_IV32f(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV64fV64f_IV64f(x, y, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	const Yep%(OutputType0)s x = *xPointer++;
+# 	Yep%(OutputType0)s y = *yPointer;
+# 	y = x - y;
+# 	*yPointer++ = y;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Subtract_V8uIV8u_IV8u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_V16uIV16u_IV16u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_V32uIV32u_IV32u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_V64uIV64u_IV64u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_V32fIV32f_IV32f(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_V64fIV64f_IV64f(x, y, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	Yep%(OutputType0)s x = *xPointer;
+# 	x -= y;
+# 	*xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Subtract_IV8uS8u_IV8u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV16uS16u_IV16u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV32uS32u_IV32u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV64uS64u_IV64u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV32fS32f_IV32f(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_IV64fS64f_IV64f(x, y, YepSize length)")
+# 
+# 		function.c_documentation = None
+# 		function.assembly_implementations = []
+# 		function.c_implementation = """
+# while (length-- != 0) {
+# 	Yep%(OutputType0)s y = *yPointer;
+# 	y = x - y;
+# 	*yPointer++ = y;
+# }
+# return YepStatusOk;
+# """
+# 		function.generate("yepCore_Subtract_S8uIV8u_IV8u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_S16uIV16u_IV16u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_S32uIV32u_IV32u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_S64uIV64u_IV64u(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_S32fIV32f_IV32f(x, y, YepSize length)")
+# 		function.generate("yepCore_Subtract_S64fIV64f_IV64f(x, y, YepSize length)")
 
 def generate_negate(module):
 	with yeppp.module.Function(module, 'Negate', 'Negation') as function:
 		function.c_documentation = """
-@brief	Negates a vector of %(InputType0)s elements, producing an array of %(OutputType0)s elements.
+@brief	Negates a vector of %(InputType0)s elements.
 @param[in]	numberPointer	Pointer the input array of %(InputType0)s elements to be negated from.
 @param[out]	negatedNumberPointer	Pointer the output array of %(OutputType0)s negated elements.
 @param[in]	length	The length of the arrays pointed by @a numberPointer and @a negatedNumberPointer.
@@ -304,14 +298,11 @@ return YepStatusOk;
 def generate_multiply(module):
 	with yeppp.module.Function(module, 'Multiply', 'Multiplication') as function:
 		function.c_documentation = """
-@brief	Computes pairwise products of %(InputType0)s elements in two arrays, producing an array of %(OutputType0)s elements.
-@param[in]	x	Pointer the first input array of %(InputType0)s elements to be multiplied.
-@param[in]	y	Pointer the second input array of %(InputType1)s elements to be multiplied.
-@param[out]	product	Pointer the output array of %(OutputType0)s elements of the pairwise products.
-@param[in]	length	The length of the arrays pointed by @a x, @a y, and @a product.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x, @a y, or @a product arguments is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x, @a y, or @a product arguments is not properly aligned.
+@brief	Multiples corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
+@param[in]	x	Pointer the first array of %(InputType0)s elements to be multiplied.
+@param[in]	y	Pointer the second array of %(InputType1)s elements to be multiplied.
+@param[out]	product	Pointer the array of %(OutputType0)s elements where the pairwise products will be stored.
+@param[in]	length	The length of the arrays specified by @a x and @a y, and @a product.
 """
 		function.assembly_implementations = [yeppp.library.core.x64.Mul_VTuVTu_VTu_implementation,
 											 yeppp.library.core.x64.Mul_V16usV16us_V32us_implementation,
@@ -922,12 +913,9 @@ def generate_sum_squares(module):
 	with yeppp.module.Function(module, 'SumSquares', 'Sum of squares (squared L2 norm)') as function:
 		function.c_documentation = """
 @brief	Computes the sum of squares of %(InputType0)s elements in the input array.
-@param[in]	v	Pointer the array of %(InputType0)s elements to be squared and summed up.
+@param[in]	v	Pointer the array of elements which will be squared (without write-back) and summed up.
 @param[out]	sumSquares	Pointer a variable where the sum of squares will be stored.
-@param[in]	length	The length of the array pointed by @a numberPointer.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	@a numberPointer or @a sumSquaresPointer argument is null.
-@retval	#YepStatusMisalignedPointer	@a numberPointer or @a sumSquaresPointer argument is not properly aligned.
+@param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum of squares will be 0.
 """
 		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_Vf_Sf_implementation_Nehalem)
 		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_Vf_Sf_implementation_SandyBridge)
@@ -948,13 +936,10 @@ def generate_dot_product(module):
 	with yeppp.module.Function(module, 'DotProduct', 'Dot product') as function:
 		function.c_documentation = """
 @brief	Computes the dot product of %(InputType0)s elements in two arrays.
-@param[in]	x	Pointer the first input vector of %(InputType0)s elements.
-@param[in]	y	Pointer the second input vector of %(InputType1)s elements.
-@param[out]	dotProduct	Pointer the output %(OutputType0)s variable.
-@param[in]	length	The length of the arrays pointed by @a x and @a y.
-@retval	#YepStatusOk	The computations finished successfully.
-@retval	#YepStatusNullPointer	One of the @a x, @a y, or @a dotProduct pointers is null.
-@retval	#YepStatusMisalignedPointer	One of the @a x, @a y, or @a dotProduct pointers is not properly aligned.
+@param[in]	x	Pointer the first vector of elements.
+@param[in]	y	Pointer the second vector of elements.
+@param[out]	dotProduct	Pointer the variable where the dot product values will be stored.
+@param[in]	length	The length of the arrays specified by @a x and @a y.
 """
 		function.assembly_implementations = [yeppp.library.core.x64.DotProduct_VfVf_Sf_implementation_Nehalem,
 											 yeppp.library.core.x64.DotProduct_VfVf_Sf_implementation_SandyBridge,
@@ -1088,10 +1073,10 @@ if __name__ == '__main__':
 	with yeppp.module.Module('Core', 'Basic arithmetic operations') as module:
 # 		generate_copy(module)
 # 		generate_zero(module)
-# 		generate_add(module)
-# 		generate_subtract(module)
+		generate_add(module)
+		generate_subtract(module)
 # 		generate_negate(module)
-# 		generate_multiply(module)
+		generate_multiply(module)
 # 		generate_multiply_add(module)
 		generate_dot_product(module)
 # 		generate_divide(module)
@@ -1101,7 +1086,7 @@ if __name__ == '__main__':
 # 		generate_max(module)
 # 		generate_min_max(module)
 # 		generate_sum(module)
-# 		generate_sum_squares(module)
+		generate_sum_squares(module)
 # 		generate_gather(module)
 # 		generate_scatter_increment(module)
 # 		generate_scatter_add(module)
