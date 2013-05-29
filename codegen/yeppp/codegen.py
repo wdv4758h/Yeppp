@@ -414,12 +414,32 @@ class FunctionSpecialization:
 			self.assembly_functions[assembly_implementation_generator.abi.get_name()].append(assembly_function)
 
 	def generate_public_header(self, public_header_generator, default_documentation):
-		arguments = [inner_argument for argument in self.arguments for inner_argument in argument.c_public_arguments]
 		named_arguments_list = [argument.get_type().format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") + " " + argument.get_name()
-			for argument in arguments] 
+			for argument in self.c_public_arguments] 
 
 		if default_documentation:
 			documentation_lines = filter(bool, (default_documentation % self.documentation_macros).split("\n"))
+			# Find position to insert auto-generated return value descriptions
+			for i, line in enumerate(documentation_lines):
+				if line.startswith("@retval"):
+					retval_insert_position = i
+			else:
+				retval_insert_position = len(documentation_lines)
+			documentation_lines.insert(retval_insert_position, "@retval	#YepStatusOk	The computation finished successfully.")
+			pointer_names = [argument.get_name() for argument in self.c_public_arguments if argument.get_type().is_pointer()]
+			if pointer_names:
+				if len(pointer_names) == 1:
+					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	The @a %s argument is null." % pointer_names[0])
+					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	The @a %s argument is not naturally aligned." % pointer_names[0])
+				elif len(pointer_names) == 2:
+					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	@a %s or @a %s argument is null." % (pointer_names[0], pointer_names[1]))
+					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	@a %s or @a %s argument is not naturally aligned." % (pointer_names[0], pointer_names[1]))
+				else:
+					formatted_arguments = map(lambda name: "@a " + name, pointer_names)
+					formatted_arguments = ", ".join(formatted_arguments[:-1]) + " or " + formatted_arguments[-1]
+					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	%s argument is null." % formatted_arguments)
+					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	%s argument is not naturally aligned." % formatted_arguments)
+			
 			documentation_lines.insert(0, "@ingroup\tyep%s" % self.module_name)
 			if self.assembly_functions['x86'] or self.assembly_functions['x64-sysv']:
 				documentation_lines.append("@par\tOptimized implementations")
