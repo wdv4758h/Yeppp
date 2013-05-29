@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<project name="yeppp" default="package">
+	<target name="clean" description="Delete all class and jar files">
+		<delete dir="binaries/java-1.5" />
+	</target>
+	<target name="build" description="Build yeppp.jar from Java source files">
+		<mkdir dir="binaries" />
+		<mkdir dir="binaries/java-1.5" />
+		<javac srcdir="sources-java" classpath="sources-java" destdir="binaries/java-1.5" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/java-1.5/yeppp.jar">
+			<fileset dir="binaries/java-1.5" includes="**/*.class" level="9" />
+		</jar>
+	</target>
+	<target name="rebuild" description="Recompile all source files and build yeppp.jar" depends="clean,build" />
+	<target name="package" description="Rebuild yeppp.jar and copy it to the binaries directory" depends="rebuild" >
+		<copy file="binaries/java-1.5/yeppp.jar" todir="../../binaries/java-1.5" />
+	</target>
+</project>
