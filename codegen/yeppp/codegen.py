@@ -39,6 +39,8 @@ class FunctionArgument(object):
 		self.csharp_safe_arguments = list()
 		# True if the argument is converted to function return value in Java/C# bindings
 		self.is_return_argument = False
+		# True if the argument specifies the length of an array argument
+		self.is_length_argument = False
 
 	def is_automatic(self):
 		# True is the argument type is deduced from function signature
@@ -381,6 +383,11 @@ class FunctionSpecialization:
 						else:
 							self.return_argument = None
 
+						# Detect which arguments are used to specify length of other arguments
+						length_arguments = set([argument.length_argument_name for argument in self.arguments if argument.is_automatic() and argument.is_vector and isinstance(argument.length_argument_name, str)])
+						for argument in self.arguments:
+							if argument.get_name() in length_arguments:
+								argument.is_length_argument = True
 
 						# Define variables to be used by default implementation
 						self.implementation_macros = dict(
@@ -567,6 +574,56 @@ class FunctionSpecialization:
 				jni_implementation_generator.add_line("{0} {1};".format(variable_type, variable_name))
 		jni_implementation_generator.add_line()
 
+		# Check parameters:
+		for argument in self.arguments:
+			if argument.is_automatic() and (argument.is_vector or argument.is_scalar and argument.is_output and not argument.is_return_argument):
+				array_name = argument.get_java_name(0)
+				offset_name = argument.get_java_name(1)
+
+				jni_implementation_generator.add_line("if YEP_UNLIKELY({0} == NULL) {{".format(array_name))
+				jni_implementation_generator.indent()
+				jni_implementation_generator.add_line("(*env)->ThrowNew(env, NullPointerException, \"Argument {0} is null\");".format(array_name))
+				if self.return_argument:
+					jni_implementation_generator.add_line("return ({0})0;".format(self.return_argument.get_java_type().get_jni_analog()))
+				else:
+					jni_implementation_generator.add_line("return;")
+				jni_implementation_generator.dedent()
+				jni_implementation_generator.add_line("}")
+
+				jni_implementation_generator.add_line("if YEP_UNLIKELY({0} < 0) {{".format(offset_name))
+				jni_implementation_generator.indent()
+				jni_implementation_generator.add_line("(*env)->ThrowNew(env, IllegalArgumentException, \"Argument {0} is negative\");".format(offset_name))
+				if self.return_argument:
+					jni_implementation_generator.add_line("return ({0})0;".format(self.return_argument.get_java_type().get_jni_analog()))
+				else:
+					jni_implementation_generator.add_line("return;")
+				jni_implementation_generator.dedent()
+				jni_implementation_generator.add_line("}")
+
+				if argument.is_vector:				
+					array_length = argument.length_argument_name
+					jni_implementation_generator.add_line("if YEP_UNLIKELY(((YepSize){0}) + ((YepSize){1}) > (YepSize)((*env)->GetArrayLength(env, {2}))) {{".format(offset_name, array_length, array_name))
+					jni_implementation_generator.indent()
+					jni_implementation_generator.add_line("(*env)->ThrowNew(env, IndexOutOfBoundsException, \"{0} + {1} exceed the length of {2}\");".format(offset_name, array_length, array_name))
+					if self.return_argument:
+						jni_implementation_generator.add_line("return ({0})0;".format(self.return_argument.get_java_type().get_jni_analog()))
+					else:
+						jni_implementation_generator.add_line("return;")
+					jni_implementation_generator.dedent()
+					jni_implementation_generator.add_line("}")
+			elif argument.is_length_argument:
+				jni_implementation_generator.add_line("if YEP_UNLIKELY({0} < 0) {{".format(argument.get_name()))
+				jni_implementation_generator.indent()
+				jni_implementation_generator.add_line("(*env)->ThrowNew(env, NegativeArraySizeException, \"Argument {0} is negative\");".format(argument.get_name()))
+				if self.return_argument:
+					jni_implementation_generator.add_line("return ({0})0;".format(self.return_argument.get_java_type().get_jni_analog()))
+				else:
+					jni_implementation_generator.add_line("return;")
+				jni_implementation_generator.dedent()
+				jni_implementation_generator.add_line("}")
+				
+		jni_implementation_generator.add_line()
+
 		# Initialize pointer for arrays passed to the function
 		for argument in self.arguments:
 			if argument.is_automatic() and argument.is_vector:
@@ -603,6 +660,23 @@ class FunctionSpecialization:
 					method_name = "Set" + str(argument.java_arguments[0].get_type().get_primitive_type()).title() + "ArrayRegion"
 					jni_implementation_generator.add_line("(*env)->{0}(env, {1}, {2}, 1, &{3});".format(
 						method_name, argument.get_java_name(0), argument.get_java_name(1), argument.get_name()))
+					jni_implementation_generator.add_line("if YEP_UNLIKELY((*env)->ExceptionCheck(env) == JNI_TRUE) {")
+					jni_implementation_generator.indent()
+					if self.return_argument:
+						jni_implementation_generator.add_line("return ({0})0;".format(self.return_argument.get_java_type().get_jni_analog()))
+					else:
+						jni_implementation_generator.add_line("return;")
+					jni_implementation_generator.dedent()
+					jni_implementation_generator.add_line("}")
+
+		# Check return value and throw exception as necessary
+		jni_implementation_generator.add_line("if YEP_UNLIKELY(status != YepStatusOk) {")
+		jni_implementation_generator.indent()
+		jni_implementation_generator.add_line("yepJNI_ThrowSuitableException(env, status);")
+		jni_implementation_generator.dedent()
+		jni_implementation_generator.add_line("}")
+		jni_implementation_generator.add_line()
+
 
 		# If function has a non-void return value, emit a return statement
 		if self.return_argument:
@@ -839,6 +913,7 @@ class FunctionGenerator:
 		self.jni_implementation_generator.add_line()
 		self.jni_implementation_generator.add_line("#include <jni.h>")
 		self.jni_implementation_generator.add_line("#include <yep{0}.h>".format(module_name))
+		self.jni_implementation_generator.add_line("#include <yepJavaPrivate.h>")
 		self.jni_implementation_generator.add_empty_lines(2)
 
 		self.java_class_generator.add_line()
