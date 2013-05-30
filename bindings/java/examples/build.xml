@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<project name="yeppp" default="build-all">
+	<target name="clean" description="Delete all class and jar files">
+		<delete dir="binaries" />
+		<delete dir="classes" />
+	</target>
+	<target name="build-CpuCycles" description="Build CpuCycles example">
+		<mkdir dir="binaries" />
+		<mkdir dir="classes" />
+		<javac srcdir="sources" includes="CpuCycles.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/CpuCycles.jar" level="9">
+			<fileset dir="classes" includes="CpuCycles.class" />
+			<manifest>
+				<attribute name="Main-Class" value="CpuCycles"/>
+				<attribute name="Class-Path" value="yeppp.jar" />
+				<attribute name="Implementation-Title" value="Processor cycle counter access example" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="build-CpuInfo" description="Build CpuInfo example">
+		<mkdir dir="binaries" />
+		<mkdir dir="classes" />
+		<javac srcdir="sources" includes="CpuInfo.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/CpuInfo.jar" level="9">
+			<fileset dir="classes" includes="CpuInfo.class" />
+			<manifest>
+				<attribute name="Main-Class" value="CpuInfo"/>
+				<attribute name="Class-Path" value="yeppp.jar" />
+				<attribute name="Implementation-Title" value="Processor features detection example" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="build-Entropy" description="Build Entropy example">
+		<mkdir dir="binaries" />
+		<mkdir dir="classes" />
+		<javac srcdir="sources" includes="Entropy.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/Entropy.jar" level="9">
+			<fileset dir="classes" includes="Entropy.class" />
+			<manifest>
+				<attribute name="Main-Class" value="Entropy"/>
+				<attribute name="Class-Path" value="yeppp.jar" />
+				<attribute name="Implementation-Title" value="Entropy computation example" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="build-SystemTimer" description="Build SystemTimer example">
+		<mkdir dir="binaries" />
+		<mkdir dir="classes" />
+		<javac srcdir="sources" includes="SystemTimer.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/SystemTimer.jar" level="9">
+			<fileset dir="classes" includes="SystemTimer.class" />
+			<manifest>
+				<attribute name="Main-Class" value="SystemTimer" />
+				<attribute name="Class-Path" value="yeppp.jar" />
+				<attribute name="Implementation-Title" value="System timer access example" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="build-all" description="Build all examples" depends="build-CpuCycles,build-CpuInfo,build-Entropy,build-SystemTimer" />
+</project>

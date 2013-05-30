@@ -7,8 +7,8 @@
 		<mkdir dir="binaries" />
 		<mkdir dir="binaries/java-1.5" />
 		<javac srcdir="sources-java" classpath="sources-java" destdir="binaries/java-1.5" target="1.5" includeAntRuntime="false" />
-		<jar destfile="binaries/java-1.5/yeppp.jar">
-			<fileset dir="binaries/java-1.5" includes="**/*.class" level="9" />
+		<jar destfile="binaries/java-1.5/yeppp.jar" level="9">
+			<fileset dir="binaries/java-1.5" includes="**/*.class" />
 		</jar>
 	</target>
 	<target name="rebuild" description="Recompile all source files and build yeppp.jar" depends="clean,build" />
