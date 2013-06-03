@@ -213,6 +213,7 @@
 								break;
 							case 0x3C:
 							case 0x45:
+							case 0x46:
 								microarchitecture = YepCpuMicroarchitectureHaswell;
 								break;
 						}
