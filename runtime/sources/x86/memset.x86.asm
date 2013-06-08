@@ -6,8 +6,13 @@
 ;
 ;
 
+%ifidn __OUTPUT_FORMAT__,elf32
 section .text.memset align=32
 global memset:function internal
+%else
+section .text
+global memset
+%endif
 
 memset:
 	PUSH edi

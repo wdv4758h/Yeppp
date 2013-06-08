@@ -6,8 +6,13 @@
 ;
 ;
 
+%ifidn __OUTPUT_FORMAT__,elf32
 section .text.memcmp align=32
 global memcmp:function internal
+%else
+section .text
+global memcmp
+%endif
 
 memcmp:
 	PUSH edi

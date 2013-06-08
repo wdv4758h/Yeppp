@@ -13,6 +13,8 @@ help:
 	$(info "arm-linux-softeabi-androidv7a : build for Android ARMEABIv7A ABI")
 	$(info "        x86-linux-pic-android : build for Android x86 ABI")
 	$(info "       mips-linux-o32-android : build for Android MIPS ABI")
+	$(info "      x64-macosx-sysv-default : build for Mac OS X on x86-64")
+	$(info "       x86-macosx-pic-default : build for Mac OS X on x86")
 	$(info "                        clean : delete all binaries")
 	$(info "======================================================================")
 
@@ -34,8 +36,10 @@ arm-linux-hardeabi-v7a: AS=arm-linux-gnueabihf-as
 arm-linux-softeabi-v5t: AS=arm-linux-gnueabi-as
 x86-linux-pic-android: AS=nasm
 x86-linux-pic-i586: AS=nasm
-x64-linux-sysv-default : AS=nasm
-x64-linux-k1om-default : AS=x86_64-k1om-linux-as
+x86-macosx-pic-default: AS=nasm
+x64-linux-sysv-default: AS=nasm
+x64-linux-k1om-default: AS=x86_64-k1om-linux-as
+x64-macosx-sysv-default: AS=nasm
 mips-linux-o32-android: AS=mipsel-linux-android-as
 
 arm-linux-softeabi-androidv7a: ASFLAGS=-Isources/arm --noexecstack
@@ -44,9 +48,11 @@ arm-linux-hardeabi-v7a: ASFLAGS=-Isources/arm --noexecstack
 arm-linux-softeabi-v5t: ASFLAGS=-Isources/arm --noexecstack
 x86-linux-pic-android: ASFLAGS=-f elf32
 x86-linux-pic-i586: ASFLAGS=-f elf32
-x64-linux-sysv-default : ASFLAGS=-f elf64
-x64-linux-k1om-default : ASFLAGS=-Isources/x86 --march=k1om --noexecstack
-mips-linux-o32-android : ASFLAGS=-Isources/mips --noexecstack
+x86-macosx-pic-default: ASFLAGS=-f macho32
+x64-linux-sysv-default: ASFLAGS=-f elf64
+x64-macosx-sysv-default: ASFLAGS=-f macho64
+x64-linux-k1om-default: ASFLAGS=-Isources/x86 --march=k1om --noexecstack
+mips-linux-o32-android: ASFLAGS=-Isources/mips --noexecstack
 
 arm-linux-softeabi-androidv7a: STRIP=arm-linux-androideabi-strip
 arm-linux-softeabi-android: STRIP=arm-linux-androideabi-strip
@@ -54,9 +60,11 @@ arm-linux-hardeabi-v7a: STRIP=arm-linux-gnueabihf-strip
 arm-linux-softeabi-v5t: STRIP=arm-linux-gnueabi-strip
 x86-linux-pic-android: STRIP=i686-linux-android-strip
 x86-linux-pic-i586: STRIP=strip
-x64-linux-sysv-default : STRIP=strip
-x64-linux-k1om-default : STRIP=x86_64-k1om-linux-strip
-mips-linux-o32-android : STRIP=mipsel-linux-android-strip
+x86-macosx-pic-default: STRIP=strip
+x64-linux-sysv-default: STRIP=strip
+x64-linux-k1om-default: STRIP=x86_64-k1om-linux-strip
+x64-macosx-sysv-default: STRIP=strip
+mips-linux-o32-android: STRIP=mipsel-linux-android-strip
 
 arm-linux-softeabi-androidv7a: AR=arm-linux-androideabi-ar
 arm-linux-softeabi-android: AR=arm-linux-androideabi-ar
@@ -64,9 +72,11 @@ arm-linux-hardeabi-v7a: AR=arm-linux-gnueabihf-ar
 arm-linux-softeabi-v5t: AR=arm-linux-gnueabi-ar
 x86-linux-pic-android: AR=i686-linux-android-ar
 x86-linux-pic-i586: AR=ar
-x64-linux-sysv-default : AR=ar
-x64-linux-k1om-default : AR=x86_64-k1om-linux-ar
-mips-linux-o32-android : AR=mipsel-linux-android-ar
+x86-macosx-pic-default: AR=ar
+x64-linux-sysv-default: AR=ar
+x64-linux-k1om-default: AR=x86_64-k1om-linux-ar
+x64-macosx-sysv-default: AR=ar
+mips-linux-o32-android: AR=mipsel-linux-android-ar
 
 arm-linux-softeabi-androidv7a:
 	-rm -rf binaries/arm-linux-softeabi-androidv7a
@@ -294,6 +304,21 @@ x86-linux-pic-i586:
 
 	$(AR) rcs binaries/x86-linux-pic-i586/libyeprt.a binaries/x86-linux-pic-i586/*.o
 
+x86-macosx-pic-default:
+	-rm -rf binaries/x86-macosx-pic-default
+	-mkdir -p binaries
+	-mkdir -p binaries/x86-macosx-pic-default
+	
+	$(AS) $(ASFLAGS) -o binaries/x86-macosx-pic-default/memcpy.o sources/x86/memcpy.x86.asm 
+
+	$(AS) $(ASFLAGS) -o binaries/x86-macosx-pic-default/memcmp.x86.o sources/x86/memcmp.x86.asm
+
+	$(AS) $(ASFLAGS) -o binaries/x86-macosx-pic-default/memset.x86.o sources/x86/memset.x86.asm
+
+	$(AS) $(ASFLAGS) -o binaries/x86-macosx-pic-default/udivdi3.x86.o sources/x86/udivdi3.x86.asm
+
+	$(AR) rcs binaries/x86-macosx-pic-default/libyeprt.a binaries/x86-macosx-pic-default/*.o
+
 x64-linux-k1om-default:
 	-rm -rf binaries/x64-linux-k1om-default
 	-mkdir -p binaries
@@ -338,6 +363,19 @@ mips-linux-o32-android:
 	$(AS) $(ASFLAGS) sources/mips/memset.asm -o binaries/mips-linux-o32-android/memset.o
 
 	$(AR) rcs binaries/mips-linux-o32-android/libyeprt.a binaries/mips-linux-o32-android/*.o
+
+x64-macosx-sysv-default:
+	-rm -rf binaries/x64-macosx-sysv-default
+	-mkdir -p binaries
+	-mkdir -p binaries/x64-macosx-sysv-default
+
+	$(AS) $(ASFLAGS) sources/x86/memcmp.x64-sysv.asm -o binaries/x64-macosx-sysv-default/memcmp.x64-sysv.o
+
+	$(AS) $(ASFLAGS) sources/x86/memcpy.x64-sysv.asm -o binaries/x64-macosx-sysv-default/memcpy.x64-sysv.o
+
+	$(AS) $(ASFLAGS) sources/x86/memset.x64-sysv.asm -o binaries/x64-macosx-sysv-default/memset.x64-sysv.o
+
+	$(AR) rcs binaries/x64-macosx-sysv-default/libyeprt.a binaries/x64-macosx-sysv-default/*.x64-sysv.o
 
 clean:
 	-rm -rf binaries

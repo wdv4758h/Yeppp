@@ -670,6 +670,11 @@
 	#define YEP_LOCAL_SYMBOL   __attribute__((visibility ("hidden")))
 	#define YEP_EXPORT_SYMBOL  __attribute__((visibility ("default")))
 	#define YEP_IMPORT_SYMBOL  __attribute__((visibility ("default")))
+#elif defined(YEP_MACOSX_OS)
+	#define YEP_PRIVATE_SYMBOL __attribute__((visibility ("hidden")))
+	#define YEP_LOCAL_SYMBOL   __attribute__((visibility ("hidden")))
+	#define YEP_EXPORT_SYMBOL  __attribute__((visibility ("default")))
+	#define YEP_IMPORT_SYMBOL  __attribute__((visibility ("default")))
 #elif defined(YEP_WINDOWS_OS)
 	#define YEP_PRIVATE_SYMBOL
 	#define YEP_LOCAL_SYMBOL
@@ -695,29 +700,6 @@
 	#define YEPABI __attribute__((cdecl))
 #else
 	#define YEPABI
-#endif
-
-#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER)
-	/* Works with both data and code */
-	#define YEP_USE_DATA_SECTION(name) __attribute__ ((section(".data." YEP_PREPROCESSOR_CONVERT_TO_STRING(name))))
-	#define YEP_USE_CODE_SECTION(name) __attribute__ ((section(".text." YEP_PREPROCESSOR_CONVERT_TO_STRING(name))))
-	#if defined(YEP_ARM_CPU)
-		#define YEP_USE_CONST_SECTION(name) __attribute__ ((section(".rodata." YEP_PREPROCESSOR_CONVERT_TO_STRING(name) ",\"a\",%progbits @")))
-	#else
-		#define YEP_USE_CONST_SECTION(name) __attribute__ ((section(".rodata." YEP_PREPROCESSOR_CONVERT_TO_STRING(name) ",\"a\",@progbits #")))
-	#endif
-#elif defined(YEP_MSVC_COMPATIBLE_COMPILER)
-	#define YEP_USE_DATA_SECTION(name) __declspec(allocate(YEP_PREPROCESSOR_CONVERT_TO_STRING(YEP_PREPROCESSOR_CONCATENATE_STRINGS(.data$, name))))
-	/* __declspec(allocate(...)) works with data only */
-	#define YEP_USE_CODE_SECTION(name)
-	#define YEP_USE_CONST_SECTION(name) __declspec(allocate(YEP_PREPROCESSOR_CONVERT_TO_STRING(YEP_PREPROCESSOR_CONCATENATE_STRINGS(.rdata$, name))))
-#else
-	#define YEP_USE_DATA_SECTION(name)
-	#define YEP_USE_CODE_SECTION(name)
-	#define YEP_USE_CONST_SECTION(name)
-	#if defined(YEP_BUILD_LIBRARY)
-		#warning "YEP_USE_DATA_SECTION, YEP_USE_CODE_SECTION, and YEP_USE_CONST_SECTION macro is not supported in this compiler"
-	#endif
 #endif
 
 #if defined(YEP_GCC_COMPATIBLE_COMPILER)

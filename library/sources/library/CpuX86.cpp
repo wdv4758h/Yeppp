@@ -310,6 +310,8 @@
 						break;
 				}
 				break;
+			default:
+				break;
 		}
 	}
 
@@ -1961,6 +1963,8 @@
 	YepStatus _yepLibrary_InitCpuInfo() {
 		#if defined(YEP_LINUX_OS)
 			_yepLibrary_InitLinuxLogicalCoresCount(_logicalCoresCount, _systemFeatures);
+		#elif defined(YEP_MACOSX_OS)
+			_yepLibrary_InitMacOSXLogicalCoresCount(_logicalCoresCount, _systemFeatures);
 		#elif defined(YEP_WINDOWS_OS)
 			_yepLibrary_InitWindowsLogicalCoresCount(_logicalCoresCount, _systemFeatures);
 		#else

@@ -321,7 +321,7 @@ class FunctionSpecialization:
 				abbreviation_matcher = re.match(type_abbreviation_regex, arguments_declaration)
 			self.inputs_abbreviations = [re.match("[I]?[VS](.+)", input_abbreviation).group(1) for input_abbreviation in inputs_abbreviations]
 			if not arguments_declaration.startswith("_"):
-				raise ValueError("Function declaration {0} does not contain seperator between inputs and outputs".format(declaration))
+				raise ValueError("Function declaration {0} does not contain separator between inputs and outputs".format(declaration))
 			else:
 				arguments_declaration = arguments_declaration[1:]
 				outputs_abbreviations = list()
@@ -405,7 +405,7 @@ class FunctionSpecialization:
 							[("InputType" + str(i), description_map[input_abbreviation]) for (i, input_abbreviation) in enumerate(self.inputs_abbreviations)] +
 							[("OutputType" + str(i), description_map[output_abbreviation]) for (i, output_abbreviation) in enumerate(self.outputs_abbreviations)])
 						
-						self.assembly_functions = { 'x86': list(), 'x64-ms': list(), 'x64-sysv': list(), 'x64-k1om': list() }
+						self.assembly_functions = dict()
 
 						self.c_public_arguments = [c_public_argument for argument in self.arguments for c_public_argument in argument.c_public_arguments]
 						self.c_private_arguments = [c_private_argument for argument in self.arguments for c_private_argument in argument.c_private_arguments]
@@ -415,10 +415,9 @@ class FunctionSpecialization:
 						self.csharp_unsafe_arguments = [csharp_unsafe_argument for argument in self.arguments for csharp_unsafe_argument in argument.csharp_unsafe_arguments if not argument.is_return_argument]
 						self.csharp_safe_arguments = [csharp_safe_argument for argument in self.arguments for csharp_safe_argument in argument.csharp_safe_arguments if not argument.is_return_argument]
 
-	def generate_assembly_implementation(self, assembly_implementation_generator, assembly_implementation):
-		assembly_function = assembly_implementation(assembly_implementation_generator, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments)
-		if assembly_function:
-			self.assembly_functions[assembly_implementation_generator.abi.get_name()].append(assembly_function)
+	def generate_assembly_implementation(self, assembler, assembly_implementation):
+		assembly_implementation(assembler, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments)
+		self.assembly_functions[assembler.abi.name] = assembler.find_functions(self.c_function_signature)
 
 	def generate_public_header(self, public_header_generator, default_documentation):
 		named_arguments_list = [argument.get_type().format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") + " " + argument.get_name()
@@ -448,13 +447,13 @@ class FunctionSpecialization:
 					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	%s argument is not naturally aligned." % formatted_arguments)
 			
 			documentation_lines.insert(0, "@ingroup\tyep%s" % self.module_name)
-			if self.assembly_functions['x86'] or self.assembly_functions['x64-sysv']:
+			if any(map(bool, self.assembly_functions.itervalues())):
 				documentation_lines.append("@par\tOptimized implementations")
 				documentation_lines.append("\t\t<table>")
 				documentation_lines.append("\t\t\t<tr><th>Architecture</th><th>Target microarchitecture</th><th>Required instruction extensions</th></tr>")
-				for assembly_function in self.assembly_functions['x86']:
-					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
+# 				for assembly_function in self.assembly_functions['x86']:
+# 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
+# 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
 				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.microarchitecture.get_number()):
 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
@@ -481,19 +480,19 @@ class FunctionSpecialization:
 
 		dispatch_table_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI _{0}_Default({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
 		for (abi_name, abi_test_macro) in yeppp_abi_list:
-			if self.assembly_functions[abi_name]:
+			if abi_name in self.assembly_functions and self.assembly_functions[abi_name]:
 				dispatch_table_generator.add_line("#if defined(%s)" % abi_test_macro)
 				for assembly_function in self.assembly_functions[abi_name]:
 					dispatch_table_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI {0}({1});".format(assembly_function.symbol_name, ", ".join(named_arguments_list)))
 				dispatch_table_generator.add_line("#endif // %s" % abi_test_macro)
 # 
-		dispatch_table_generator.add_line("YEP_USE_CONST_SECTION(DispatchTable) const FunctionDescriptor<YepStatus (YEPABI*)({0})> _dispatchTable_{1}[] = ".format(", ".join(unnamed_arguments_list), self.c_function_signature));
+		dispatch_table_generator.add_line("YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)({0})> _dispatchTable_{1}[] = ".format(", ".join(unnamed_arguments_list), self.c_function_signature));
 		dispatch_table_generator.add_line("{")
 		dispatch_table_generator.indent()
 
 		# Descriptors for function implementations
 		for (abi_name, abi_test_macro) in yeppp_abi_list:
-			if self.assembly_functions[abi_name]:
+			if abi_name in self.assembly_functions and self.assembly_functions[abi_name]:
 				dispatch_table_generator.add_line("#if defined(%s)" % abi_test_macro)
 				for assembly_function in self.assembly_functions[abi_name]:
 					(isa_features, simd_features, system_features) = assembly_function.get_yeppp_isa_extensions()
@@ -514,13 +513,13 @@ class FunctionSpecialization:
 
 	def generate_dispatch_pointer(self, dispatch_pointer_generator):
 		unnamed_arguments_list = [argument.get_type().format(restrict_qualifier = "YEP_RESTRICT", compact_pointers = False) for argument in self.c_public_arguments] 
-		dispatch_pointer_generator.add_line("YEP_USE_DATA_SECTION(FunctionPointer) YepStatus (YEPABI*_{0})({1}) = YEP_NULL_POINTER;".format(self.c_function_signature, ", ".join(unnamed_arguments_list)))
+		dispatch_pointer_generator.add_line("YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{0})({1}) = YEP_NULL_POINTER;".format(self.c_function_signature, ", ".join(unnamed_arguments_list)))
 
 	def generate_dispatch_function(self, dispatch_function_generator):
 		named_arguments_list = [argument.format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT")	for argument in self.c_private_arguments] 
 		argument_names = [argument.get_name() for argument in self.c_private_arguments]
 
-		dispatch_function_generator.add_line("YEP_USE_CODE_SECTION(DispatchFunction) YepStatus YEPABI {0}({1}) {{".format(self.c_function_signature, ", ".join(named_arguments_list)))
+		dispatch_function_generator.add_line("YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {0}({1}) {{".format(self.c_function_signature, ", ".join(named_arguments_list)))
 		dispatch_function_generator.indent().add_line("return _{0}({1});".format(self.c_function_signature, ", ".join(argument_names))).dedent()
 		dispatch_function_generator.add_line("}")
 		dispatch_function_generator.add_line()
@@ -692,13 +691,13 @@ class FunctionSpecialization:
 
 		if java_documentation:
 			documentation_lines = filter(bool, (java_documentation % self.documentation_macros).split("\n"))
-			if self.assembly_functions['x86'] or self.assembly_functions['x64-sysv']:
+			if any(map(bool, self.assembly_functions.itervalues())):
 				documentation_lines.append("@par\tOptimized implementations")
 				documentation_lines.append("\t\t<table>")
 				documentation_lines.append("\t\t\t<tr><th>Architecture</th><th>Target microarchitecture</th><th>Required instruction extensions</th></tr>")
-				for assembly_function in self.assembly_functions['x86']:
-					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
+# 				for assembly_function in self.assembly_functions['x86']:
+# 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
+# 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
 				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.microarchitecture.get_number()):
 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
@@ -868,7 +867,7 @@ class FunctionGenerator:
 		self.dispatch_table_generator.add_line("#if defined(YEP_MSVC_COMPATIBLE_COMPILER)")
 		self.dispatch_table_generator.indent()
 		self.dispatch_table_generator.add_line("#pragma section(\".rdata$DispatchTable\", read)")
-		self.dispatch_table_generator.add_line("#pragma section(\".data$FunctionPointer\", read, write)")
+		self.dispatch_table_generator.add_line("#pragma section(\".data$DispatchPointer\", read, write)")
 		self.dispatch_table_generator.dedent()
 		self.dispatch_table_generator.add_line("#endif")
 		self.dispatch_table_generator.add_line()
@@ -903,10 +902,13 @@ class FunctionGenerator:
 		self.default_implementation_generator.add_line()
 
 		self.assembly_implementation_generators = [
-			x86.Assembler(peachpy.c.ABI('x86')),
+# 			x86.Assembler(peachpy.c.ABI('x86')),
 			x64.Assembler(peachpy.c.ABI('x64-ms')),
 			x64.Assembler(peachpy.c.ABI('x64-sysv'))
 		]
+		for assembly_implementation_generator in self.assembly_implementation_generators:
+			assembly_implementation_generator.add_assembly_comment(source_license)
+			assembly_implementation_generator.add_line()
 
 		self.jni_implementation_generator = peachpy.codegen.CodeGenerator()
 		self.jni_implementation_generator.add_c_comment(source_license)

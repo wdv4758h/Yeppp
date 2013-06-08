@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <yepLibrary.h>
 
 #define ARRAY_SIZE (1024*1024*16)
