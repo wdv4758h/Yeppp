@@ -97,7 +97,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u(YepRa
 		return YepStatusInvalidArgument;
 	}
 	const Yep32u supportRange = supportMax - supportMin + 1;
-	if YEP_UNLIKELY(supportRange & (supportRange - 1) == 0) {
+	if YEP_UNLIKELY((supportRange & (supportRange - 1)) == 0) {
 		/* Support range is a power of 2, probably even 2^32 */
 		const Yep32u mask  = supportRange - 1;
 
