@@ -6,10 +6,15 @@
 ;
 ;
 
+%ifidn __OUTPUT_FORMAT__,elf64
 section .text.memcpy align=32
 global memcpy:function internal
-
 memcpy:
+%else
+section .text
+global _memcpy
+_memcpy:
+%endif
 	MOV rax, rdi
 
 .process_by_1_prologue:

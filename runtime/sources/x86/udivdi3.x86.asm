@@ -6,8 +6,13 @@
 ;
 ;
 
+%ifidn __OUTPUT_FORMAT__,elf32
 section .text.__udivdi3 align=32
 global __udivdi3:function internal
+%else
+section .text
+global __udivdi3
+%endif
 
 ; Version from AMD Optimization manual
 __udivdi3:

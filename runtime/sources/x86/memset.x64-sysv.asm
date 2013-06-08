@@ -6,10 +6,15 @@
 ;
 ;
 
+%ifidn __OUTPUT_FORMAT__,elf64
 section .text.memset align=32
 global memset:function internal
-
 memset:
+%else
+section .text
+global _memset
+_memset:
+%endif
 	MOV rax, rdi
 	MOV ecx, esi
 

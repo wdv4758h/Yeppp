@@ -129,6 +129,8 @@ typedef void (*LineParser)(const char* lineStart, const char* lineEnd, void* sta
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_ParseKernelLog(LineParser lineParser, void* state);
 
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_InitLinuxLogicalCoresCount(Yep32u& logicalCoresCount, Yep64u& systemFeatures);
+#elif defined(YEP_MACOSX_OS)
+	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_InitMacOSXLogicalCoresCount(Yep32u& logicalCoresCount, Yep64u& systemFeatures);
 #elif defined(YEP_WINDOWS_OS)
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_InitWindowsLogicalCoresCount(Yep32u& logicalCoresCount, Yep64u& systemFeatures);
 #endif

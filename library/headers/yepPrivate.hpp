@@ -41,7 +41,7 @@
 	#undef YEP_EXPORT_SYMBOL
 	#undef YEP_IMPORT_SYMBOL
 	#undef YEP_PUBLIC_SYMBOL
-	#if defined(__ELF__)
+	#if defined(YEP_LINUX_OS)
 		#if defined(YEP_STATIC_LIBRARY)
 			#define YEP_PRIVATE_SYMBOL __attribute__((visibility ("internal")))
 			#define YEP_LOCAL_SYMBOL   __attribute__((visibility ("hidden")))
@@ -49,6 +49,18 @@
 			#define YEP_IMPORT_SYMBOL  __attribute__((visibility ("hidden")))
 		#else
 			#define YEP_PRIVATE_SYMBOL __attribute__((visibility ("internal")))
+			#define YEP_LOCAL_SYMBOL   __attribute__((visibility ("hidden")))
+			#define YEP_EXPORT_SYMBOL  __attribute__((visibility ("default")))
+			#define YEP_IMPORT_SYMBOL  __attribute__((visibility ("default")))
+		#endif
+	#elif defined(YEP_MACOSX_OS)
+		#if defined(YEP_STATIC_LIBRARY)
+			#define YEP_PRIVATE_SYMBOL __attribute__((visibility ("hidden")))
+			#define YEP_LOCAL_SYMBOL   __attribute__((visibility ("hidden")))
+			#define YEP_EXPORT_SYMBOL  __attribute__((visibility ("hidden")))
+			#define YEP_IMPORT_SYMBOL  __attribute__((visibility ("hidden")))
+		#else
+			#define YEP_PRIVATE_SYMBOL __attribute__((visibility ("hidden")))
 			#define YEP_LOCAL_SYMBOL   __attribute__((visibility ("hidden")))
 			#define YEP_EXPORT_SYMBOL  __attribute__((visibility ("default")))
 			#define YEP_IMPORT_SYMBOL  __attribute__((visibility ("default")))
@@ -75,6 +87,27 @@
 	#endif
 #else
 	#error "Visibility symbols are not defined"
+#endif
+
+#if (defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER)) && defined(__ELF__)
+	#define YEP_USE_DISPATCH_POINTER_SECTION  __attribute__ ((section(".data.DispatchPointer")))
+	#define YEP_USE_DISPATCH_FUNCTION_SECTION __attribute__ ((section(".text.DispatchFunction")))
+	#if defined(YEP_ARM_CPU)
+		#define YEP_USE_DISPATCH_TABLE_SECTION __attribute__ ((section(".rodata.DispatchTable,\"a\",%progbits @")))
+	#else
+		#define YEP_USE_DISPATCH_TABLE_SECTION __attribute__ ((section(".rodata.DispatchTable,\"a\",@progbits #")))
+	#endif
+#elif (defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER)) && defined(__MACH__)
+	#define YEP_USE_DISPATCH_POINTER_SECTION  __attribute__ ((section("__DATA,__data.DispPtr")))
+	#define YEP_USE_DISPATCH_FUNCTION_SECTION __attribute__ ((section("__TEXT,__text.DispFun")))
+	#define YEP_USE_DISPATCH_TABLE_SECTION    __attribute__ ((section("__DATA,__const.DispTbl")))
+#elif defined(YEP_MSVC_COMPATIBLE_COMPILER)
+	#define YEP_USE_DISPATCH_POINTER_SECTION __declspec(allocate(".data$DispatchPointer"))
+	/* __declspec(allocate(...)) works with data only. Use pragma for code. */
+	#define YEP_USE_DISPATCH_FUNCTION_SECTION
+	#define YEP_USE_DISPATCH_TABLE_SECTION   __declspec(allocate(".rdata$DispatchTable"))
+#else
+	#error "Unsupported compiler or output format"
 #endif
 
 /* yepLibrary must be included after the new definitions of YEP_*_SYMBOL */

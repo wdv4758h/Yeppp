@@ -6,10 +6,15 @@
 ;
 ;
 
+%ifidn __OUTPUT_FORMAT__,elf64
 section .text.memset align=32
 global memcmp:function internal
-
 memcmp:
+%else
+section .text align=32
+global _memcmp
+_memcmp:
+%endif
 .process_by_1_prologue:
 	TEST rdi, 15
 	JZ .process_by_16_prologue

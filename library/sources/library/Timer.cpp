@@ -16,6 +16,11 @@
 #elif defined(YEP_LINUX_OS)
 	#include <yepSyscalls.hpp>
 	#include <time.h>
+#elif defined(YEP_MACOSX_OS)
+	#include <stdint.h>
+	#include <mach/mach.h>
+	#include <mach/mach_time.h>
+	#include <unistd.h>
 #endif
 
 YepStatus YEPABI yepLibrary_GetTimerTicks(Yep64u* ticksPointer) {
@@ -37,7 +42,16 @@ YepStatus YEPABI yepLibrary_GetTimerTicks(Yep64u* ticksPointer) {
 	if YEP_UNLIKELY(syscall_result != 0) {
 		return YepStatusSystemError;
 	} else {
-		*ticksPointer = 1000000000ULL * Yep64u(ticks.tv_sec) + Yep64u(ticks.tv_nsec);
+		*ticksPointer = 1000000000ull * Yep64u(ticks.tv_sec) + Yep64u(ticks.tv_nsec);
+		return YepStatusOk;
+	}
+#elif defined(YEP_MACOSX_OS)
+	const uint64_t ticks = mach_absolute_time();
+	mach_timebase_info_data_t timebaseInfo;
+	if YEP_UNLIKELY(mach_timebase_info(&timebaseInfo) != KERN_SUCCESS) {
+		return YepStatusSystemError;
+	} else {
+		*ticksPointer = ticks * timebaseInfo.numer;
 		return YepStatusOk;
 	}
 #else
@@ -59,8 +73,16 @@ YepStatus YEPABI yepLibrary_GetTimerFrequency(Yep64u* frequencyPointer) {
 		return YepStatusOk;
 	}
 #elif defined(YEP_LINUX_OS)
-	*frequencyPointer = 1000000000ULL;
+	*frequencyPointer = 1000000000ull;
 	return YepStatusOk;
+#elif defined(YEP_MACOSX_OS)
+	mach_timebase_info_data_t timebaseInfo;
+	if YEP_UNLIKELY(mach_timebase_info(&timebaseInfo) != KERN_SUCCESS) {
+		return YepStatusSystemError;
+	} else {
+		*frequencyPointer = timebaseInfo.denom * 1000000000ull;
+		return YepStatusOk;
+	}
 #else
 	return YepStatusUnsupportedSoftware;
 #endif
@@ -122,6 +144,14 @@ YepStatus YEPABI yepLibrary_GetTimerAccuracy(Yep64u* accuracyPointer) {
 		return YepStatusUnsupportedHardware;
 	} else {
 		*accuracyPointer = bestAccuracy;
+		return YepStatusOk;
+	}
+#elif defined(YEP_MACOSX_OS)
+	mach_timebase_info_data_t timebaseInfo;
+	if YEP_UNLIKELY(mach_timebase_info(&timebaseInfo) != KERN_SUCCESS) {
+		return YepStatusSystemError;
+	} else {
+		*accuracyPointer = (timebaseInfo.numer + (timebaseInfo.denom + 1) / 2) / timebaseInfo.denom;
 		return YepStatusOk;
 	}
 #else
