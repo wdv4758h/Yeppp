@@ -12,11 +12,7 @@ import yeppp.library.math.x64
 
 def generate_log(module):
 	with yeppp.module.Function(module, 'Log', 'Natural logarithm') as function:
-		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f_Nehalem)
-		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f_K10)
-		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f_SandyBridge)
-		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f_Bobcat)
-		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f_Bulldozer)
+		function.assembly_implementations.append(yeppp.library.math.x64.Log_V64f_V64f)
 
 		function.c_documentation = """
 @brief	Computes natural logarithm on an array of %(InputType0)s elements.
@@ -32,7 +28,7 @@ def generate_log(module):
 @param[in]   yOffset Offset of the first element in @a yArray.
 @param[in]	length	The length of the subarrays to be used in computation.
 @throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	InvalidArgumentException	If the @a xOffset or @a yOffset argument is negative.
+@throws	IllegalArgumentException	If the @a xOffset or @a yOffset argument is negative.
 @throws	NegativeArraySizeException	If the @a length argument is null.
 @throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
 @throws	MisalignedPointerError	If one of the arrays is not properly aligned.
@@ -49,12 +45,7 @@ return YepStatusOk;
 
 def generate_exp(module):
 	with yeppp.module.Function(module, 'Exp', 'Base-e exponent') as function:
-		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_Bobcat)
-		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_K10)
-		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_Nehalem)
-		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_Bulldozer)
-		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_SandyBridge)
-		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f_Haswell)
+		function.assembly_implementations.append(yeppp.library.math.x64.Exp_V64f_V64f)
 
 		function.c_documentation = """
 @brief	Computes base-e exponent on an array of %(InputType0)s elements.
@@ -70,7 +61,7 @@ def generate_exp(module):
 @param[in]   yOffset Offset of the first element in @a yArray.
 @param[in]	length	Length of the subarrays to be used in computation.
 @throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	InvalidArgumentException	If the @a xOffset or @a yOffset argument is negative.
+@throws	IllegalArgumentException	If the @a xOffset or @a yOffset argument is negative.
 @throws	NegativeArraySizeException	If the @a length argument is null.
 @throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
 @throws	MisalignedPointerError	If one of the arrays is not properly aligned.
@@ -87,10 +78,7 @@ return YepStatusOk;
 
 def generate_sin(module):
 	with yeppp.module.Function(module, 'Sin', 'Sine') as function:
-		function.assembly_implementations.append(yeppp.library.math.x64.Sin_V64f_V64f_Nehalem)
-		function.assembly_implementations.append(yeppp.library.math.x64.Sin_V64f_V64f_SandyBridge)
-		function.assembly_implementations.append(yeppp.library.math.x64.Sin_V64f_V64f_Bulldozer)
-		function.assembly_implementations.append(yeppp.library.math.x64.Sin_V64f_V64f_Haswell)
+		function.assembly_implementations.append(yeppp.library.math.x64.Sin_V64f_V64f)
 
 		function.c_documentation = """
 @brief	Computes sine on an array of %(InputType0)s elements.
@@ -123,10 +111,7 @@ return YepStatusOk;
 
 def generate_cos(module):
 	with yeppp.module.Function(module, 'Cos', 'Cosine') as function:
-		function.assembly_implementations.append(yeppp.library.math.x64.Cos_V64f_V64f_Nehalem)
-		function.assembly_implementations.append(yeppp.library.math.x64.Cos_V64f_V64f_SandyBridge)
-		function.assembly_implementations.append(yeppp.library.math.x64.Cos_V64f_V64f_Bulldozer)
-		function.assembly_implementations.append(yeppp.library.math.x64.Cos_V64f_V64f_Haswell)
+		function.assembly_implementations.append(yeppp.library.math.x64.Cos_V64f_V64f)
 
 		function.c_documentation = """
 @brief	Computes cosine on an array of %(InputType0)s elements.
@@ -192,13 +177,10 @@ return YepStatusOk;
 
 def generate_evaluate_polynomial(module):
 	with yeppp.module.Function(module, 'EvaluatePolynomial', 'Polynomial evaluation') as function:
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_SSE2)
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_V64fV64f_V64f_Bonnell)
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_V32fV32f_V32f_Bonnell)
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_Nehalem)
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_SandyBridge)
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_Bulldozer)
-		function.assembly_implementations.append(yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_Haswell)
+		function.assembly_implementations = [yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_SSE,
+											 yeppp.library.math.x64.EvaluatePolynomial_V64fV64f_V64f_Bonnell,
+											 yeppp.library.math.x64.EvaluatePolynomial_V32fV32f_V32f_Bonnell,
+											 yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_AVX]
 
 		function.c_documentation = """
 @brief	Evaluates polynomial with %(InputType0)s coefficients on an array of %(InputType0)s elements.

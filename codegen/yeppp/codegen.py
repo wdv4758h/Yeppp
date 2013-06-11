@@ -454,10 +454,10 @@ class FunctionSpecialization:
 # 				for assembly_function in self.assembly_functions['x86']:
 # 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 # 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
-				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.microarchitecture.get_number()):
+				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.target.microarchitecture.get_number()):
 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
-					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
+					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
 				documentation_lines.append("\t\t</table>")
 			public_header_generator.add_c_comment(documentation_lines, doxygen = True)			
 		public_header_generator.add_line("YEP_PUBLIC_SYMBOL enum YepStatus YEPABI {0}({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
@@ -500,7 +500,7 @@ class FunctionSpecialization:
 					simd_features = " | ".join(simd_features)
 					system_features = " | ".join(system_features)
 					dispatch_table_generator.add_line("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION({0}, {1}, {2}, {3}, YepCpuMicroarchitecture{4}, \"asm\", YEP_NULL_POINTER, YEP_NULL_POINTER),".
-						format(assembly_function.symbol_name, isa_features, simd_features, system_features, assembly_function.microarchitecture.get_name()))
+						format(assembly_function.symbol_name, isa_features, simd_features, system_features, assembly_function.target.microarchitecture.get_name()))
 				dispatch_table_generator.add_line("#endif // %s" % abi_test_macro)
 		dispatch_table_generator.add_line("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{0}_Default, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(self.c_function_signature))
 
@@ -698,10 +698,10 @@ class FunctionSpecialization:
 # 				for assembly_function in self.assembly_functions['x86']:
 # 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 # 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
-				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.microarchitecture.get_number()):
+				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.get_target().microarchitecture.get_number()):
 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
-					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
+					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.get_target().microarchitecture, ", ".join(isa_extensions)))
 				documentation_lines.append("\t\t</table>")
 			java_class_generator.add_c_comment(documentation_lines, doxygen = True)			
 		java_class_generator.add_line("public static native {0} {1}({2});".format(return_type, self.short_function_signature, ", ".join(named_arguments_list)))
