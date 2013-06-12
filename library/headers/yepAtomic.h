@@ -43,6 +43,11 @@ extern "C" {
 
 	/**
 	 * @ingroup yepAtomic
+	 * @defgroup yepAtomic_Swap	Swap/exchange (atomic read-write)
+	 */
+
+	/**
+	 * @ingroup yepAtomic_Swap
 	 * @brief	Atomically reads the old value of the variable and replaces it with a new value. The memory state is not synchronized, and changes made by other cores to other variables are not guranteed to be visible to the local thread.
 	 * @param	value	Pointer to a synchronization variable to be atomically swapped.
 	 * @param	newValue	The new value to be written to the synchronization variable.
@@ -54,7 +59,7 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *value, Yep32u newValue, Yep32u *oldValue);
 
 	/**
-	 * @ingroup yepAtomic
+	 * @ingroup yepAtomic_Swap
 	 * @brief	Atomically reads the old value of the variable and replaces it with a new value. The memory state is synchronized after the exchange operation.
 	 * @param	value	Pointer to a synchronization variable to be atomically swapped.
 	 * @param	newValue	The new value to be written to the synchronization variable.
@@ -66,7 +71,7 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepAtomic_Swap_Acquire_S32uS32u_S32u(volatile Yep32u *value, Yep32u newValue, Yep32u *oldValue);
 
 	/**
-	 * @ingroup yepAtomic
+	 * @ingroup yepAtomic_Swap
 	 * @brief	Atomically reads the old value of the variable and replaces it with a new value. The memory state is synchronized before the exchange operation.
 	 * @param	value	Pointer to a synchronization variable to be atomically swapped.
 	 * @param	newValue	The new value to be written to the synchronization variable.
@@ -78,7 +83,7 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepAtomic_Swap_Release_S32uS32u_S32u(volatile Yep32u *value, Yep32u newValue, Yep32u *oldValue);
 
 	/**
-	 * @ingroup yepAtomic
+	 * @ingroup yepAtomic_Swap
 	 * @brief	Atomically reads the old value of the variable and replaces it with a new value. The memory state is synchronized both before and after the exchange operation.
 	 * @param	value	Pointer to a synchronization variable to be atomically swapped.
 	 * @param	newValue	The new value to be written to the synchronization variable.
@@ -91,6 +96,11 @@ extern "C" {
 
 	/**
 	 * @ingroup yepAtomic
+	 * @defgroup yepAtomic_CompareAndSwap	Compare-and-swap
+	 */
+
+	/**
+	 * @ingroup yepAtomic_CompareAndSwap
 	 * @brief	Atomically reads the value of the variable and, if it equals the expected value, replaces it with the old value. The memory state is not synchronized, and changes made by other cores to other variables are not guranteed to be visible to the local thread.
 	 * @param	value	Pointer to a synchronization variable to be atomically compared and swapped.
 	 * @param	newValue	The new value to be written to the @a value variable if comparison is successful.
@@ -103,7 +113,7 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepAtomic_CompareAndSwap_Relaxed_S32uS32uS32u(volatile Yep32u *value, Yep32u newValue, Yep32u oldValue);
 
 	/**
-	 * @ingroup yepAtomic
+	 * @ingroup yepAtomic_CompareAndSwap
 	 * @brief	Atomically reads the value of the variable and, if it equals the expected value, replaces it with the old value. The memory state is synchronized after the compare-and-swap operation.
 	 * @param	value	Pointer to a synchronization variable to be atomically compared and swapped.
 	 * @param	newValue	The new value to be written to the @a value variable if comparison is successful.
@@ -116,7 +126,7 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepAtomic_CompareAndSwap_Acquire_S32uS32uS32u(volatile Yep32u *value, Yep32u newValue, Yep32u oldValue);
 
 	/**
-	 * @ingroup yepAtomic
+	 * @ingroup yepAtomic_CompareAndSwap
 	 * @brief	Atomically reads the value of the variable and, if it equals the expected value, replaces it with the old value. The memory state is synchronized before the compare-and-swap operation.
 	 * @param	value	Pointer to a synchronization variable to be atomically compared and swapped.
 	 * @param	newValue	The new value to be written to the @a value variable if comparison is successful.
@@ -129,7 +139,7 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepAtomic_CompareAndSwap_Release_S32uS32uS32u(volatile Yep32u *value, Yep32u newValue, Yep32u oldValue);
 
 	/**
-	 * @ingroup yepAtomic
+	 * @ingroup yepAtomic_CompareAndSwap
 	 * @brief	Atomically reads the value of the variable and, if it equals the expected value, replaces it with the old value. The memory state is synchronized both before and after the compare-and-swap operation.
 	 * @param	value	Pointer to a synchronization variable to be atomically compared and swapped.
 	 * @param	newValue	The new value to be written to the @a value variable if comparison is successful.

@@ -446,7 +446,7 @@ class FunctionSpecialization:
 					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	%s argument is null." % formatted_arguments)
 					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	%s argument is not naturally aligned." % formatted_arguments)
 			
-			documentation_lines.insert(0, "@ingroup\tyep%s" % self.module_name)
+			documentation_lines.insert(0, "@ingroup\tyep{0}_{1}".format(self.module_name, self.function_name))
 			if any(map(bool, self.assembly_functions.itervalues())):
 				documentation_lines.append("@par\tOptimized implementations")
 				documentation_lines.append("\t\t<table>")
@@ -922,8 +922,10 @@ class FunctionGenerator:
 		self.java_class_generator.add_line("/** @name	{0} */".format(group_comment))
 		self.java_class_generator.add_line("/**@{*/")
 
-		self.public_header_generator.add_line("/** @name	{0} */".format(group_comment))
-		self.public_header_generator.add_line("/**@{*/")
+		self.public_header_generator.add_line("/**")
+		self.public_header_generator.add_line(" * @ingroup yep{0}".format(module_name))
+		self.public_header_generator.add_line(" * @defgroup yep{0}_{1}	{2}".format(module_name, group_name, group_comment))
+		self.public_header_generator.add_line(" */")
 
 		self.csharp_safe_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_safe_method_generator.add_c_comment(source_license)
@@ -948,9 +950,6 @@ class FunctionGenerator:
 
 		self.java_class_generator.add_line("/**@}*/")
 		self.java_class_generator.add_line()
-
-		self.public_header_generator.add_line("/**@}*/")
-		self.public_header_generator.add_line()
 
 		self.dispatch_function_generator.add_line("#if defined(YEP_MSVC_COMPATIBLE_COMPILER)")
 		self.dispatch_function_generator.indent().add_line("#pragma code_seg( pop )").dedent()
