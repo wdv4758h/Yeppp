@@ -9,18 +9,130 @@ __author__ = 'Marat'
 
 from peachpy.x64 import *
 
-def SCALAR_INT_ADD_SUB(xPointer, yPointer, zPointer, x_type, y_type, z_type, operation):
-	acc = GeneralPurposeRegister64() if z_type.get_size() == 8 else GeneralPurposeRegister32()
-	LOAD.ELEMENT( acc, [xPointer], x_type )
-	temp = GeneralPurposeRegister64() if z_type.get_size() == 8 else GeneralPurposeRegister32()
-	LOAD.ELEMENT( temp, [yPointer], y_type )
+def SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, operation):
+	acc = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
+	LOAD.ELEMENT( acc, [xPointer], input_type )
+	temp = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
+	LOAD.ELEMENT( temp, [yPointer], input_type )
 
-	COMPUTE = { 'Add': ADD, 'Subtract': SUB }[operation]
+	COMPUTE = { 'Add': ADD, 'Subtract': SUB, 'Multiply': IMUL }[operation]
 	COMPUTE( acc, temp )
 
-	STORE.ELEMENT( [zPointer], acc, z_type )
+	STORE.ELEMENT( [zPointer], acc, output_type )
 
-def AddSub_VusVus_Vus_Nehalem(codegen, function_signature, module, function, arguments):
+def PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, max_register_size, batch_elements, input_type, output_type, scalar_function, instruction_columns, instruction_offsets, use_simd = True):
+	# Check that we have an offset for each instruction column
+	assert len(instruction_columns) == len(instruction_offsets)
+
+	max_instructions  = max(map(len, instruction_columns))
+	
+	source_z_aligned          = Label("source_z_%sb_aligned" % max_register_size)
+	source_z_misaligned       = Label("source_z_%sb_misaligned" % max_register_size)
+	return_ok                 = Label("return_ok")
+	return_null_pointer       = Label("return_null_pointer")
+	return_misaligned_pointer = Label("return_misaligned_pointer")
+	return_any                = Label("return")
+	batch_process_finish      = Label("batch_process_finish")
+	process_single            = Label("process_single")
+	process_batch             = Label("process_batch")
+	process_batch_prologue    = Label("process_batch_prologue") 
+	process_batch_epilogue    = Label("process_batch_epilogue") 
+
+	# Check parameters
+	TEST( xPointer, xPointer )
+	JZ( return_null_pointer )
+	
+	TEST( xPointer, input_type.get_size() - 1 )
+	JNZ( return_misaligned_pointer )
+	
+	TEST( yPointer, yPointer )
+	JZ( return_null_pointer )
+	
+	TEST( yPointer, input_type.get_size() - 1 )
+	JNZ( return_misaligned_pointer )
+
+	TEST( zPointer, zPointer )
+	JZ( return_null_pointer )
+	
+	TEST( zPointer, output_type.get_size() - 1 )
+	JNZ( return_misaligned_pointer )
+
+	# If length is zero, return immediately
+	TEST( length, length )
+	JZ( return_ok )
+
+	if use_simd:
+		# If the y pointer is not aligned by register size, process by one element until it becomes aligned
+		TEST( zPointer, max_register_size - 1 )
+		JZ( source_z_aligned )
+	
+		LABEL( source_z_misaligned )
+		scalar_function(xPointer, yPointer, zPointer)
+		ADD( xPointer, input_type.get_size() )
+		ADD( yPointer, input_type.get_size() )
+		ADD( zPointer, output_type.get_size() )
+		SUB( length, 1 )
+		JZ( return_ok )
+	
+		TEST( zPointer, max_register_size - 1 )
+		JNZ( source_z_misaligned )
+	
+		LABEL( source_z_aligned )
+
+	SUB( length, batch_elements )
+	JB( batch_process_finish )
+
+	LABEL( process_batch_prologue )
+	for i in range(max_instructions):
+		for instruction_column, instruction_offset in zip(instruction_columns, instruction_offsets):
+			if i >= instruction_offset:
+				Function.get_current().add_instruction(instruction_column[i - instruction_offset])
+
+	SUB( length, batch_elements )
+	JB( process_batch_epilogue )
+
+	ALIGN( 16 )
+	LABEL( process_batch )
+	for i in range(max_instructions):
+		for instruction_column, instruction_offset in zip(instruction_columns, instruction_offsets):
+			Function.get_current().add_instruction(instruction_column[(i - instruction_offset) % max_instructions])
+
+	SUB( length, batch_elements )
+	JAE( process_batch )
+
+	LABEL( process_batch_epilogue )
+	for i in range(max_instructions):
+		for instruction_column, instruction_offset in zip(instruction_columns, instruction_offsets):
+			if i < instruction_offset:
+				Function.get_current().add_instruction(instruction_column[(i - instruction_offset) % max_instructions])
+
+	LABEL( batch_process_finish )
+	ADD( length, batch_elements )
+	JZ( return_ok )
+
+	LABEL( process_single )
+	scalar_function(xPointer, yPointer, zPointer)
+	ADD( xPointer, input_type.get_size() )
+	ADD( yPointer, input_type.get_size() )
+	ADD( zPointer, output_type.get_size() )
+	SUB( length, 1 )
+	JNZ( process_single )
+
+	LABEL( return_ok )
+	XOR( eax, eax )
+	
+	LABEL( return_any )
+	RETURN()
+
+	LABEL( return_null_pointer )
+	MOV( eax, 1 )
+	JMP( return_any )
+	
+	LABEL( return_misaligned_pointer )
+	MOV( eax, 2 )
+	JMP( return_any )
+
+def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract']:
@@ -30,374 +142,251 @@ def AddSub_VusVus_Vus_Nehalem(codegen, function_signature, module, function, arg
 				y_type = y_argument.get_type().get_primitive_type()
 				z_type = z_argument.get_type().get_primitive_type()
 
-				if z_type.is_floating_point():
+				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
 					return
 
-				x_size = x_type.get_size(codegen.abi)
-				y_size = y_type.get_size(codegen.abi)
-				z_size = z_type.get_size(codegen.abi)
+				if len(set([x_type, y_type])) != 1:
+					return
+				elif x_type.get_size() != z_type.get_size() and x_type.get_size() * 2 != z_type.get_size():
+					return
+				else:
+					input_type = x_type
+					output_type = z_type
 
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-	
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-	
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-	
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
-	
-					LABEL( "zM16" )
-					TEST( zPointer, 15 )
-					JZ( "zA16" )
-	
-					SCALAR_INT_ADD_SUB(xPointer, yPointer, zPointer, x_type, y_type, z_type, function)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JZ( "return_ok" )
-					JMP( "zM16" )
-	
-					LABEL( "zA16" )
-					SUB( length, 64 / z_size )
-					JB( "zA16_restore" )
-	
-					if x_size == z_size:
-						SIMD_LOAD = MOVDQU
-						load_increment = 16
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+
+				if x_type.get_size() == z_type.get_size():
+					SIMD_LOAD = MOVDQU
+					load_increment = 16
+				else:
+					load_increment = 8
+					SIMD_UNPACK_LO = { 1: PUNPCKLBW, 2: PUNPCKLWD, 4: PUNPCKLDQ }[input_type.get_size()]
+					SIMD_UNPACK_HI = { 1: PUNPCKHBW, 2: PUNPCKHWD, 4: PUNPCKHDQ }[input_type.get_size()]
+					SIMD_COMPARE   = { 1: PCMPGTB, 2: PCMPGTW, 4: PCMPGTD }[input_type.get_size()]
+					if x_type.is_signed_integer():
+						SIMD_LOAD = { 1: PMOVSXBW, 2: PMOVSXWD, 4: PMOVSXDQ }[input_type.get_size()]
 					else:
-						load_increment = 8
-						if x_type.is_signed_integer():
-							SIMD_LOAD = { 1: PMOVSXBW, 2: PMOVSXWD, 4: PMOVSXDQ }[x_size]
+						SIMD_LOAD = { 1: PMOVZXBW, 2: PMOVZXWD, 4: PMOVZXDQ }[input_type.get_size()]
+
+				if function == 'Add':
+					SIMD_COMPUTE = { 1: PADDB, 2: PADDW, 4: PADDD, 8: PADDQ }[output_type.get_size()]
+				elif function == 'Subtract':
+					SIMD_COMPUTE = { 1: PSUBB, 2: PSUBW, 4: PSUBD, 8: PSUBQ }[output_type.get_size()]
+				SIMD_STORE = MOVDQA
+
+				if input_type.get_size() * 2 == output_type.get_size(): 
+					with Function(codegen, function_signature, arguments, 'K10'):
+						xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+						
+						if input_type.is_unsigned_integer():
+							xmm_zero = SSERegister()
+							LOAD.ZERO( xmm_zero, input_type )
+							
+							load_increment   = 8
+							unroll_registers = 7
+							register_size    = 16
+							batch_elements   = unroll_registers * register_size / output_type.get_size()
+		
+							x = [SSERegister() for _ in range(unroll_registers)]
+							x_hi = [SSERegister() for _ in range(unroll_registers)]
+							y = [SSERegister() for _ in range(unroll_registers)]
+							y_hi = [SSERegister() for _ in range(unroll_registers)]
+		
+							instruction_offsets = (0, 0, 3, 4, 5, 6)
+							instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+							for i in range(unroll_registers):
+								with instruction_columns[0]:
+									MOVQ( x[i], [xPointer + i * load_increment] )
+								with instruction_columns[1]:
+									MOVQ( y[i], [yPointer + i * load_increment] )
+								with instruction_columns[2]:
+									SIMD_UNPACK_LO( x[i], xmm_zero )
+								with instruction_columns[3]:
+									SIMD_UNPACK_LO( y[i], xmm_zero )
+								with instruction_columns[4]:
+									SIMD_COMPUTE( x[i], y[i] )
+								with instruction_columns[5]:
+									SIMD_STORE( [zPointer + i * register_size], x[i] )
+							with instruction_columns[0]:
+								ADD( xPointer, load_increment * unroll_registers )
+							with instruction_columns[1]:
+								ADD( yPointer, load_increment * unroll_registers )
+							with instruction_columns[5]:
+								ADD( zPointer, register_size * unroll_registers )
 						else:
-							SIMD_LOAD = { 1: PMOVZXBW, 2: PMOVZXWD, 4: PMOVZXDQ }[x_size]
+							unroll_registers = 5
+							register_size    = 16
+							batch_elements   = unroll_registers * register_size / output_type.get_size()
+		
+							x = [SSERegister() for _ in range(unroll_registers)]
+							x_hi = [SSERegister() for _ in range(unroll_registers)]
+							y = [SSERegister() for _ in range(unroll_registers)]
+							y_hi = [SSERegister() for _ in range(unroll_registers)]
+		
+							instruction_offsets = (0, 0, 0, 0, 1, 1, 2, 2, 3, 4)
+							instruction_columns = [InstructionStream() for _ in range(10)] 
+							for i in range(unroll_registers):
+								with instruction_columns[0]:
+									MOVQ( x[i], [xPointer + i * register_size] )
+								with instruction_columns[1]:
+									MOVQ( y[i], [yPointer + i * register_size] )
+								with instruction_columns[2]:
+									LOAD.ZERO( x_hi[i], input_type )
+								with instruction_columns[3]:
+									LOAD.ZERO( y_hi[i], input_type )
+								with instruction_columns[4]:
+									SIMD_COMPARE( x_hi[i], x[i] )
+								with instruction_columns[5]:
+									SIMD_COMPARE( y_hi[i], y[i] )
+								with instruction_columns[6]:
+									SIMD_UNPACK_LO( x[i], x_hi[i] )
+								with instruction_columns[7]:
+									SIMD_UNPACK_LO( y[i], y_hi[i] )
+								with instruction_columns[8]:
+									SIMD_COMPUTE( x[i], y[i] )
+								with instruction_columns[9]:
+									SIMD_STORE( [zPointer + i * register_size], x[i] )
+							with instruction_columns[0]:
+								ADD( xPointer, load_increment * unroll_registers )
+							with instruction_columns[1]:
+								ADD( yPointer, load_increment * unroll_registers )
+							with instruction_columns[5]:
+								ADD( zPointer, register_size * unroll_registers )
 	
-					if function == 'Add':
-						SIMD_COMPUTE = { 1: PADDB, 2: PADDW, 4: PADDD, 8: PADDQ }[z_size]
-					elif function == 'Subtract':
-						SIMD_COMPUTE = { 1: PSUBB, 2: PSUBW, 4: PSUBD, 8: PSUBQ }[z_size]
-					SIMD_STORE = MOVDQA
-	
-					ALIGN( 16 )
-					LABEL( "zA16_loop" )
-	
-					SIMD_LOAD( xmm0, [xPointer] )
-					SIMD_LOAD( xmm4, [yPointer] )
-					SIMD_COMPUTE( xmm0, xmm4 )
-					SIMD_STORE( [zPointer], xmm0 )
-	
-					SIMD_LOAD( xmm1, [xPointer + load_increment] )
-					SIMD_LOAD( xmm5, [yPointer + load_increment] )
-					SIMD_COMPUTE( xmm1, xmm5 )
-					SIMD_STORE( [zPointer + 16], xmm1 )
-	
-					SIMD_LOAD( xmm2, [xPointer + load_increment * 2] )
-					SIMD_LOAD( xmm6, [yPointer + load_increment * 2] )
-					SIMD_COMPUTE( xmm2, xmm6 )
-					SIMD_STORE( [zPointer + 32], xmm2 )
-	
-					SIMD_LOAD( xmm3, [xPointer + load_increment * 3] )
-					SIMD_LOAD( xmm7, [yPointer + load_increment * 3] )
-					SIMD_COMPUTE( xmm3, xmm7 )
-					SIMD_STORE( [zPointer + 48], xmm3 )
-	
-					ADD( xPointer, load_increment * 4 )
-					ADD( yPointer, load_increment * 4 )
-					ADD( zPointer, 64 )
-					SUB( length, 64 / z_size )
-					JAE( "zA16_loop" )
-	
-					LABEL( "zA16_restore" )
-					ADD( length, 64 / z_size )
-					JZ( "return_ok" )
-					LABEL( "finalize" )
-	
-					SCALAR_INT_ADD_SUB(xPointer, yPointer, zPointer, x_type, y_type, z_type, function)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JNZ( "finalize" )
-	
-					LABEL( "return_ok" )
-					XOR(eax, eax)
-					LABEL( "return" )
-					RET()
-
-def SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type):
-	acc = GeneralPurposeRegister64() if z_type.get_size() == 8 else GeneralPurposeRegister32()
-	LOAD.ELEMENT( acc, [xPointer], x_type )
-	temp = GeneralPurposeRegister64() if z_type.get_size() == 8 else GeneralPurposeRegister32()
-	LOAD.ELEMENT( temp, [yPointer], y_type )
-
-	IMUL( acc, temp )
-	
-	STORE.ELEMENT( [zPointer], acc, z_type )
-
-def Mul_VTuVTu_VTu_implementation(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
-		if module == 'Core':
-			if function == 'Multiply':
-				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
-
-				x_type = x_argument.get_type().get_primitive_type()
-				y_type = y_argument.get_type().get_primitive_type()
-				z_type = z_argument.get_type().get_primitive_type()
-
-				if z_type.is_floating_point():
-					return
-
-				x_size = x_type.get_size(codegen.abi)
-				y_size = y_type.get_size(codegen.abi)
-				z_size = z_type.get_size(codegen.abi)
-
-				if x_size != z_size:
-					return
-
-				if x_size not in [2, 4]:
-					return
+						PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
-
-					PMUL = { 2: PMULLW, 4: PMULLD }[x_size]
-
-					LABEL( "yM16" )
-					TEST( yPointer, 15 )
-					JZ( "yA16" )
-
-					SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JZ( "return_ok" )
-					JMP( "yM16" )
-
-					LABEL( "yA16" )
-					SUB( length, 128 / z_size )
-					JB( "yA16_restore" )
-
-					MOVDQU( xmm0, [xPointer] )
-					MOVDQU( xmm1, [xPointer + 16] )
-					MOVDQU( xmm2, [xPointer + 32] )
-					MOVDQU( xmm3, [xPointer + 48] )
-					MOVDQU( xmm4, [xPointer + 64] )
-					PMUL( xmm0, [yPointer] )
-					MOVDQU( xmm5, [xPointer + 80] )
-					PMUL( xmm1, [yPointer + 16] )
-					MOVDQU( xmm6, [xPointer + 96] )
-					PMUL( xmm2, [yPointer + 32] )
-					MOVDQU( xmm7, [xPointer + 112] )
-					PMUL( xmm3, [yPointer + 48] )
-					SUB( xPointer, -128 )
-					SUB( length, 128 / z_size )
-					JB( "skip_SWP" )
-
-					ALIGN( 16 )
-					LABEL( "yA16_loop" )
-
-					MOVDQU( [zPointer], xmm0 )
-					MOVDQU( xmm0, [xPointer] )
-					PMUL( xmm4, [yPointer + 64] )
-
-					MOVDQU( [zPointer + 16], xmm1 )
-					MOVDQU( xmm1, [xPointer + 16] )
-					PMUL( xmm5, [yPointer + 80] )
-
-					MOVDQU( [zPointer + 32], xmm2 )
-					MOVDQU( xmm2, [xPointer + 32] )
-					PMUL( xmm6, [yPointer + 96] )
-
-					MOVDQU( [zPointer + 48], xmm3 )
-					MOVDQU( xmm3, [xPointer + 48] )
-					PMUL( xmm7, [yPointer + 112] )
-
-					SUB( yPointer, -128 )
-
-					MOVDQU( [zPointer + 64], xmm4 )
-					MOVDQU( xmm4, [xPointer + 64] )
-					PMUL(xmm0, [yPointer] )
-	
-					MOVDQU( [zPointer + 80], xmm5 )
-					MOVDQU( xmm5, [xPointer + 80] )
-					PMUL( xmm1, [yPointer + 16] )
-
-					MOVDQU( [zPointer + 96], xmm6 )
-					MOVDQU( xmm6, [xPointer + 96] )
-					PMUL( xmm2, [yPointer + 32] )
-
-					MOVDQU( [zPointer + 112], xmm7 )
-					MOVDQU( xmm7, [xPointer + 112] )
-					PMUL( xmm3, [yPointer + 48] )
-
-					SUB( xPointer, -128 )
-					SUB( zPointer, -128 )
-					SUB( length, 128 / z_size )
-					JAE( "yA16_loop" )
-
-					LABEL( "skip_SWP" )
-
-					MOVDQU( [zPointer], xmm0 )
-					PMUL( xmm4, [yPointer + 64] )
-
-					MOVDQU( [zPointer + 16], xmm1 )
-					PMUL( xmm5, [yPointer + 80] )
-
-					MOVDQU( [zPointer + 32], xmm2 )
-					PMUL( xmm6, [yPointer + 96] )
-
-					MOVDQU( [zPointer + 48], xmm3 )
-					PMUL( xmm7, [yPointer + 112] )
-
-					SUB( yPointer, -128 )
-
-					MOVDQU( [zPointer + 64], xmm4 )
-					PMUL( xmm0, [yPointer] )
-
-					MOVDQU( [zPointer + 80], xmm5 )
-					PMUL( xmm1, [yPointer + 16] )
-
-					MOVDQU( [zPointer + 96], xmm6 )
-					PMUL( xmm2, [yPointer + 32] )
-
-					MOVDQU( [zPointer + 112], xmm7 )
-					PMUL( xmm3, [yPointer + 48] )
-
-					SUB( zPointer, -128 )
-
-					LABEL( "yA16_restore" )
-					ADD( length, 128 / z_size )
-					JZ( "return_ok" )
-					LABEL( "finalize" )
-
-					SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JNZ( "finalize" )
-
-					LABEL( "return_ok" )
-					XOR(eax, eax)
-					LABEL( "return" )
-					RET()
-
-def Mul_V16usV16us_V32us_implementation(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
-		if module == 'Core':
-			if function == 'Multiply':
-				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
-
-				x_type = x_argument.get_type().get_primitive_type()
-				y_type = y_argument.get_type().get_primitive_type()
-				z_type = z_argument.get_type().get_primitive_type()
-
-				if z_type.is_floating_point():
-					return
-
-				x_size = x_type.get_size(codegen.abi)
-				y_size = y_type.get_size(codegen.abi)
-				z_size = z_type.get_size(codegen.abi)
-
-				if x_size == z_size or x_size != 2:
-					return
-
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-	
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-	
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
-	
-					PMUL_LOW = PMULLW
-					PMUL_HIGH = PMULHW if z_type.is_signed_integer() else PMULHUW
-	
-					LABEL( "zM16" )
-					TEST( zPointer, 15 )
-					JZ( "zA16" )
-	
-					SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JZ( "return_ok" )
-					JMP( "zM16" )
-	
-					LABEL( "zA16" )
-					SUB( length, 64 / z_size )
-					JB( "zA16_restore" )
-	
-					ALIGN( 16 )
-					LABEL( "zA16_loop" )
-	
-					MOVDQU( xmm0, [xPointer] )
-					MOVDQU( xmm1, [yPointer] )
-					MOVDQA( xmm2, xmm0 )
-					PMUL_LOW( xmm0, xmm1 )
-					PMUL_HIGH( xmm2, xmm1 )
-					MOVDQA( xmm1, xmm0 )
-					PUNPCKLWD( xmm0, xmm2 )
-					PUNPCKHWD( xmm1, xmm2 )
-					MOVDQA( [zPointer], xmm0 )
-					MOVDQA( [zPointer + 16], xmm1 )
-	
-					MOVDQU( xmm4, [xPointer + 16] )
-					MOVDQU( xmm5, [yPointer + 16] )
-					MOVDQA( xmm6, xmm4 )
-					PMUL_LOW( xmm4, xmm5 )
-					PMUL_HIGH( xmm6, xmm5 )
-					MOVDQA( xmm5, xmm4 )
-					PUNPCKLWD( xmm4, xmm6 )
-					PUNPCKHWD( xmm5, xmm6 )
-					MOVDQA( [zPointer + 32], xmm4 )
-					MOVDQA( [zPointer + 48], xmm5 )
-	
-					ADD( xPointer, 32 )
-					ADD( yPointer, 32 )
-					ADD( zPointer, 64 )
-					SUB( length, 64 / z_size )
-					JAE( "zA16_loop" )
-	
-					LABEL( "zA16_restore" )
-					ADD( length, 64 / z_size )
-					JZ( "return_ok" )
-					LABEL( "finalize" )
-	
-					SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JNZ( "finalize" )
-	
-					LABEL( "return_ok" )
-					XOR(eax, eax)
-					LABEL( "return" )
-					RET()
+					unroll_registers = 8
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
 
-def Mul_V32usV32us_V64us_implementation(codegen, function_signature, module, function, arguments):
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 6, 7)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def AddSub_VXusVXus_VYus_AVX(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
+		if module == 'Core':
+			if function in ['Add', 'Subtract']:
+				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+				z_type = z_argument.get_type().get_primitive_type()
+
+				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
+					return
+
+				if len(set([x_type, y_type])) != 1:
+					return
+				elif x_type.get_size() != z_type.get_size() and x_type.get_size() * 2 != z_type.get_size():
+					return
+				else:
+					input_type = x_type
+					output_type = z_type
+
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+
+				if x_type.get_size() == z_type.get_size():
+					SIMD_LOAD = VMOVDQU
+				else:
+					if x_type.is_signed_integer():
+						SIMD_LOAD = { 1: VPMOVSXBW, 2: VPMOVSXWD, 4: VPMOVSXDQ }[input_type.get_size()]
+					else:
+						SIMD_LOAD = { 1: VPMOVZXBW, 2: VPMOVZXWD, 4: VPMOVZXDQ }[input_type.get_size()]
+
+				if function == 'Add':
+					SIMD_COMPUTE = { 1: VPADDB, 2: VPADDW, 4: VPADDD, 8: VPADDQ }[output_type.get_size()]
+				elif function == 'Subtract':
+					SIMD_COMPUTE = { 1: VPSUBB, 2: VPSUBW, 4: VPSUBD, 8: VPSUBQ }[output_type.get_size()]
+				SIMD_STORE = VMOVDQA
+
+				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					load_increment   = 16 if input_type.get_size() == output_type.get_size() else 8
+					unroll_registers = 8
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 6, 7)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, function_signature, arguments, 'Haswell'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					load_increment   = 32 if input_type.get_size() == output_type.get_size() else 16
+					unroll_registers = 8
+					register_size    = 32
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [AVXRegister() for _ in range(unroll_registers)]
+					y = [AVXRegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 6, 7)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -407,147 +396,492 @@ def Mul_V32usV32us_V64us_implementation(codegen, function_signature, module, fun
 				y_type = y_argument.get_type().get_primitive_type()
 				z_type = z_argument.get_type().get_primitive_type()
 
-				if z_type.is_floating_point():
+				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
 					return
 
-				x_size = x_type.get_size(codegen.abi)
-				y_size = y_type.get_size(codegen.abi)
-				z_size = z_type.get_size(codegen.abi)
-
-				if x_size == z_size or x_size != 4:
+				if len(set([x_type, y_type])) != 1:
 					return
+				elif x_type.get_size() != z_type.get_size():
+					return
+				elif x_type.get_size() not in [2, 4]:
+					return 
+				else:
+					input_type = x_type
+					output_type = z_type
+
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+
+				SIMD_LOAD = MOVDQU
+				SIMD_COMPUTE = { 2: PMULLW, 4: PMULLD }[output_type.get_size()]
+				SIMD_STORE = MOVDQA
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-	
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-	
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-	
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
-	
-					PMUL = PMULDQ if z_type.is_signed_integer() else PMULUDQ
-	
-					LABEL( "zM16" )
-					TEST( zPointer, 15 )
-					JZ( "zA16" )
-	
-					SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JZ( "return_ok" )
-					JMP( "zM16" )
-	
-					LABEL( "zA16" )
-					SUB( length, 96 / z_size )
-					JB( "zA16_restore" )
-	
-					PMOVZXDQ( xmm0, [xPointer] )
-					PMOVZXDQ( xmm1, [yPointer] )
-	
-					PMOVZXDQ( xmm2, [xPointer + 8] )
-					PMOVZXDQ( xmm3, [yPointer + 8] )
-	
-					PMOVZXDQ( xmm4, [xPointer + 16] )
-					PMOVZXDQ( xmm5, [yPointer + 16] )
-	
-					PMOVZXDQ( xmm6, [xPointer + 24] )
-					PMOVZXDQ( xmm7, [yPointer + 24] )
-					PMUL( xmm0, xmm1 )
-	
-					PMOVZXDQ( xmm8, [xPointer + 32] )
-					PMOVZXDQ( xmm9, [yPointer + 32] )
-					PMUL( xmm2, xmm3 )
-	
-					PMOVZXDQ( xmm10, [xPointer + 40] )
-					PMOVZXDQ( xmm11, [yPointer + 40] )
-					PMUL( xmm4, xmm5 )
-	
-					ADD( xPointer, 48 )
-					ADD( yPointer, 48 )
-					SUB( length, 96 / z_size )
-					JB( "skip_SWP" )
-	
-					ALIGN( 16 )
-					LABEL( "zA16_loop" )
-	
-					MOVDQA( [zPointer], xmm0 )
-					PMOVZXDQ( xmm0, [xPointer] )
-					PMOVZXDQ( xmm1, [yPointer] )
-					PMUL( xmm6, xmm7 )
-	
-					MOVDQA( [zPointer + 16], xmm2 )
-					PMOVZXDQ( xmm2, [xPointer + 8] )
-					PMOVZXDQ( xmm3, [yPointer + 8] )
-					PMUL( xmm8, xmm9 )
-	
-					MOVDQA( [zPointer + 32], xmm4 )
-					PMOVZXDQ( xmm4, [xPointer + 16] )
-					PMOVZXDQ( xmm5, [yPointer + 16] )
-					PMUL( xmm10, xmm11 )
-	
-					MOVDQA( [zPointer + 48], xmm6 )
-					PMOVZXDQ( xmm6, [xPointer + 24] )
-					PMOVZXDQ( xmm7, [yPointer + 24] )
-					PMUL( xmm0, xmm1 )
-	
-					MOVDQA( [zPointer + 64], xmm8 )
-					PMOVZXDQ( xmm8, [xPointer + 32] )
-					PMOVZXDQ( xmm9, [yPointer + 32] )
-					PMUL( xmm2, xmm3 )
-	
-					MOVDQA( [zPointer + 80], xmm10 )
-					PMOVZXDQ( xmm10, [xPointer + 40] )
-					PMOVZXDQ( xmm11, [yPointer + 40] )
-					PMUL( xmm4, xmm5 )
-	
-					ADD( xPointer, 48 )
-					ADD( yPointer, 48 )
-					ADD( zPointer, 96 )
-					SUB( length, 96 / z_size )
-					JAE( "zA16_loop" )
-	
-					LABEL( "skip_SWP" )
-	
-					MOVDQA( [zPointer], xmm0 )
-					PMUL( xmm6, xmm7 )
-	
-					MOVDQA( [zPointer + 16], xmm2 )
-					PMUL( xmm8, xmm9 )
-	
-					MOVDQA( [zPointer + 32], xmm4 )
-					PMUL( xmm10, xmm11 )
-	
-					MOVDQA( [zPointer + 48], xmm6 )
-					MOVDQA( [zPointer + 64], xmm8 )
-					MOVDQA( [zPointer + 80], xmm10 )
-	
-					ADD( zPointer, 96 )
-	
-					LABEL( "zA16_restore" )
-					ADD( length, 96 / z_size )
-					JZ( "return_ok" )
-					LABEL( "finalize" )
-	
-					SCALAR_INT_MUL(xPointer, yPointer, zPointer, x_type, y_type, z_type)
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JNZ( "finalize" )
-	
-					LABEL( "return_ok" )
-					XOR(eax, eax)
-					LABEL( "return" )
-					RET()
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 9
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
 
-def AddSubMulMinMax_VfVf_Vf_implementation(codegen, function_signature, module, function, arguments):
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 5, 8)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				SIMD_LOAD = VMOVDQU
+				SIMD_COMPUTE = { 2: VPMULLW, 4: VPMULLD }[output_type.get_size()]
+				SIMD_STORE = VMOVDQA
+
+				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 9
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 5, 8)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, function_signature, arguments, 'Haswell'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 9
+					register_size    = 32
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [AVXRegister() for _ in range(unroll_registers)]
+					y = [AVXRegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 5, 8)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
+		if module == 'Core':
+			if function == 'Multiply':
+				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+				z_type = z_argument.get_type().get_primitive_type()
+
+				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
+					return
+
+				if len(set([x_type, y_type])) != 1:
+					return
+				elif x_type.get_size() != 2 or z_type.get_size() != 4:
+					return
+				else:
+					input_type = x_type
+					output_type = z_type
+
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+
+				SIMD_MUL_LO = PMULLW
+				SIMD_MUL_HI = PMULHW if z_type.is_signed_integer() else PMULHUW
+
+				with Function(codegen, function_signature, arguments, 'Nehalem'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+
+					unroll_registers = 5
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size * 2 / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					h = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+					t = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 1, 2, 2, 2, 3, 3, 4, 4)
+					instruction_columns = [InstructionStream() for _ in range(10)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							MOVDQU( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							MOVDQU( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							MOVDQA( h[i], x[i] )
+						with instruction_columns[3]:
+							SIMD_MUL_LO( x[i], y[i] )
+						with instruction_columns[4]:
+							SIMD_MUL_HI( h[i], y[i] )
+						with instruction_columns[5]:
+							MOVDQA( t[i], x[i] )
+						with instruction_columns[6]:
+							PUNPCKLWD( x[i], h[i] )
+						with instruction_columns[7]:
+							PUNPCKHWD( t[i], h[i] )
+						with instruction_columns[8]:
+							MOVDQA( [zPointer + i * register_size * 2], x[i] )
+						with instruction_columns[9]:
+							MOVDQA( [zPointer + i * register_size * 2 + 16], t[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[9]:
+						ADD( zPointer, register_size * unroll_registers * 2 )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				SIMD_MUL  = VPMULLD
+				SIMD_LOAD = VPMOVSXWD if z_type.is_signed_integer() else VPMOVZXWD
+
+				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 9
+					register_size    = 16
+					load_increment   = 8
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+					z = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 0, 4, 8)
+					instruction_columns = [InstructionStream() for _ in range(4)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_MUL( z[i], x[i], y[i] )
+						with instruction_columns[3]:
+							VMOVDQA( [zPointer + i * register_size], z[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				SIMD_MUL_LO = VPMULLW
+				SIMD_MUL_HI = VPMULHW if z_type.is_signed_integer() else VPMULHUW
+
+				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 6
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / input_type.get_size()
+
+					x       = [SSERegister() for _ in range(unroll_registers)]
+					y       = [SSERegister() for _ in range(unroll_registers)]
+					prod_lo = [SSERegister() for _ in range(unroll_registers)]
+					prod_hi = [SSERegister() for _ in range(unroll_registers)]
+					z_lo    = [SSERegister() for _ in range(unroll_registers)]
+					z_hi    = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 0, 1, 2, 3, 4, 4, 5)
+					instruction_columns = [InstructionStream() for _ in range(8)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							VMOVDQU( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							VMOVDQU( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_MUL_LO( prod_lo[i], x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_MUL_HI( prod_hi[i], x[i], y[i] )
+						with instruction_columns[4]:
+							VPUNPCKLWD( z_lo[i], prod_lo[i], prod_hi[i] )
+						with instruction_columns[5]:
+							VPUNPCKHWD( z_hi[i], prod_lo[i], prod_hi[i] )
+						with instruction_columns[6]:
+							VMOVDQA( [zPointer + i * register_size * 2], z_lo[i] )
+						with instruction_columns[7]:
+							VMOVDQA( [zPointer + i * register_size * 2 + register_size], z_hi[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[7]:
+						ADD( zPointer, register_size * unroll_registers * 2 )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, function_signature, arguments, 'Haswell'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 6
+					register_size    = 32
+					batch_elements   = unroll_registers * register_size / input_type.get_size()
+
+					x       = [AVXRegister() for _ in range(unroll_registers)]
+					y       = [AVXRegister() for _ in range(unroll_registers)]
+					prod_lo = [AVXRegister() for _ in range(unroll_registers)]
+					prod_hi = [AVXRegister() for _ in range(unroll_registers)]
+					z_lo    = [AVXRegister() for _ in range(unroll_registers)]
+					z_hi    = [AVXRegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 0, 1, 2, 3, 4, 4, 5)
+					instruction_columns = [InstructionStream() for _ in range(8)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							VMOVDQU( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							VMOVDQU( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_MUL_LO( prod_lo[i], x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_MUL_HI( prod_hi[i], x[i], y[i] )
+						with instruction_columns[4]:
+							VPUNPCKLWD( z_lo[i], prod_lo[i], prod_hi[i] )
+						with instruction_columns[5]:
+							VPUNPCKHWD( z_hi[i], prod_lo[i], prod_hi[i] )
+						with instruction_columns[6]:
+							VMOVDQA( [zPointer + i * register_size * 2], z_lo[i] )
+						with instruction_columns[7]:
+							VMOVDQA( [zPointer + i * register_size * 2 + 16], z_hi[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[7]:
+						ADD( zPointer, register_size * unroll_registers * 2 )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arguments):
+	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
+		if module == 'Core':
+			if function == 'Multiply':
+				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
+
+				x_type = x_argument.get_type().get_primitive_type()
+				y_type = y_argument.get_type().get_primitive_type()
+				z_type = z_argument.get_type().get_primitive_type()
+
+				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
+					return
+
+				if len(set([x_type, y_type])) != 1:
+					return
+				elif x_type.get_size() != 4 or z_type.get_size() != 8:
+					return
+				else:
+					input_type = x_type
+					output_type = z_type
+
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+
+				SIMD_MUL = PMULDQ if z_type.is_signed_integer() else PMULUDQ
+
+				if output_type.is_unsigned_integer():
+					with Function(codegen, function_signature, arguments, 'K10'):
+						xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+	
+						load_increment   = 8
+						unroll_registers = 8
+						register_size    = 16
+						batch_elements   = unroll_registers * register_size / output_type.get_size()
+	
+						x = [SSERegister() for _ in range(unroll_registers)]
+						y = [SSERegister() for _ in range(unroll_registers)]
+	
+						instruction_offsets = (0, 0, 2, 2, 4, 7)
+						instruction_columns = [InstructionStream() for _ in range(6)] 
+						for i in range(unroll_registers):
+							with instruction_columns[0]:
+								MOVQ( x[i], [xPointer + i * load_increment] )
+							with instruction_columns[1]:
+								MOVQ( y[i], [yPointer + i * load_increment] )
+							with instruction_columns[2]:
+								PUNPCKLDQ( x[i], x[i] )
+							with instruction_columns[3]:
+								PUNPCKLDQ( y[i], y[i] )
+							with instruction_columns[4]:
+								SIMD_MUL( x[i], y[i] )
+							with instruction_columns[5]:
+								MOVDQA( [zPointer + i * register_size], x[i] )
+						with instruction_columns[0]:
+							ADD( xPointer, load_increment * unroll_registers )
+						with instruction_columns[1]:
+							ADD( yPointer, load_increment * unroll_registers )
+						with instruction_columns[5]:
+							ADD( zPointer, register_size * unroll_registers )
+
+						PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, function_signature, arguments, 'Nehalem'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+
+					load_increment   = 8
+					unroll_registers = 10
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 5, 9)
+					instruction_columns = [InstructionStream() for _ in range(4)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							PMOVZXDQ( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							PMOVZXDQ( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_MUL( x[i], y[i] )
+						with instruction_columns[3]:
+							MOVDQA( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				SIMD_MUL = VPMULDQ if z_type.is_signed_integer() else VPMULUDQ
+
+				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+
+					load_increment   = 8
+					unroll_registers = 10
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 5, 9)
+					instruction_columns = [InstructionStream() for _ in range(4)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							VPMOVZXDQ( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							VPMOVZXDQ( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_MUL( x[i], y[i] )
+						with instruction_columns[3]:
+							VMOVDQA( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, function_signature, arguments, 'Haswell'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+
+					load_increment   = 16
+					unroll_registers = 10
+					register_size    = 32
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [AVXRegister() for _ in range(unroll_registers)]
+					y = [AVXRegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 5, 9)
+					instruction_columns = [InstructionStream() for _ in range(4)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							VPMOVZXDQ( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							VPMOVZXDQ( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_MUL( x[i], y[i] )
+						with instruction_columns[3]:
+							VMOVDQA( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def SCALAR_FP_ADD_SUB_MUL_MIN_MAX(xPointer, yPointer, zPointer, ctype, operation):
+	x = SSERegister()
+	LOAD.ELEMENT( x, [xPointer], ctype )
+	y = SSERegister()
+	LOAD.ELEMENT( y, [yPointer], ctype )
+
+	if Target.has_avx():
+		if ctype.get_size() == 4:
+			COMPUTE = { "Add": VADDSS, "Subtract": VSUBSS, "Multiply": VMULSS, 'Min': VMINSS, 'Max': VMAXSS }[operation]
+		else:
+			COMPUTE = { "Add": VADDSD, "Subtract": VSUBSD, "Multiply": VMULSD, 'Min': VMINSD, 'Max': VMAXSD }[operation]
+	else:
+		if ctype.get_size() == 4:
+			COMPUTE = { "Add": ADDSS, "Subtract": SUBSS, "Multiply": MULSS, 'Min': MINSS, 'Max': MAXSS }[operation]
+		else:
+			COMPUTE = { "Add": ADDSD, "Subtract": SUBSD, "Multiply": MULSD, 'Min': MINSD, 'Max': MAXSD }[operation]
+
+	COMPUTE( x, y )
+
+	STORE.ELEMENT( [zPointer], x, ctype )
+
+def AddSubMulMinMax_VfVf_Vf_SSE(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract', 'Multiply', 'Min', 'Max']:
@@ -557,162 +891,55 @@ def AddSubMulMinMax_VfVf_Vf_implementation(codegen, function_signature, module, 
 				y_type = y_argument.get_type().get_primitive_type()
 				z_type = z_argument.get_type().get_primitive_type()
 
-				if not z_type.is_floating_point():
+				if not all(type.is_floating_point() for type in (x_type, y_type, z_type)):
 					return
 
-				x_size = x_type.get_size(codegen.abi)
-				y_size = y_type.get_size(codegen.abi)
-				z_size = z_type.get_size(codegen.abi)
+				if len(set([x_type, y_type, z_type])) != 1:
+					return
+				else:
+					ctype = x_type
+
+				if ctype.get_size() == 4:
+					SIMD_LOAD = MOVUPS
+					SIMD_COMPUTE = { "Add": ADDPS, "Subtract": SUBPS, "Multiply": MULPS, 'Min': MINPS, 'Max': MAXPS }[function]
+					SIMD_STORE = MOVAPS
+				else:
+					SIMD_LOAD = MOVUPD
+					SIMD_COMPUTE = { "Add": ADDPD, "Subtract": SUBPD, "Multiply": MULPD, 'Min': MINPD, 'Max': MAXPD }[function]
+					SIMD_STORE = MOVAPD
+
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR_FP_ADD_SUB_MUL_MIN_MAX(xPointer, yPointer, zPointer, ctype, function)
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					yPointer = GeneralPurposeRegister64()
-					zPointer = GeneralPurposeRegister64()
-					length = GeneralPurposeRegister64()
-	
-					LOAD.PARAMETER( xPointer, x_argument )
-					LOAD.PARAMETER( yPointer, y_argument )
-					LOAD.PARAMETER( zPointer, z_argument )
-					LOAD.PARAMETER( length, length_argument )
-	
-					if x_size == 4:
-						SCALAR_LOAD = MOVSS
-						SCALAR_COMPUTE = { "Add": ADDSS, "Subtract": SUBSS, "Multiply": MULSS, 'Min': MINSS, 'Max': MAXSS }[function]
-						SCALAR_STORE = MOVSS
-						SIMD_LOAD = MOVUPS
-						SIMD_COMPUTE = { "Add": ADDPS, "Subtract": SUBPS, "Multiply": MULPS, 'Min': MINPS, 'Max': MAXPS }[function]
-						SIMD_STORE = MOVUPS
-					else:
-						SCALAR_LOAD = MOVSD
-						SCALAR_COMPUTE = { "Add": ADDSD, "Subtract": SUBSD, "Multiply": MULSD, 'Min': MINSD, 'Max': MAXSD }[function]
-						SCALAR_STORE = MOVSD
-						SIMD_LOAD = MOVUPD
-						SIMD_COMPUTE = { "Add": ADDPD, "Subtract": SUBPD, "Multiply": MULPD, 'Min': MINPD, 'Max': MAXPD }[function]
-						SIMD_STORE = MOVUPD
-	
-					def PROCESS_SCALAR():
-						SCALAR_LOAD( xmm0, [xPointer] )
-						SCALAR_LOAD( xmm1, [yPointer] )
-						SCALAR_COMPUTE( xmm0, xmm1 )
-						SCALAR_STORE( [zPointer], xmm0 )
-	
-					LABEL( "yM16" )
-					TEST( yPointer, 15)
-					JZ( "yA16" )
-	
-					PROCESS_SCALAR()
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JZ( "return_ok" )
-					JMP( "yM16" )
-	
-					LABEL( "yA16" )
-					SUB( length, 128 / z_size )
-					JB( "yA16_restore" )
-	
-					SIMD_LOAD( xmm0, [xPointer] )
-					SIMD_LOAD( xmm1, [xPointer + 16 * 1] )
-	
-					SIMD_LOAD( xmm2, [xPointer + 16 * 2] )
-					SIMD_COMPUTE( xmm0, [yPointer] )
-	
-					SIMD_LOAD( xmm3, [xPointer + 16 * 3] )
-					SIMD_COMPUTE( xmm1, [yPointer + 16 * 1] )
-	
-					SIMD_LOAD( xmm4, [xPointer + 16 * 4] )
-					SIMD_COMPUTE( xmm2, [yPointer + 16 * 2] )
-	
-					SIMD_LOAD( xmm5, [xPointer + 16 * 5] )
-					SIMD_COMPUTE( xmm3, [yPointer + 16 * 3] )
-	
-					SIMD_LOAD( xmm6, [xPointer + 16 * 6] )
-					SIMD_COMPUTE( xmm4, [yPointer + 16 * 4] )
-	
-					SIMD_LOAD( xmm7, [xPointer + 16 * 7] )
-					SIMD_COMPUTE( xmm5, [yPointer + 16 * 5] )
-	
-					ADD( xPointer, 128 )
-					SUB( length, 128 / z_size )
-					JB( "skip_SWP" )
-	
-					ALIGN( 16 )
-					LABEL( "yA16_loop" )
-	
-					SIMD_STORE( [zPointer], xmm0 )
-					SIMD_LOAD( xmm0, [xPointer] )
-					SIMD_COMPUTE( xmm6, [yPointer + 16 * 6] )
-	
-					SIMD_STORE( [zPointer + 16 * 1], xmm1 )
-					SIMD_LOAD( xmm1, [xPointer + 16 * 1] )
-					SIMD_COMPUTE( xmm7, [yPointer + 16 * 7] )
-	
-					ADD( yPointer, 128 )
-	
-					SIMD_STORE( [zPointer + 16 * 2], xmm2 )
-					SIMD_LOAD( xmm2, [xPointer + 16 * 2] )
-					SIMD_COMPUTE( xmm0, [yPointer] )
-	
-					SIMD_STORE( [zPointer + 16 * 3], xmm3 )
-					SIMD_LOAD( xmm3, [xPointer + 16 * 3] )
-					SIMD_COMPUTE( xmm1, [yPointer + 16 * 1] )
-	
-					SIMD_STORE( [zPointer + 16 * 4], xmm4 )
-					SIMD_LOAD( xmm4, [xPointer + 16 * 4] )
-					SIMD_COMPUTE( xmm2, [yPointer + 16 * 2] )
-	
-					SIMD_STORE( [zPointer + 16 * 5], xmm5 )
-					SIMD_LOAD( xmm5, [xPointer + 16 * 5] )
-					SIMD_COMPUTE( xmm3, [yPointer + 16 * 3] )
-	
-					SIMD_STORE( [zPointer + 16 * 6], xmm6 )
-					SIMD_LOAD( xmm6, [xPointer + 16 * 6] )
-					SIMD_COMPUTE( xmm4, [yPointer + 16 * 4] )
-	
-					SIMD_STORE( [zPointer + 16 * 7], xmm7 )
-					SIMD_LOAD( xmm7, [xPointer + 16 * 7] )
-					SIMD_COMPUTE( xmm5, [yPointer + 16 * 5] )
-	
-					ADD( xPointer, 128 )
-					ADD( zPointer, 128 )
-					SUB( length, 128 / z_size )
-					JAE( "yA16_loop" )
-	
-					LABEL( "skip_SWP" )
-	
-					SIMD_STORE( [zPointer], xmm0 )
-					SIMD_COMPUTE( xmm6, [yPointer + 16 * 6] )
-	
-					SIMD_STORE( [zPointer + 16 * 1], xmm1 )
-					SIMD_COMPUTE( xmm7, [yPointer + 16 * 7] )
-	
-					SIMD_STORE( [zPointer + 16 * 2], xmm2 )
-					SIMD_STORE( [zPointer + 16 * 3], xmm3 )
-					SIMD_STORE( [zPointer + 16 * 4], xmm4 )
-					SIMD_STORE( [zPointer + 16 * 5], xmm5 )
-					SIMD_STORE( [zPointer + 16 * 6], xmm6 )
-					SIMD_STORE( [zPointer + 16 * 7], xmm7 )
-	
-					ADD( yPointer, 128 )
-					ADD( zPointer, 128 )
-	
-					LABEL( "yA16_restore" )
-					ADD( length, 128 / z_size )
-					JZ( "return_ok" )
-					LABEL( "finalize" )
-	
-					PROCESS_SCALAR()
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					ADD( zPointer, z_size )
-					SUB( length, 1 )
-					JNZ( "finalize" )
-	
-					LABEL( "return_ok" )
-					XOR(eax, eax)
-					LABEL( "return" )
-					RET()
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 8
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / ctype.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 6, 7)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, ctype, ctype, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
 def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scalar_function, reduction_function, instruction_columns, instruction_offsets):
 	# Check that we have an offset for each instruction column
@@ -860,14 +1087,7 @@ def SumAbs_VXf_SXf_SSE(codegen, function_signature, module, function, arguments)
 					SIMD_ADD( acc, x )
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					xmm_abs_mask = SSERegister()
 					LOAD.CONSTANT( xmm_abs_mask, Constant.uint64x2(0x7FFFFFFFFFFFFFFFL))
@@ -926,14 +1146,7 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments)
 						SIMD_ADD( acc, x )
 
 				with Function(codegen, function_signature, arguments, 'SandyBridge'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					ymm_abs_mask = AVXRegister()
 					LOAD.CONSTANT( ymm_abs_mask, Constant.uint64x4(0x7FFFFFFFFFFFFFFFL))
@@ -959,14 +1172,7 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments)
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, scalar_function, REDUCE.SUM, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Bulldozer'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					ymm_abs_mask = AVXRegister()
 					LOAD.CONSTANT( ymm_abs_mask, Constant.uint64x4(0x7FFFFFFFFFFFFFFFL))
@@ -1023,14 +1229,7 @@ def Sum_VXf_SXf_SSE(codegen, function_signature, module, function, arguments):
 					SIMD_ADD( acc, x )
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
 					register_size     = 16
@@ -1080,14 +1279,7 @@ def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments):
 						SIMD_ADD( acc, x )
 
 				with Function(codegen, function_signature, arguments, 'SandyBridge'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 9
 					register_size     = 32
@@ -1107,14 +1299,7 @@ def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments):
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Bulldozer'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 9
 					acc  = [AVXRegister() if i % 3 == 2 else SSERegister() for i in range(unroll_registers)]
@@ -1166,14 +1351,7 @@ def SumSquares_VXf_SXf_SSE(codegen, function_signature, module, function, argume
 					SIMD_ADD( acc, temp )
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
 					register_size     = 16
@@ -1191,8 +1369,6 @@ def SumSquares_VXf_SXf_SSE(codegen, function_signature, module, function, argume
 							SIMD_ADD( acc[i], temp[i] )
 					with instruction_columns[0]:
 						ADD( xPointer, register_size * unroll_registers )
-					with instruction_columns[1]:
-						ADD( yPointer, register_size * unroll_registers )
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
@@ -1243,14 +1419,7 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 						SIMD_ADD( acc, temp.get_hword() )
 
 				with Function(codegen, function_signature, arguments, 'SandyBridge'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
 					register_size     = 32
@@ -1268,20 +1437,11 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 							SIMD_ADD( acc[i], temp[i] )
 					with instruction_columns[0]:
 						ADD( xPointer, register_size * unroll_registers )
-					with instruction_columns[1]:
-						ADD( yPointer, register_size * unroll_registers )
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Bulldozer'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 12
 					acc  = [SSERegister() if i % 3 != 2 else AVXRegister() for i in range(unroll_registers)]
@@ -1298,20 +1458,11 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 						offset += acc[i].get_size()
 					with instruction_columns[0]:
 						ADD( xPointer, sum(register.get_size() for register in acc) )
-					with instruction_columns[1]:
-						ADD( yPointer, sum(register.get_size() for register in acc) )
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Haswell'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 12
 					register_size     = 32
@@ -1327,8 +1478,6 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 							SIMD_FMA3( acc[i], temp[i], [yPointer + i * register_size], acc[i] )
 					with instruction_columns[0]:
 						ADD( xPointer, register_size * unroll_registers )
-					with instruction_columns[1]:
-						ADD( yPointer, register_size * unroll_registers )
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 				
@@ -1492,17 +1641,7 @@ def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arg
 					SIMD_ADD( acc, temp )
 
 				with Function(codegen, function_signature, arguments, 'Nehalem'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
 					register_size     = 16
@@ -1527,17 +1666,7 @@ def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arg
 					
 				if ctype.get_size() == 8:
 					with Function(codegen, function_signature, arguments, 'Bonnell'):
-						xPointer = GeneralPurposeRegister64()
-						LOAD.PARAMETER( xPointer, x_argument )
-	
-						yPointer = GeneralPurposeRegister64()
-						LOAD.PARAMETER( yPointer, y_argument )
-	
-						zPointer = GeneralPurposeRegister64()
-						LOAD.PARAMETER( zPointer, z_argument )
-	
-						length = GeneralPurposeRegister64()
-						LOAD.PARAMETER( length, length_argument )
+						xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 	
 						unroll_registers  = 8
 						acc  = [SSERegister() for _ in range(unroll_registers)]
@@ -1558,7 +1687,6 @@ def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arg
 							ADD( yPointer, ctype.get_size() * unroll_registers )
 	
 						PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets, use_simd = False)
-						
 
 def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arguments):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
@@ -1611,17 +1739,7 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 						SIMD_ADD( acc, temp.get_hword() )
 
 				with Function(codegen, function_signature, arguments, 'SandyBridge'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
 					register_size     = 32
@@ -1645,17 +1763,7 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 					PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Bulldozer'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 12
 					acc  = [SSERegister() if i % 3 != 2 else AVXRegister() for i in range(unroll_registers)]
@@ -1678,17 +1786,7 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 					PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
 				with Function(codegen, function_signature, arguments, 'Haswell'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 12
 					register_size     = 32
@@ -1708,159 +1806,4 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 						ADD( yPointer, register_size * unroll_registers )
 
 					PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
-				
-def DotProduct_V64fV64f_S64f_Bonnell(codegen, function_signature, module, function, arguments):
-	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
-		if module == 'Core':
-			if function in ['DotProduct']:
-				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
 
-				x_type = x_argument.get_type().get_primitive_type()
-				y_type = y_argument.get_type().get_primitive_type()
-				z_type = z_argument.get_type().get_primitive_type()
-
-				if not z_type.is_floating_point():
-					return
-
-				x_size = x_type.get_size(codegen.abi)
-				y_size = y_type.get_size(codegen.abi)
-				z_size = z_type.get_size(codegen.abi)
-
-				if not z_size == 8:
-					return
-
-				with Function(codegen, function_signature, arguments, 'Bonnell'):
-					xPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( xPointer, x_argument )
-	
-					yPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( yPointer, y_argument )
-	
-					zPointer = GeneralPurposeRegister64()
-					LOAD.PARAMETER( zPointer, z_argument )
-	
-					length = GeneralPurposeRegister64()
-					LOAD.PARAMETER( length, length_argument )
-	
-					XORPS( xmm8, xmm8 )
-					XORPS( xmm9, xmm9 )
-					XORPS( xmm10, xmm10 )
-					XORPS( xmm11, xmm11 )
-					XORPS( xmm12, xmm12 )
-					XORPS( xmm13, xmm13 )
-					XORPS( xmm14, xmm14 )
-					XORPS( xmm15, xmm15 )
-	
-					SUB( length, 64 / z_size )
-					JB( "xA8_restore" )
-	
-					MOVSD( xmm0, [yPointer] )
-					MOVSD( xmm1, [yPointer + 8] )
-					MOVSD( xmm2, [yPointer + 16] )
-					MOVSD( xmm3, [yPointer + 24] )
-					MOVSD( xmm4, [yPointer + 32] )
-					MULSD( xmm0, [xPointer] )
-					MOVSD( xmm5, [yPointer + 40] )
-					MULSD( xmm1, [xPointer + 8] )
-					MOVSD( xmm6, [yPointer + 48] )
-					MULSD( xmm2, [xPointer + 16] )
-					MOVSD( xmm7, [yPointer + 56] )
-					MULSD( xmm3, [xPointer + 24] )
-	
-					ADD( yPointer, 64 )
-	
-					SUB( length, 64 / z_size )
-					JB( "skip_SWP" )
-	
-					ALIGN( 16 )
-					LABEL( "xA8_loop" )
-	
-					ADDSD( xmm8, xmm0 )
-					MOVSD( xmm0, [yPointer] )
-					MULSD( xmm4, [xPointer + 32] )
-	
-					ADDSD( xmm9, xmm1 )
-					MOVSD( xmm1, [yPointer + 8] )
-					MULSD( xmm5, [xPointer + 40] )
-	
-					ADDSD( xmm10, xmm2 )
-					MOVSD( xmm2, [yPointer + 16] )
-					MULSD( xmm6, [xPointer + 48] )
-	
-					ADDSD( xmm11, xmm3 )
-					MOVSD( xmm3, [yPointer + 24] )
-					MULSD( xmm7, [xPointer + 56] )
-	
-					ADD( xPointer, 64 )
-	
-					ADDSD( xmm12, xmm4 )
-					MOVSD( xmm4, [yPointer + 32] )
-					MULSD( xmm0, [xPointer] )
-	
-					ADDSD( xmm13, xmm5 )
-					MOVSD( xmm5, [yPointer + 40] )
-					MULSD( xmm1, [xPointer + 8] )
-	
-					ADDSD( xmm14, xmm6 )
-					MOVSD( xmm6, [yPointer + 48] )
-					MULSD( xmm2, [xPointer + 16] )
-	
-					ADDSD( xmm15, xmm7 )
-					MOVSD( xmm7, [yPointer + 56] )
-					MULSD( xmm3, [xPointer + 24] )
-	
-					ADD( yPointer, 64 )
-					SUB( length, 64 / z_size )
-					JAE( "xA8_loop" )
-	
-					LABEL( "skip_SWP" )
-	
-					ADDSD( xmm8, xmm0 )
-					MULSD( xmm4, [xPointer + 32] )
-	
-					ADDSD( xmm9, xmm1 )
-					MULSD( xmm5, [xPointer + 40] )
-	
-					ADDSD( xmm10, xmm2 )
-					MULSD( xmm6, [xPointer + 48] )
-	
-					ADDSD( xmm11, xmm3 )
-					MULSD( xmm7, [xPointer + 56] )
-	
-					ADD( xPointer, 64 )
-					ADDSD( xmm12, xmm4 )
-					ADDSD( xmm13, xmm5 )
-					ADDSD( xmm14, xmm6 )
-					ADDSD( xmm15, xmm7 )
-	
-					LABEL( "xA8_restore" )
-					ADD( length, 64 / z_size )
-					JZ( "return_ok" )
-					LABEL( "finalize" )
-	
-					MOVSD( xmm0, [xPointer] )
-					MULSD( xmm0, [yPointer] )
-					ADDSD( xmm8, xmm0 )
-	
-					ADD( xPointer, x_size )
-					ADD( yPointer, y_size )
-					SUB( length, 1 )
-					JNZ( "finalize" )
-	
-					LABEL( "return_ok" )
-	
-					ADDSD( xmm8, xmm9 )
-					ADDSD( xmm10, xmm11 )
-					ADDSD( xmm12, xmm13 )
-					ADDSD( xmm14, xmm15 )
-	
-					ADDSD( xmm8, xmm10 )
-					ADDSD( xmm12, xmm14 )
-	
-					ADDSD( xmm8, xmm12 )
-	
-					MOVSD( [zPointer], xmm8 )
-	
-					XOR( eax, eax )
-					LABEL( "return" )
-					RET()
