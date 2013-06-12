@@ -941,6 +941,45 @@ def AddSubMulMinMax_VfVf_Vf_SSE(codegen, function_signature, module, function, a
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, ctype, ctype, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
+				if ctype.get_size() == 4:
+					SIMD_LOAD = VMOVUPS
+					SIMD_COMPUTE = { "Add": VADDPS, "Subtract": VSUBPS, "Multiply": VMULPS, 'Min': VMINPS, 'Max': VMAXPS }[function]
+					SIMD_STORE = VMOVAPS
+				else:
+					SIMD_LOAD = VMOVUPD
+					SIMD_COMPUTE = { "Add": VADDPD, "Subtract": VSUBPD, "Multiply": VMULPD, 'Min': VMINPD, 'Max': VMAXPD }[function]
+					SIMD_STORE = VMOVAPD
+
+				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 8
+					register_size    = 32
+					batch_elements   = unroll_registers * register_size / ctype.get_size()
+
+					x = [AVXRegister() for _ in range(unroll_registers)]
+					y = [AVXRegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 1, 6, 7)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * register_size] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * register_size] )
+						with instruction_columns[2]:
+							SIMD_COMPUTE( x[i], y[i] )
+						with instruction_columns[3]:
+							SIMD_STORE( [zPointer + i * register_size], x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, register_size * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, register_size * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, ctype, ctype, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
 def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scalar_function, reduction_function, instruction_columns, instruction_offsets):
 	# Check that we have an offset for each instruction column
 	assert len(instruction_columns) == len(instruction_offsets)
