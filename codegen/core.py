@@ -19,8 +19,10 @@ def generate_add(module):
 @param[out]	sum	Pointer the array of %(OutputType0)s elements where the pairwise sums will be stored.
 @param[in]	length	The length of the arrays specified by @a x and @a y, and @a sum.
 """
-		function.assembly_implementations = [	yeppp.library.core.x64.AddSub_VusVus_Vus_Nehalem,
-											 	yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_implementation,]
+		function.assembly_implementations = list()
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_AVX)
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_SSE) 
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -110,8 +112,10 @@ def generate_subtract(module):
 @param[out]	difference	Pointer the array of %(OutputType0)s elements where the pairwise differences will be stored.
 @param[in]	length	The length of the arrays specified by @a x and @a y, and @a sum.
 """
-		function.assembly_implementations = [yeppp.library.core.x64.AddSub_VusVus_Vus_Nehalem,
-											 yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_implementation]
+		function.assembly_implementations = list()
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_AVX)
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_SSE) 
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -304,10 +308,11 @@ def generate_multiply(module):
 @param[out]	product	Pointer the array of %(OutputType0)s elements where the pairwise products will be stored.
 @param[in]	length	The length of the arrays specified by @a x and @a y, and @a product.
 """
-		function.assembly_implementations = [yeppp.library.core.x64.Mul_VTuVTu_VTu_implementation,
-											 yeppp.library.core.x64.Mul_V16usV16us_V32us_implementation,
-											 yeppp.library.core.x64.Mul_V32usV32us_V64us_implementation,
-											 yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_implementation]
+		function.assembly_implementations = list()
+		function.assembly_implementations.append(yeppp.library.core.x64.Multiply_VXuVXu_VXu)
+		function.assembly_implementations.append(yeppp.library.core.x64.Multiply_V16usV16us_V32us)
+		function.assembly_implementations.append(yeppp.library.core.x64.Multiply_V32usV32us_V64us)
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_SSE)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -893,8 +898,9 @@ def generate_sum(module):
 @param[out]	sum	Pointer to the variable where the sum will be stored.
 @param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum will be 0.
 """
-		function.assembly_implementations = [yeppp.library.core.x64.Sum_VXf_SXf_SSE,
-											 yeppp.library.core.x64.Sum_VXf_SXf_AVX]
+		function.assembly_implementations = list()
+		function.assembly_implementations.append(yeppp.library.core.x64.Sum_VXf_SXf_SSE)
+		function.assembly_implementations.append(yeppp.library.core.x64.Sum_VXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s sum = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -915,8 +921,9 @@ def generate_sum_abs(module):
 @param[out]	sumAbs	Pointer to the variable where the sum of absolute values will be stored.
 @param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum will be 0.
 """
-		function.assembly_implementations = [yeppp.library.core.x64.SumAbs_VXf_SXf_SSE,
-											 yeppp.library.core.x64.SumAbs_VXf_SXf_AVX]
+		function.assembly_implementations = list()
+		function.assembly_implementations.append(yeppp.library.core.x64.SumAbs_VXf_SXf_SSE)
+		function.assembly_implementations.append(yeppp.library.core.x64.SumAbs_VXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s sumAbs = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -937,8 +944,9 @@ def generate_sum_squares(module):
 @param[out]	sumSquares	Pointer to the variable where the sum of squares will be stored.
 @param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum of squares will be 0.
 """
-		function.assembly_implementations = [yeppp.library.core.x64.SumSquares_VXf_SXf_SSE,
-											 yeppp.library.core.x64.SumSquares_VXf_SXf_AVX]
+		function.assembly_implementations = list()
+		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_VXf_SXf_SSE)
+		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_VXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s sumSquares = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -961,12 +969,8 @@ def generate_dot_product(module):
 @param[in]	length	The length of the arrays specified by @a x and @a y.
 """
 		function.assembly_implementations = list()
-# 		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VfVf_Sf_Nehalem)
-#		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VfVf_Sf_SandyBridge)
 		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VXfVXf_SXf_SSE)
 		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VXfVXf_SXf_AVX)
-# 		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VfVf_Sf_Bulldozer)
-# 		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_V64fV64f_S64f_Bonnell)
 		function.c_implementation = """
 Yep%(InputType0)s dotProduct = Yep%(InputType0)s(0);
 while (length-- != 0) {
