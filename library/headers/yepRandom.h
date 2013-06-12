@@ -37,6 +37,11 @@
 
 /** @defgroup yepRandom yepRandom.h: random number generators. */
 
+/**
+ * @ingroup yepRandom
+ * @defgroup yepRandom_WELL1024a	WELL 1024a random number generator
+ */
+
 #pragma pack(push, 1)
 
 struct YepRandom_WELL1024a {
@@ -51,7 +56,7 @@ extern "C" {
 #endif
 
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Initializes the state of WELL1024a pseudo-random number generator with the default seed.
 	 * @details	Default seed is fixed, and never changes during execution of a program.
 	 * @param[out]	state	Pointer to a WELL1024a random number generator state to be initialized.
@@ -61,7 +66,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init(struct YepRandom_WELL1024a *YEP_RESTRICT state);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Initializes the state of WELL1024a pseudo-random number generator with the specified seed.
 	 * @param[out]	state	Pointer to a WELL1024a random number generator state to be initialized.
 	 * @param[in]	seed	The 1024-bit initial seed for the random number generator.
@@ -71,7 +76,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init_V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, const Yep32u seed[32]);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random 32-bit samples with WELL1024a pseudo-random number generator.
 	 * @details	Each 32-bit number is generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -83,7 +88,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u *YEP_RESTRICT samples, YepSize length);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random 32-bit samples in the specified range with WELL1024a pseudo-random number generator.
 	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -98,7 +103,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u supportMin, Yep32u supportMax, Yep32u *YEP_RESTRICT samples, YepSize length);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random single precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 32-bit accuracy.
 	 * @details	All real numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -113,7 +118,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32f supportMin, Yep32f supportMax, Yep32f *YEP_RESTRICT samples, YepSize length);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random single precision floating-point samples in the specified range with WELL1024a pseudo-random number generator.
 	 * @details	All floating-point numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -128,7 +133,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S32fS32f_V32f(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32f supportMin, Yep32f supportMax, Yep32f *YEP_RESTRICT samples, YepSize length);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random double precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 32-bit accuracy.
 	 * @details	All real numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -143,7 +148,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc32(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random double precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 64-bit accuracy.
 	 * @details	All real numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -158,7 +163,7 @@ extern "C" {
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64f supportMin, Yep64f supportMax, Yep64f *YEP_RESTRICT samples, YepSize length);
 	/**
-	 * @ingroup yepRandom
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random double precision floating-point samples in the specified range with WELL1024a pseudo-random number generator.
 	 * @details	All floating-point numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
