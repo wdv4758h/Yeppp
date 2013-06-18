@@ -35,7 +35,7 @@
 #define YEP_INTEL_COMPILER_FOR_WINDOWS
 /**
  * @ingroup yepPredefines
- * @brief	Defined only when Intel C/C++ compiler for Linux, or Mac OS X (icc/icpc) is used for compilation.
+ * @brief	Defined only when Intel C/C++ compiler for Linux or Mac OS X (icc/icpc) is used for compilation.
  */
 #define YEP_INTEL_COMPILER_FOR_UNIX
 /**
@@ -65,6 +65,36 @@
  * @details	GCC-compatible compilers currently include only GNU C/C++ compiler, Clang compiler and Intel C/C++ compiler for Linux and Mac OS X.
  */
 #define YEP_GCC_COMPATIBLE_COMPILER
+/**@}*/
+
+/** @name	Target OS Identification */
+/**@{*/
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target operating system is Microsoft Windows.
+ */
+#define YEP_WINDOWS_OS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target operating system is Apple Mac OS X.
+ */
+#define YEP_MACOSX_OS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target operating system is based on Linux kernel.
+ * @see	YEP_GNU_LINUX_OS, YEP_ANDROID_LINUX_OS
+ */
+#define YEP_LINUX_OS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target operating system is Linux with GNU userland.
+ */
+#define YEP_GNU_LINUX_OS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target operating system is Linux with Android userland.
+ */
+#define YEP_ANDROID_LINUX_OS
 /**@}*/
 
 /** @name	Target Architecture Identification */
@@ -116,6 +146,118 @@
  * @brief	Defined only when the target architecture is a CUDA-enabled GPU.
  */
 #define YEP_CUDA_GPU
+/**@}*/
+
+/** @name	Target ABI Identification */
+/**@{*/
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI byte order is little endian.
+ */
+#define YEP_LITTLE_ENDIAN_BYTE_ORDER
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI byte order is big endian.
+ */
+#define YEP_BIG_ENDIAN_BYTE_ORDER
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is x86 ABI.
+ */
+#define YEP_X86_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is an x86-64 ABI.
+ * @see	YEP_MICROSOFT_X64_ABI, YEP_SYSTEMV_X64_ABI, YEP_K1OM_X64_ABI
+ */
+#define YEP_X64_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is Microsoft x86-64 ABI.
+ * @details
+ *	<table>
+ *		<tr><td>1st argument</td><td>rcx/xmm0</td></tr>
+ *		<tr><td>2nd argument</td><td>rdx/xmm1</td></tr>
+ *		<tr><td>3rd argument</td><td>r8/xmm2</td></tr>
+ *		<tr><td>4th argument</td><td>r9/xmm3</td></tr>
+ *		<tr><td>Return value</td><td>rax/xmm0</td></tr>
+ *		<tr><td>Volatile registers (general-purpose)</td><td>rax, rcx, rdx, r8, r9, r10, r11</td></tr>
+ *		<tr><td>Volatile registers (MMX)</td><td>mm0-mm7</td></tr>
+ *		<tr><td>Volatile registers (SSE)</td><td>xmm0-xmm5</td></tr>
+ *		<tr><td>Non-volatile registers (general-purpose)</td><td>rbx, rbp, rdi, rsi, r12, r13, r14, r15</td></tr>
+ *	</table>
+ */
+#define YEP_MICROSOFT_X64_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is System V x86-64 ABI.
+ * @details
+ *	<table>
+ *		<tr><td>1st integer argument</td><td>rdi</td></tr>
+ *		<tr><td>2nd integer argument</td><td>rsi</td></tr>
+ *		<tr><td>3rd integer argument</td><td>rdx</td></tr>
+ *		<tr><td>4th integer argument</td><td>rcx</td></tr>
+ *		<tr><td>5th integer argument</td><td>r8</td></tr>
+ *		<tr><td>6th integer argument</td><td>r9</td></tr>
+ *		<tr><td>1st FP argument</td><td>xmm0</td></tr>
+ *		<tr><td>2nd FP argument</td><td>xmm1</td></tr>
+ *		<tr><td>3rd FP argument</td><td>xmm2</td></tr>
+ *		<tr><td>4th FP argument</td><td>xmm3</td></tr>
+ *		<tr><td>5th FP argument</td><td>xmm4</td></tr>
+ *		<tr><td>6th FP argument</td><td>xmm5</td></tr>
+ *		<tr><td>7th FP argument</td><td>xmm6</td></tr>
+ *		<tr><td>8th FP argument</td><td>xmm7</td></tr>
+ *		<tr><td>Return value</td><td>rax/xmm0</td></tr>
+ *		<tr><td>Volatile registers (general-purpose)</td><td>rax, rcx, rdx, r8, r9, r10, r11</td></tr>
+ *		<tr><td>Volatile registers (MMX)</td><td>mm0-mm7</td></tr>
+ *		<tr><td>Volatile registers (SSE)</td><td>xmm0-xmm15</td></tr>
+ *		<tr><td>Non-volatile registers (general-purpose)</td><td>rbx, rbp, r12, r13, r14, r15</td></tr>
+ *	</table>
+ */
+#define YEP_SYSTEMV_X64_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is Xeon Phi ABI.
+ * @details
+ *	<table>
+ *		<tr><td>1st integer argument</td><td>rdi</td></tr>
+ *		<tr><td>2nd integer argument</td><td>rsi</td></tr>
+ *		<tr><td>3rd integer argument</td><td>rdx</td></tr>
+ *		<tr><td>4th integer argument</td><td>rcx</td></tr>
+ *		<tr><td>5th integer argument</td><td>r8</td></tr>
+ *		<tr><td>6th integer argument</td><td>r9</td></tr>
+ *		<tr><td>1st FP argument</td><td>zmm0</td></tr>
+ *		<tr><td>2nd FP argument</td><td>zmm1</td></tr>
+ *		<tr><td>3rd FP argument</td><td>zmm2</td></tr>
+ *		<tr><td>4th FP argument</td><td>zmm3</td></tr>
+ *		<tr><td>5th FP argument</td><td>zmm4</td></tr>
+ *		<tr><td>6th FP argument</td><td>zmm5</td></tr>
+ *		<tr><td>7th FP argument</td><td>zmm6</td></tr>
+ *		<tr><td>8th FP argument</td><td>zmm7</td></tr>
+ *		<tr><td>Return value</td><td>rax/zmm0</td></tr>
+ *		<tr><td>Volatile registers (general-purpose)</td><td>rax, rcx, rdx, r8, r9, r10, r11</td></tr>
+ *		<tr><td>Volatile registers (MMX)</td><td>mm0-mm7</td></tr>
+ *		<tr><td>Volatile registers (SSE)</td><td>zmm0-zmm31</td></tr>
+ *		<tr><td>Non-volatile registers (general-purpose)</td><td>rbx, rbp, r12, r13, r14, r15</td></tr>
+ *	</table>
+ */
+#define YEP_K1OM_X64_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is a 32-bit ARM ABI.
+ * @see	YEP_HARDEABI_ARM_ABI, YEP_SOFTEABI_ARM_ABI
+ */
+#define YEP_ARM_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is ARM EABI with floating-point parameters passed in VFP registers.
+ */
+#define YEP_HARDEABI_ARM_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is ARM EABI with floating-point parameters passed in general-purpose registers.
+ */
+#define YEP_SOFTEABI_ARM_ABI
 /**@}*/
 
 /** @name	Common Target ISA Feature Identification */
@@ -529,102 +671,6 @@
 #define YEP_COMPILER_SUPPORTS_X86_KNC_EXTENSION
 /**@}*/
 
-/** @name	Target ABI Identification */
-/**@{*/
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI byte order is little endian.
- */
-#define YEP_LITTLE_ENDIAN_BYTE_ORDER
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI byte order is big endian.
- */
-#define YEP_BIG_ENDIAN_BYTE_ORDER
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is x86 ABI.
- */
-#define YEP_X86_ABI
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is an x86-64 ABI.
- * @see	YEP_MICROSOFT_X64_ABI, YEP_SYSTEMV_X64_ABI, YEP_K1OM_X64_ABI
- */
-#define YEP_X64_ABI
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is Microsoft x86-64 ABI.
- * @details
- *	<table>
- *		<tr><td>1st argument</td><td>rcx/xmm0</td></tr>
- *		<tr><td>2nd argument</td><td>rdx/xmm1</td></tr>
- *		<tr><td>3rd argument</td><td>r8/xmm2</td></tr>
- *		<tr><td>4th argument</td><td>r9/xmm3</td></tr>
- *		<tr><td>Return value</td><td>rax/xmm0</td></tr>
- *		<tr><td>Volatile registers (general-purpose)</td><td>rax, rcx, rdx, r8, r9, r10, r11</td></tr>
- *		<tr><td>Volatile registers (MMX)</td><td>mm0-mm7</td></tr>
- *		<tr><td>Volatile registers (SSE)</td><td>xmm0-xmm5</td></tr>
- *		<tr><td>Non-volatile registers (general-purpose)</td><td>rbx, rbp, rdi, rsi, r12, r13, r14, r15</td></tr>
- *	</table>
- */
-#define YEP_MICROSOFT_X64_ABI
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is System V x86-64 ABI.
- * @details
- *	<table>
- *		<tr><td>1st integer argument</td><td>rdi</td></tr>
- *		<tr><td>2nd integer argument</td><td>rsi</td></tr>
- *		<tr><td>3rd integer argument</td><td>rdx</td></tr>
- *		<tr><td>4th integer argument</td><td>rcx</td></tr>
- *		<tr><td>5th integer argument</td><td>r8</td></tr>
- *		<tr><td>6th integer argument</td><td>r9</td></tr>
- *		<tr><td>1st FP argument</td><td>xmm0</td></tr>
- *		<tr><td>2nd FP argument</td><td>xmm1</td></tr>
- *		<tr><td>3rd FP argument</td><td>xmm2</td></tr>
- *		<tr><td>4th FP argument</td><td>xmm3</td></tr>
- *		<tr><td>5th FP argument</td><td>xmm4</td></tr>
- *		<tr><td>6th FP argument</td><td>xmm5</td></tr>
- *		<tr><td>7th FP argument</td><td>xmm6</td></tr>
- *		<tr><td>8th FP argument</td><td>xmm7</td></tr>
- *		<tr><td>Return value</td><td>rax/xmm0</td></tr>
- *		<tr><td>Volatile registers (general-purpose)</td><td>rax, rcx, rdx, r8, r9, r10, r11</td></tr>
- *		<tr><td>Volatile registers (MMX)</td><td>mm0-mm7</td></tr>
- *		<tr><td>Volatile registers (SSE)</td><td>xmm0-xmm15</td></tr>
- *		<tr><td>Non-volatile registers (general-purpose)</td><td>rbx, rbp, r12, r13, r14, r15</td></tr>
- *	</table>
- */
-#define YEP_SYSTEMV_X64_ABI
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is Xeon Phi ABI.
- * @details
- *	<table>
- *		<tr><td>1st integer argument</td><td>rdi</td></tr>
- *		<tr><td>2nd integer argument</td><td>rsi</td></tr>
- *		<tr><td>3rd integer argument</td><td>rdx</td></tr>
- *		<tr><td>4th integer argument</td><td>rcx</td></tr>
- *		<tr><td>5th integer argument</td><td>r8</td></tr>
- *		<tr><td>6th integer argument</td><td>r9</td></tr>
- *		<tr><td>1st FP argument</td><td>zmm0</td></tr>
- *		<tr><td>2nd FP argument</td><td>zmm1</td></tr>
- *		<tr><td>3rd FP argument</td><td>zmm2</td></tr>
- *		<tr><td>4th FP argument</td><td>zmm3</td></tr>
- *		<tr><td>5th FP argument</td><td>zmm4</td></tr>
- *		<tr><td>6th FP argument</td><td>zmm5</td></tr>
- *		<tr><td>7th FP argument</td><td>zmm6</td></tr>
- *		<tr><td>8th FP argument</td><td>zmm7</td></tr>
- *		<tr><td>Return value</td><td>rax/zmm0</td></tr>
- *		<tr><td>Volatile registers (general-purpose)</td><td>rax, rcx, rdx, r8, r9, r10, r11</td></tr>
- *		<tr><td>Volatile registers (MMX)</td><td>mm0-mm7</td></tr>
- *		<tr><td>Volatile registers (SSE)</td><td>zmm0-zmm31</td></tr>
- *		<tr><td>Non-volatile registers (general-purpose)</td><td>rbx, rbp, r12, r13, r14, r15</td></tr>
- *	</table>
- */
-#define YEP_K1OM_X64_ABI
-/**@}*/
-
 /** @name	Miscellaneous */
 /**@{*/
 /**
@@ -664,6 +710,18 @@
  * @details	Supported compilers currently include only Microsoft compiler, Intel compiler, GCC, Clang, ARM compiler, and nVidia CUDA compiler.
  */
 #define YEP_NORETURN compiler-specific-noreturn-attribute
+/**
+ * @ingroup yepPredefines
+ * @brief	Expands to compiler-specific analog of C++ 11 alignas attribute.
+ * @details	Specifies the alignment of a type or variable.
+ */
+#define YEP_ALIGN(alignment) compiler-specific-alignas-attribute
+/**
+ * @ingroup yepPredefines
+ * @brief	Expands to compiler-specific analog of C++ 11 alignof operator.
+ * @details	Returns the alignment of the specified type.
+ */
+#define YEP_ALIGN_OF(type) compiler-specific-alignof-attribute
 /**
  * @ingroup yepPredefines
  * @brief	Marks the function as a device function in CUDA. Has no effect in C and C++.

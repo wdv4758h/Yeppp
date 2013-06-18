@@ -40,6 +40,12 @@
 #endif
 #if defined(__linux) || defined(__linux__) || defined(linux)
 	#define YEP_LINUX_OS
+	#if defined(ANDROID) || defined(__ANDROID__)
+		#define YEP_ANDROID_LINUX_OS
+	#endif
+	#if defined(__gnu_linux__)
+		#define YEP_GNU_LINUX_OS
+	#endif
 #endif
 #if defined(__APPLE__) && defined(__MACH__)
 	#define YEP_MACOSX_OS
@@ -578,6 +584,15 @@
 		#define YEP_K1OM_X64_ABI
 	#else
 		#define YEP_SYSTEMV_X64_ABI
+	#endif
+#endif
+
+#if defined(YEP_ARM_CPU)
+	#define YEP_ARM_ABI
+	#if defined(__ARM_PCS_VFP)
+		#define YEP_HARDEABI_ARM_ABI
+	#else
+		#define YEP_SOFTEABI_ARM_ABI
 	#endif
 #endif
 
