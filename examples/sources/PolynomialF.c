@@ -150,7 +150,7 @@ Yep32f compute_max_error(const Yep32f *YEP_RESTRICT xArray, const Yep32f *YEP_RE
 	for (index = 0; index < length; index++) {
 		if (xArray[index] == 0.0f)
 			continue;
-		error = fabs(xArray[index] - yArray[index]) / fabs(xArray[index]);
+		error = fabsf(xArray[index] - yArray[index]) / fabsf(xArray[index]);
 		if (error > maxError)
 			maxError = error;
 	}
@@ -161,7 +161,6 @@ int main(int argc, char **argv) {
 	enum YepStatus status;
 	Yep64u startTimeNaive, startTimeYeppp, endTimeNaive, endTimeYeppp, frequency;
 	Yep64f secsNaive, secsYeppp, flopsNaive, flopsYeppp;
-	YepSize i;
 	struct YepRandom_WELL1024a rng;
 
 	/* Allocate arrays of inputs and outputs */

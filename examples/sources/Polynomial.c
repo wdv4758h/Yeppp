@@ -161,7 +161,6 @@ int main(int argc, char **argv) {
 	enum YepStatus status;
 	Yep64u startTimeNaive, startTimeYeppp, endTimeNaive, endTimeYeppp, frequency;
 	Yep64f secsNaive, secsYeppp, flopsNaive, flopsYeppp;
-	YepSize i;
 	struct YepRandom_WELL1024a rng;
 
 	/* Allocate arrays of inputs and outputs */

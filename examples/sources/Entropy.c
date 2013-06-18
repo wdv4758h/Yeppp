@@ -24,7 +24,7 @@ double compute_entropy_yeppp(const double *p, size_t length) {
 	enum YepStatus status;
 	Yep64f entropy = 0.0;
 	/* The small array for computed logarithms of the part of the input array */
-	Yep64f logP[BLOCK_SIZE];
+	YEP_ALIGN(8) Yep64f logP[BLOCK_SIZE];
 	YepSize index, blockLength;
 	
 	for (index = 0; index < length; index += BLOCK_SIZE) {

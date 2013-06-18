@@ -12,8 +12,6 @@ int main(int argc, char **argv) {
 	YepSize i, iteration, iterationMax = 1000;
 	Yep16u array[ARRAY_SIZE];
 	Yep64f CPE;
-	size_t memcmpResult;
-
 
 	/* Initialize the Yeppp! library */
 	status = yepLibrary_Init();
