@@ -25,14 +25,22 @@ else ifeq ($(TARGET),arm-linux-hardeabi-v7a)
     LDFLAGS += -Wl,-rpath,"$(PWD)/../library/binaries/$(TARGET)"
     LDFLAGS += -Wl,-rpath,"$(PWD)/../binaries/linux/armhf"
 else ifeq ($(TARGET),arm-linux-softeabi-android)
+    CFLAGS += -I$(ANDROID_NDK_ROOT)/platforms/android-3/arch-arm/usr/include
     LDFLAGS += -L../binaries/android/armeabi
+    LDFLAGS += --sysroot=$(ANDROID_NDK_ROOT)/platforms/android-3/arch-arm
 else ifeq ($(TARGET),arm-linux-softeabi-androidv7a)
+    CFLAGS += -I$(ANDROID_NDK_ROOT)/platforms/android-3/arch-arm/usr/include
     LDFLAGS += -L../binaries/android/armeabiv7a
+    LDFLAGS += --sysroot=$(ANDROID_NDK_ROOT)/platforms/android-3/arch-arm
 else ifeq ($(TARGET),x86-linux-pic-android)
     CFLAGS += -m32
+    CFLAGS += -I$(ANDROID_NDK_ROOT)/platforms/android-9/arch-x86/usr/include
     LDFLAGS += -L../binaries/android/x86
+    LDFLAGS += --sysroot=$(ANDROID_NDK_ROOT)/platforms/android-9/arch-x86
 else ifeq ($(TARGET),mips-linux-o32-android)
+    CFLAGS += -I$(ANDROID_NDK_ROOT)/platforms/android-9/arch-mips/usr/include
     LDFLAGS += -L../binaries/android/mips
+    LDFLAGS += --sysroot=$(ANDROID_NDK_ROOT)/platforms/android-9/arch-mips
 else
     $(error TARGET variable is not defined or contains unsupported value)
 endif
