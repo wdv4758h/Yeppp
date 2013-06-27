@@ -568,7 +568,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Ulp_32f_32f(Yep32f x) {
 	}
 }
 
-#if defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_PROCESSOR_SUPPORTS_FMA_EXTENSION)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FMA_INSTRUCTIONS)
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_FMA_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
 		return __builtin_fma(a, b, c);
 	}
@@ -584,23 +584,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Ulp_32f_32f(Yep32f x) {
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_FNMS_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
 		return __builtin_fma(-a, b, -c);
 	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FMA_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
-		return __builtin_fmaf(a, b, c);
-	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FMS_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
-		return __builtin_fmaf(a, b, -c);
-	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FNMA_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
-		return __builtin_fmaf(-a, b, c);
-	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FNMS_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
-		return __builtin_fmaf(-a, b, -c);
-	}
-#elif defined(YEP_NVIDIA_COMPILER) && defined(YEP_PROCESSOR_SUPPORTS_FMA_EXTENSION)
+#elif defined(YEP_NVIDIA_COMPILER) && defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FMA_INSTRUCTIONS)
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_FMA_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
 		return __fma_rn(a, b, c);
 	}
@@ -616,7 +600,25 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Ulp_32f_32f(Yep32f x) {
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_FNMS_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
 		return __fma_rn(-a, b, -c);
 	}
+#endif
 
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FMA_INSTRUCTIONS)
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FMA_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
+		return __builtin_fmaf(a, b, c);
+	}
+
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FMS_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
+		return __builtin_fmaf(a, b, -c);
+	}
+
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FNMA_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
+		return __builtin_fmaf(-a, b, c);
+	}
+
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FNMS_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
+		return __builtin_fmaf(-a, b, -c);
+	}
+#elif defined(YEP_NVIDIA_COMPILER) && defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FMA_INSTRUCTIONS)
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_FMA_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
 		return __fmaf_rn(a, b, c);
 	}
@@ -634,18 +636,11 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Ulp_32f_32f(Yep32f x) {
 	}
 #endif
 
-
-#if defined(YEP_PROCESSOR_SUPPORTS_FMA_EXTENSION)
+#if defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FMA_INSTRUCTIONS)
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Divide_64f64f64f_64f(Yep64f y, Yep64f c, Yep64f rcpC) {
 		const Yep64f q = y * rcpC;
 		const Yep64f r = yepBuiltin_FNMA_64f64f64f_64f(c, q, y);
 		return yepBuiltin_FMA_64f64f64f_64f(r, rcpC, q);
-	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Divide_32f32f32f_32f(Yep32f y, Yep32f c, Yep32f rcpC) {
-		const Yep32f q = y * rcpC;
-		const Yep32f r = yepBuiltin_FNMA_32f32f32f_32f(c, q, y);
-		return yepBuiltin_FMA_32f32f32f_32f(r, rcpC, q);
 	}
 
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_MultiplyAdd_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
@@ -654,6 +649,26 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Ulp_32f_32f(Yep32f x) {
 
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_MultiplySubtract_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
 		return yepBuiltin_FMS_64f64f64f_64f(a, b, c);
+	}
+#else
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Divide_64f64f64f_64f(Yep64f y, Yep64f c, Yep64f rcpC) {
+		return y / c;
+	}
+
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_MultiplyAdd_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
+		return a * b + c;
+	}
+
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_MultiplySubtract_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
+		return a * b - c;
+	}
+#endif
+
+#if defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FMA_INSTRUCTIONS)
+	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Divide_32f32f32f_32f(Yep32f y, Yep32f c, Yep32f rcpC) {
+		const Yep32f q = y * rcpC;
+		const Yep32f r = yepBuiltin_FNMA_32f32f32f_32f(c, q, y);
+		return yepBuiltin_FMA_32f32f32f_32f(r, rcpC, q);
 	}
 
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_MultiplyAdd_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
@@ -664,20 +679,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Ulp_32f_32f(Yep32f x) {
 		return yepBuiltin_FMS_32f32f32f_32f(a, b, c);
 	}
 #else
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Divide_64f64f64f_64f(Yep64f y, Yep64f c, Yep64f rcpC) {
-		return y / c;
-	}
-
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Divide_32f32f32f_32f(Yep32f y, Yep32f c, Yep32f rcpC) {
 		return y / c;
-	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_MultiplyAdd_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
-		return a * b + c;
-	}
-
-	YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_MultiplySubtract_64f64f64f_64f(Yep64f a, Yep64f b, Yep64f c) {
-		return a * b - c;
 	}
 
 	YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_MultiplyAdd_32f32f32f_32f(Yep32f a, Yep32f b, Yep32f c) {
