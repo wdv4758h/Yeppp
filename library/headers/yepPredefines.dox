@@ -270,9 +270,24 @@
 #define YEP_PROCESSOR_SUPPORTS_MISALIGNED_MEMORY_ACCESS
 /**
  * @ingroup yepPredefines
- * @brief	Defined only when the target processor (either CPU or GPU) supports fused multiply-add instruction.
+ * @brief	Defined only when the target processor (either CPU or GPU) supports single-precision floating-point operations in hardware.
  */
-#define YEP_PROCESSOR_SUPPORTS_FMA_EXTENSION
+#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor (either CPU or GPU) supports double-precision floating-point operations in hardware.
+ */
+#define YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor (either CPU or GPU) supports fused multiply-add instructions in single precision.
+ */
+#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FMA_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor (either CPU or GPU) supports fused multiply-add instructions in double precision.
+ */
+#define YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FMA_INSTRUCTIONS
 /**@}*/
 
 /** @name	x86/x86-64 Target ISA Feature Identification */
@@ -671,6 +686,28 @@
 #define YEP_COMPILER_SUPPORTS_X86_KNC_EXTENSION
 /**@}*/
 
+/** @name	Compiler Support Identification for ARM Intrinsics */
+/**@{*/
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the compiler supports ARM WMMX intrinsics for this compilation.
+ * @warning	This macro does not guarantee that the target processor supports WMMX instruction set.
+ *         	Use #yepLibrary_GetCpuSimdFeatures function to detect in run-time if processor supports WMMX instruction set,
+ *         	or #YEP_CPU_SUPPORTS_ARM_WMMX_EXTENSION macro to check availability of WMMX instructions on target processor in compile-time.
+ * @see	#yepLibrary_GetCpuSimdFeatures, #YepARMSimdFeatureWMMX, #YEP_CPU_SUPPORTS_ARM_WMMX_EXTENSION
+ */
+#define YEP_COMPILER_SUPPORTS_ARM_WMMX_EXTENSION
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the compiler supports ARM NEON intrinsics for this compilation.
+ * @warning	This macro does not guarantee that the target processor supports NEON instruction set.
+ *         	Use #yepLibrary_GetCpuSimdFeatures function to detect in run-time if processor supports NEON instruction set,
+ *         	or #YEP_CPU_SUPPORTS_ARM_NEON_EXTENSION macro to check availability of NEON instructions on target processor in compile-time.
+ * @see	#yepLibrary_GetCpuSimdFeatures, #YepARMSimdFeatureNEON, #YEP_CPU_SUPPORTS_ARM_NEON_EXTENSION
+ */
+#define YEP_COMPILER_SUPPORTS_ARM_NEON_EXTENSION
+/**@}*/
+
 /** @name	Miscellaneous */
 /**@{*/
 /**
@@ -721,7 +758,7 @@
  * @brief	Expands to compiler-specific analog of C++ 11 alignof operator.
  * @details	Returns the alignment of the specified type.
  */
-#define YEP_ALIGN_OF(type) compiler-specific-alignof-attribute
+#define YEP_ALIGN_OF(type) compiler-specific-alignof-operator
 /**
  * @ingroup yepPredefines
  * @brief	Marks the function as a device function in CUDA. Has no effect in C and C++.
