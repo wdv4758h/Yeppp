@@ -9,6 +9,7 @@ import yeppp.module
 
 import yeppp.library.core.x86
 import yeppp.library.core.x64
+import yeppp.library.core.arm
 
 def generate_add(module):
 	with yeppp.module.Function(module, 'Add', 'Addition') as function:
@@ -22,7 +23,8 @@ def generate_add(module):
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
 		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_AVX)
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_SSE) 
+		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf_SSE)
+		function.assembly_implementations.append(yeppp.library.core.arm.AddSub_VXusVXus_VXus_NEON)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -645,7 +647,12 @@ return YepStatusOk;
 
 def generate_min(module):
 	with yeppp.module.Function(module, 'Min', 'Minimum') as function:
-		function.c_documentation = None
+		function.c_documentation = """
+@brief	Computes the minimum of %(InputType0)s array elements.
+@param[in]	v	Pointer to the array of elements whose minimum will be computed.
+@param[out]	minimum	Pointer to the variable where the minimum will be stored.
+@param[in]	length	The length of the array specified by @a v. Must be non-zero.
+"""
 		function.assembly_implementations = []
 		function.c_implementation = """
 Yep%(InputType0)s minimum = *vPointer++;
@@ -755,7 +762,12 @@ return YepStatusOk;
 
 def generate_max(module):
 	with yeppp.module.Function(module, 'Max', 'Maximum') as function:
-		function.c_documentation = None
+		function.c_documentation = """
+@brief	Computes the maximum of %(InputType0)s array elements.
+@param[in]	v	Pointer to the array of elements whose maximum will be computed.
+@param[out]	maximum	Pointer to the variable where the maximum will be stored.
+@param[in]	length	The length of the array specified by @a v. Must be non-zero.
+"""
 		function.assembly_implementations = []
 		function.c_implementation = """
 Yep%(InputType0)s maximum = *vPointer++;
@@ -893,10 +905,10 @@ return YepStatusOk;
 def generate_sum(module):
 	with yeppp.module.Function(module, 'Sum', 'Sum') as function:
 		function.c_documentation = """
-@brief	Computes the sum of %(InputType0)s elements in the input array.
+@brief	Computes the sum of %(InputType0)s array elements.
 @param[in]	v	Pointer to the array of elements which will be summed up.
 @param[out]	sum	Pointer to the variable where the sum will be stored.
-@param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum will be 0.
+@param[in]	length	The length of the array specified by @a v. If @a length is zero, the computed sum will be 0.
 """
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.Sum_VXf_SXf_SSE)
@@ -916,10 +928,10 @@ return YepStatusOk;
 def generate_sum_abs(module):
 	with yeppp.module.Function(module, 'SumAbs', 'Sum of absolute values') as function:
 		function.c_documentation = """
-@brief	Computes the sum of absolute values of %(InputType0)s elements in the input array.
+@brief	Computes the sum of absolute values of %(InputType0)s array elements.
 @param[in]	v	Pointer to the array of elements whose absolute values will be summed up.
 @param[out]	sumAbs	Pointer to the variable where the sum of absolute values will be stored.
-@param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum will be 0.
+@param[in]	length	The length of the array specified by @a v. If @a length is zero, the computed sum will be 0.
 """
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.SumAbs_VXf_SXf_SSE)
@@ -939,10 +951,10 @@ return YepStatusOk;
 def generate_sum_squares(module):
 	with yeppp.module.Function(module, 'SumSquares', 'Sum of squares (squared L2 norm)') as function:
 		function.c_documentation = """
-@brief	Computes the sum of squares of %(InputType0)s elements in the input array.
+@brief	Computes the sum of squares of %(InputType0)s array elements.
 @param[in]	v	Pointer to the array of elements which will be squared (without write-back) and summed up.
 @param[out]	sumSquares	Pointer to the variable where the sum of squares will be stored.
-@param[in]	length	The length of the array specified by @a v. The @a length is zero, the computed sum of squares will be 0.
+@param[in]	length	The length of the array specified by @a v. If @a length is zero, the computed sum of squares will be 0.
 """
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_VXf_SXf_SSE)
@@ -962,11 +974,11 @@ return YepStatusOk;
 def generate_dot_product(module):
 	with yeppp.module.Function(module, 'DotProduct', 'Dot product') as function:
 		function.c_documentation = """
-@brief	Computes the dot product of %(InputType0)s elements in two arrays.
+@brief	Computes the dot product of two vectors of %(InputType0)s elements.
 @param[in]	x	Pointer to the first vector of elements.
 @param[in]	y	Pointer to the second vector of elements.
 @param[out]	dotProduct	Pointer to the variable where the dot product value will be stored.
-@param[in]	length	The length of the arrays specified by @a x and @a y.
+@param[in]	length	The length of the vectors specified by @a x and @a y.
 """
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VXfVXf_SXf_SSE)
@@ -1106,9 +1118,9 @@ if __name__ == '__main__':
 # 		generate_divide(module)
 # 		generate_reciprocal(module)
 # 		generate_convert(module)
-# 		generate_min(module)
-# 		generate_max(module)
-		generate_min_max(module)
+		generate_min(module)
+		generate_max(module)
+# 		generate_min_max(module)
 		generate_sum(module)
 		generate_sum_abs(module)
 		generate_sum_squares(module)

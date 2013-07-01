@@ -2153,7 +2153,7 @@ def BATCH_LOG_FULL_Haswell(xPointer, yPointer):
 		# *yPointer = f
 		VMOVUPD( [yPointer + i * 32], ymm_f[i] )
 
-def Log_V64f_V64f(codegen, function_signature, module, function, arguments):
+def Log_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Log':
@@ -3989,7 +3989,7 @@ def BATCH_EXP_FULL_Haswell(xPointer, yPointer):
 		# *yPointer = rf
 		VMOVUPD( [yPointer + i * 32], ymm_rf[i] )
 
-def Exp_V64f_V64f(codegen, function_signature, module, function, arguments):
+def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -4602,7 +4602,7 @@ def BATCH_SIN_AVX(xPointer, yPointer):
 			VMOVUPD( [yPointer + 32 * i], ymm_sin[i].get_oword() )
 			VEXTRACTF128( [yPointer + 32 * i + 16], ymm_sin[i], 1 )
 
-def Sin_V64f_V64f(codegen, function_signature, module, function, arguments):
+def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
@@ -5197,7 +5197,7 @@ def BATCH_COS_AVX(xPointer, yPointer):
 			VMOVUPD( [yPointer + 32 * i], ymm_cos.get_oword() )
 			VEXTRACTF128( [yPointer + 32 * i + 16], ymm_cos, 1 )
 
-def Cos_V64f_V64f(codegen, function_signature, module, function, arguments):
+def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Cos':
@@ -5371,7 +5371,7 @@ def SCALAR_TAN_AVX(xPointer, yPointer, is_prologue):
 
 	VMOVSD( [yPointer], xmm_tan )
 
-def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments):
+def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Tan':
@@ -5618,7 +5618,7 @@ def SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_pro
 	LABEL( scalar_polevl_finish )
 	MOV_SCALAR( [yPointer], xmm_y )
 
-def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function, arguments):
+def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5780,7 +5780,7 @@ def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 10, element_size)
 
 
-def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module, function, arguments):
+def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5855,7 +5855,7 @@ def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 8 * 14, 8)
 
-def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module, function, arguments):
+def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5932,7 +5932,7 @@ def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 14, 4)
 
-def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function, arguments):
+def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
