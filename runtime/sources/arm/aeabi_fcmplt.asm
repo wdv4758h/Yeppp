@@ -10,18 +10,18 @@
 
 .syntax unified
 
-BEGIN_ARM_FUNCTION __aeabi_fcmpge
+BEGIN_ARM_FUNCTION __aeabi_fcmplt
 	MOV r12, #0xFF000000
 
 	/* Check if a is NaN */
 	CMP r12, r0, LSL #1
-	/* If a is NaN, make it negative to guarantee that its value (0xFF8nnnnn) is less than any b */
-	ORRLO r0, r0, #0x80000000
+	/* If b is NaN, make it positive to guarantee that its value (0x7F8nnnnn) is greater than any b */
+	ANDLO r0, r0, #0x7FFFFFFF
 	
 	/* Check if b is NaN */
 	CMP r12, r1, LSL #1
-	/* If b is NaN, make it positive to guarantee that its value (0x7F8nnnnn) is greater than any a */
-	ANDLO r1, r1, #0x7FFFFFFF
+	/* If a is NaN, make it negative to guarantee that its value (0xFF8nnnnn) is less than any a */
+	ORRLO r1, r1, #0x80000000
 	
 	/* Check if a is negative */
 	CMP r0, #0
@@ -36,6 +36,6 @@ BEGIN_ARM_FUNCTION __aeabi_fcmpge
 	/* Normal case */
 	CMP r0, r1
 	MOV r0, #1
-	MOVLT r0, #0
+	MOVGE r0, #0
 	BX lr
-END_ARM_FUNCTION __aeabi_fcmpge
+END_ARM_FUNCTION __aeabi_fcmplt
