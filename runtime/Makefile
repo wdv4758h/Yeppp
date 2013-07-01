@@ -42,10 +42,10 @@ x64-linux-k1om-default: AS=x86_64-k1om-linux-as
 x64-macosx-sysv-default: AS=nasm
 mips-linux-o32-android: AS=mipsel-linux-android-as
 
-arm-linux-softeabi-androidv7a: ASFLAGS=-Isources/arm --noexecstack
-arm-linux-softeabi-android: ASFLAGS=-Isources/arm --noexecstack
-arm-linux-hardeabi-v7a: ASFLAGS=-Isources/arm --noexecstack
-arm-linux-softeabi-v5t: ASFLAGS=-Isources/arm --noexecstack
+arm-linux-softeabi-androidv7a: ASFLAGS=-Isources/arm --noexecstack -march=armv7-a
+arm-linux-softeabi-android: ASFLAGS=-Isources/arm --noexecstack -march=armv5te
+arm-linux-hardeabi-v7a: ASFLAGS=-Isources/arm --noexecstack -march=armv7-a
+arm-linux-softeabi-v5t: ASFLAGS=-Isources/arm --noexecstack -march=armv5t
 x86-linux-pic-android: ASFLAGS=-f elf32
 x86-linux-pic-i586: ASFLAGS=-f elf32
 x86-macosx-pic-default: ASFLAGS=-f macho32
@@ -156,7 +156,15 @@ arm-linux-softeabi-android:
 
 	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpge.asm -o binaries/arm-linux-softeabi-android/aeabi_fcmpge.o
 
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpgt.asm -o binaries/arm-linux-softeabi-android/aeabi_fcmpgt.o
+
 	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmple.asm -o binaries/arm-linux-softeabi-android/aeabi_fcmple.o
+
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmplt.asm -o binaries/arm-linux-softeabi-android/aeabi_fcmplt.o
+
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpeq.asm -o binaries/arm-linux-softeabi-android/aeabi_fcmpeq.o
+
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpne.asm -o binaries/arm-linux-softeabi-android/aeabi_fcmpne.o
 
 	$(AS) $(ASFLAGS) sources/arm/aeabi_ul2d.asm -o binaries/arm-linux-softeabi-android/aeabi_ul2d.o
 
@@ -254,7 +262,15 @@ arm-linux-softeabi-v5t:
 
 	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpge.asm -o binaries/arm-linux-softeabi-v5t/aeabi_fcmpge.o
 
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpgt.asm -o binaries/arm-linux-softeabi-v5t/aeabi_fcmpgt.o
+
 	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmple.asm -o binaries/arm-linux-softeabi-v5t/aeabi_fcmple.o
+
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmplt.asm -o binaries/arm-linux-softeabi-v5t/aeabi_fcmplt.o
+
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpeq.asm -o binaries/arm-linux-softeabi-v5t/aeabi_fcmpeq.o
+
+	$(AS) $(ASFLAGS) sources/arm/aeabi_fcmpne.asm -o binaries/arm-linux-softeabi-v5t/aeabi_fcmpne.o
 
 	$(AS) $(ASFLAGS) sources/arm/aeabi_i2d.asm -o binaries/arm-linux-softeabi-v5t/aeabi_i2d.o
 
