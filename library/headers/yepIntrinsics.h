@@ -89,6 +89,90 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_GetLowPart_64u_32u(Yep64
 	return Yep32u(n);
 }
 
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Cast_64f_64u(Yep64f x) {
+#if defined(YEP_NVIDIA_COMPILER)
+	return __double_as_longlong(x);
+#else
+	union {
+		Yep64f float64;
+		Yep64u word64;
+	} float64_word64;
+	float64_word64.float64 = x;
+	return float64_word64.word64;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Cast_64u_64f(Yep64u x) {
+#if defined(YEP_NVIDIA_COMPILER)
+	return __longlong_as_double(x);
+#else
+	union {
+		Yep64f float64;
+		Yep64u word64;
+	} float64_word64;
+	float64_word64.word64 = x;
+	return float64_word64.float64;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Cast_32f_32u(Yep32f x) {
+#if defined(YEP_NVIDIA_COMPILER)
+	return __float_as_int(x);
+#else
+	union {
+		Yep32f float32;
+		Yep32u word32;
+	} float32_word32;
+	float32_word32.float32 = x;
+	return float32_word32.word32;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Cast_32u_32f(Yep32u x) {
+#if defined(YEP_NVIDIA_COMPILER)
+	return __int_as_float(x);
+#else
+	union {
+		Yep32f float32;
+		Yep32u word32;
+	} float32_word32;
+	float32_word32.word32 = x;
+	return float32_word32.float32;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Map_64f_64u(Yep64f x) {
+	const Yep64u signMask = 0x8000000000000000ull;
+
+	const Yep64u n = yepBuiltin_Cast_64f_64u(x);
+	const Yep64u mask = Yep64u(Yep64s(n) >> 62) >> 1;
+	return n ^ mask ^ signMask;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Map_64u_64f(Yep64u n) {
+	const Yep64u signMask = 0x8000000000000000ull;
+	
+	const Yep64u m = n ^ signMask;
+	const Yep64u mask = Yep64u(Yep64s(m) >> 62) >> 1;
+	return yepBuiltin_Cast_64u_64f(m ^ mask);
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Map_32f_32u(Yep32f x) {
+	const Yep32u signMask = 0x80000000u;
+
+	const Yep32u n = yepBuiltin_Cast_32f_32u(x);
+	const Yep32u mask = Yep32u(Yep32s(n) >> 30) >> 1;
+	return n ^ mask ^ signMask;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Map_32u_32f(Yep32u n) {
+	const Yep32u signMask = 0x80000000u;
+	
+	const Yep32u m = n ^ signMask;
+	const Yep32u mask = Yep32u(Yep32s(m) >> 30) >> 1;
+	return yepBuiltin_Cast_32u_32f(m ^ mask);
+}
+
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_ByteSwap_16u_16u(Yep16u n) {
 #if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_LINUX)
 	/* Contrary to GCC documentation, this intrinsic is not supported in gcc/clang/icc */
@@ -276,24 +360,66 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64s yepBuiltin_Min_64s64s_64s(Yep64s a,
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Min_32f32f_32f(Yep32f a, Yep32f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fminf(a, b);
-#else
+#elif defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a < b) ? a : b;
 	} else {
 		return a;
 	}
+#else
+	Yep32u au = yepBuiltin_Cast_32f_32u(a);
+	Yep32u bu = yepBuiltin_Cast_32f_32u(b);
+
+	/* Check if b is NaN */
+	const Yep32u twoBu = bu + bu;
+	if YEP_UNLIKELY(twoBu > 0xFF000000u) {
+		/* b is NaN, return a */
+		bu = au;
+	}
+
+	/* Check if a is NaN */
+	const Yep32u twoAu = au + au;
+	if YEP_UNLIKELY(twoAu > 0xFF000000u) {
+		/* a is NaN, return b */
+		au = bu;
+	}
+
+	const Yep32s as = Yep32s(au) >= 0 ? au : 0x80000000 - au;
+	const Yep32s bs = Yep32s(bu) >= 0 ? bu : 0x80000000 - bu;
+	return as < bs ? yepBuiltin_Cast_32u_32f(au) : yepBuiltin_Cast_32u_32f(bu);
 #endif
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Min_64f64f_64f(Yep64f a, Yep64f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fmin(a, b);
-#else
+#elif defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a < b) ? a : b;
 	} else {
 		return a;
 	}
+#else
+	Yep64u au = yepBuiltin_Cast_64f_64u(a);
+	Yep64u bu = yepBuiltin_Cast_64f_64u(b);
+
+	/* Check if b is NaN */
+	const Yep64u negBu = bu | 0x8000000000000000ull;
+	if YEP_UNLIKELY(negBu > 0xFFF0000000000000ull) {
+		/* b is NaN, return a */
+		bu = au;
+	}
+
+	/* Check if a is NaN */
+	const Yep64u negAu = au | 0x8000000000000000ull;
+	if YEP_UNLIKELY(negAu > 0xFFF0000000000000ull) {
+		/* a is NaN, return b */
+		au = bu;
+	}
+
+	const Yep64s as = Yep64s(au) >= 0ll ? au : 0x8000000000000000ll - au;
+	const Yep64s bs = Yep64s(bu) >= 0ll ? bu : 0x8000000000000000ll - bu;
+	return as < bs ? yepBuiltin_Cast_64u_64f(au) : yepBuiltin_Cast_64u_64f(bu);
 #endif
 }
 
@@ -332,24 +458,66 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64s yepBuiltin_Max_64s64s_64s(Yep64s a,
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Max_32f32f_32f(Yep32f a, Yep32f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fmaxf(a, b);
-#else
+#elif defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a > b) ? a : b;
 	} else {
 		return a;
 	}
+#else
+	Yep32u au = yepBuiltin_Cast_32f_32u(a);
+	Yep32u bu = yepBuiltin_Cast_32f_32u(b);
+
+	/* Check if b is NaN */
+	const Yep32u twoBu = bu + bu;
+	if YEP_UNLIKELY(twoBu > 0xFF000000u) {
+		/* b is NaN, return a */
+		bu = au;
+	}
+
+	/* Check if a is NaN */
+	const Yep32u twoAu = au + au;
+	if YEP_UNLIKELY(twoAu > 0xFF000000u) {
+		/* a is NaN, return b */
+		au = bu;
+	}
+
+	const Yep32s as = Yep32s(au) >= 0 ? au : 0x80000000 - au;
+	const Yep32s bs = Yep32s(bu) >= 0 ? bu : 0x80000000 - bu;
+	return as > bs ? yepBuiltin_Cast_32u_32f(au) : yepBuiltin_Cast_32u_32f(bu);
 #endif
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Max_64f64f_64f(Yep64f a, Yep64f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fmax(a, b);
-#else
+#elif defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a > b) ? a : b;
 	} else {
 		return a;
 	}
+#else
+	Yep64u au = yepBuiltin_Cast_64f_64u(a);
+	Yep64u bu = yepBuiltin_Cast_64f_64u(b);
+
+	/* Check if b is NaN */
+	const Yep64u negBu = bu | 0x8000000000000000ull;
+	if YEP_UNLIKELY(negBu > 0xFFF0000000000000ull) {
+		/* b is NaN, return a */
+		bu = au;
+	}
+
+	/* Check if a is NaN */
+	const Yep64u negAu = au | 0x8000000000000000ull;
+	if YEP_UNLIKELY(negAu > 0xFFF0000000000000ull) {
+		/* a is NaN, return b */
+		au = bu;
+	}
+
+	const Yep64s as = Yep64s(au) >= 0ll ? au : 0x8000000000000000ll - au;
+	const Yep64s bs = Yep64s(bu) >= 0ll ? bu : 0x8000000000000000ll - bu;
+	return as > bs ? yepBuiltin_Cast_64u_64f(au) : yepBuiltin_Cast_64u_64f(bu);
 #endif
 }
 
@@ -413,90 +581,6 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_NaN_64f() {
 	const static Yep64f zero = 0.0;
 	return zero / zero;
 #endif
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Cast_64f_64u(Yep64f x) {
-#if defined(YEP_NVIDIA_COMPILER)
-	return __double_as_longlong(x);
-#else
-	union {
-		Yep64f float64;
-		Yep64u word64;
-	} float64_word64;
-	float64_word64.float64 = x;
-	return float64_word64.word64;
-#endif
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Cast_64u_64f(Yep64u x) {
-#if defined(YEP_NVIDIA_COMPILER)
-	return __longlong_as_double(x);
-#else
-	union {
-		Yep64f float64;
-		Yep64u word64;
-	} float64_word64;
-	float64_word64.word64 = x;
-	return float64_word64.float64;
-#endif
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Cast_32f_32u(Yep32f x) {
-#if defined(YEP_NVIDIA_COMPILER)
-	return __float_as_int(x);
-#else
-	union {
-		Yep32f float32;
-		Yep32u word32;
-	} float32_word32;
-	float32_word32.float32 = x;
-	return float32_word32.word32;
-#endif
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Cast_32u_32f(Yep32u x) {
-#if defined(YEP_NVIDIA_COMPILER)
-	return __int_as_float(x);
-#else
-	union {
-		Yep32f float32;
-		Yep32u word32;
-	} float32_word32;
-	float32_word32.word32 = x;
-	return float32_word32.float32;
-#endif
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Map_64f_64u(Yep64f x) {
-	const Yep64u signMask = 0x8000000000000000ull;
-
-	const Yep64u n = yepBuiltin_Cast_64f_64u(x);
-	const Yep64u mask = Yep64u(Yep64s(n) >> 62) >> 1;
-	return n ^ mask ^ signMask;
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Map_64u_64f(Yep64u n) {
-	const Yep64u signMask = 0x8000000000000000ull;
-	
-	const Yep64u m = n ^ signMask;
-	const Yep64u mask = Yep64u(Yep64s(m) >> 62) >> 1;
-	return yepBuiltin_Cast_64u_64f(m ^ mask);
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Map_32f_32u(Yep32f x) {
-	const Yep32u signMask = 0x80000000u;
-
-	const Yep32u n = yepBuiltin_Cast_32f_32u(x);
-	const Yep32u mask = Yep32u(Yep32s(n) >> 30) >> 1;
-	return n ^ mask ^ signMask;
-}
-
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Map_32u_32f(Yep32u n) {
-	const Yep32u signMask = 0x80000000u;
-	
-	const Yep32u m = n ^ signMask;
-	const Yep32u mask = Yep32u(Yep32s(m) >> 30) >> 1;
-	return yepBuiltin_Cast_32u_32f(m ^ mask);
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Nlz_64u_32u(Yep64u x) {
