@@ -360,6 +360,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64s yepBuiltin_Min_64s64s_64s(Yep64s a,
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Min_32f32f_32f(Yep32f a, Yep32f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fminf(a, b);
+#elif defined(YEP_COMPILER_SUPPORTS_X86_SSE_EXTENSION) && defined(YEP_CPU_SUPPORTS_X86_SSE_EXTENSION)
+	return _mm_cvtss_f32(_mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)));
 #elif defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a < b) ? a : b;
@@ -393,6 +395,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Min_32f32f_32f(Yep32f a,
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Min_64f64f_64f(Yep64f a, Yep64f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fmin(a, b);
+#elif defined(YEP_COMPILER_SUPPORTS_X86_SSE2_EXTENSION) && defined(YEP_CPU_SUPPORTS_X86_SSE2_EXTENSION)
+	return _mm_cvtsd_f64(_mm_min_sd(_mm_set_sd(a), _mm_set_sd(b)));
 #elif defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a < b) ? a : b;
@@ -458,6 +462,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64s yepBuiltin_Max_64s64s_64s(Yep64s a,
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Max_32f32f_32f(Yep32f a, Yep32f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fmaxf(a, b);
+#elif defined(YEP_COMPILER_SUPPORTS_X86_SSE_EXTENSION) && defined(YEP_CPU_SUPPORTS_X86_SSE_EXTENSION)
+	return _mm_cvtss_f32(_mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)));
 #elif defined(YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a > b) ? a : b;
@@ -491,6 +497,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Max_32f32f_32f(Yep32f a,
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Max_64f64f_64f(Yep64f a, Yep64f b) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return fmax(a, b);
+#elif defined(YEP_COMPILER_SUPPORTS_X86_SSE2_EXTENSION) && defined(YEP_CPU_SUPPORTS_X86_SSE2_EXTENSION)
+	return _mm_cvtsd_f64(_mm_max_sd(_mm_set_sd(a), _mm_set_sd(b)));
 #elif defined(YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS)
 	if YEP_LIKELY(b == b) {
 		return (a > b) ? a : b;
