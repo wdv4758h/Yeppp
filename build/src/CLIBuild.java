@@ -144,8 +144,9 @@ public class CLIBuild {
 			case X64_SystemV:
 				return Pattern.compile(".+\\.x64\\-sysv\\.asm");
 			case ARM_SoftEABI:
+				return Pattern.compile(".+\\.arm(?:\\-softeabi)?\\.asm");
 			case ARM_HardEABI:
-				return Pattern.compile(".+\\.arm\\.asm");
+				return Pattern.compile(".+\\.arm(?:\\-hardeabi)?\\.asm");
 			case MIPS_O32:
 				return Pattern.compile(".+\\.mips\\.asm");
 			default:
@@ -179,6 +180,10 @@ public class CLIBuild {
 			}
 			if (sourcePath.equals("library/CpuLinux.cpp") && !operatingSystem.equals(OperatingSystem.Linux)) {
 				continue;
+			}
+			if (sourcePath.equals("library/CpuMacOSX.cpp") && !operatingSystem.equals(OperatingSystem.MacOSX)) {
+				continue;
+
 			}
 			if (sourcePath.equals("library/Unsafe.cpp") && !operatingSystem.equals(OperatingSystem.Linux)) {
 				continue;
