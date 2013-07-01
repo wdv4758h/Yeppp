@@ -9,6 +9,7 @@ import yeppp.module
 
 import yeppp.library.math.x86
 import yeppp.library.math.x64
+import yeppp.library.math.arm
 
 def generate_log(module):
 	with yeppp.module.Function(module, 'Log', 'Natural logarithm') as function:
@@ -180,7 +181,9 @@ def generate_evaluate_polynomial(module):
 		function.assembly_implementations = [yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_SSE,
 											 yeppp.library.math.x64.EvaluatePolynomial_V64fV64f_V64f_Bonnell,
 											 yeppp.library.math.x64.EvaluatePolynomial_V32fV32f_V32f_Bonnell,
-											 yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_AVX]
+											 yeppp.library.math.x64.EvaluatePolynomial_VfVf_Vf_AVX,
+											 yeppp.library.math.arm.EvaluatePolynomial_V32fV32f_V32f,
+											 yeppp.library.math.arm.EvaluatePolynomial_V64fV64f_V64f]
 
 		function.c_documentation = """
 @brief	Evaluates polynomial with %(InputType0)s coefficients on an array of %(InputType0)s elements.

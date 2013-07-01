@@ -416,7 +416,10 @@ class FunctionSpecialization:
 						self.csharp_safe_arguments = [csharp_safe_argument for argument in self.arguments for csharp_safe_argument in argument.csharp_safe_arguments if not argument.is_return_argument]
 
 	def generate_assembly_implementation(self, assembler, assembly_implementation):
-		assembly_implementation(assembler, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments)
+		try:
+			assembly_implementation(assembler, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments, error_diagnostics_mode = False)
+		except peachpy.RegisterAllocationError:
+			assembly_implementation(assembler, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments, error_diagnostics_mode = True)
 		self.assembly_functions[assembler.abi.name] = assembler.find_functions(self.c_function_signature)
 
 	def generate_public_header(self, public_header_generator, default_documentation):
@@ -458,6 +461,10 @@ class FunctionSpecialization:
 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
 					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
 					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
+				for assembly_function in sorted(self.assembly_functions['arm-softeabi'], key = lambda function: function.target.microarchitecture.get_number()):
+					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
+					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.arm.supported_isa_extensions.index(isa_extension))
+					documentation_lines.append("\t\t\t<tr><td>ARM</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
 				documentation_lines.append("\t\t</table>")
 			public_header_generator.add_c_comment(documentation_lines, doxygen = True)			
 		public_header_generator.add_line("YEP_PUBLIC_SYMBOL enum YepStatus YEPABI {0}({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
@@ -473,10 +480,12 @@ class FunctionSpecialization:
 	def generate_dispatch_table(self, dispatch_table_generator):
 		unnamed_arguments_list = [argument.get_type().format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") for argument in self.c_public_arguments] 
 		named_arguments_list = [argument.format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") for argument in self.c_public_arguments] 
-		yeppp_abi_list = [('x86',      'YEP_X86_ABI'),
-						  ('x64-ms',   'YEP_MICROSOFT_X64_ABI'),
-						  ('x64-sysv', 'YEP_SYSTEMV_X64_ABI'),
-						  ('x64-k1om', 'YEP_K1OM_X64_ABI')]
+		yeppp_abi_list = [('x86',          'YEP_X86_ABI'),
+						  ('x64-ms',       'YEP_MICROSOFT_X64_ABI'),
+						  ('x64-sysv',     'YEP_SYSTEMV_X64_ABI'),
+						  ('x64-k1om',     'YEP_K1OM_X64_ABI'),
+						  ('arm-softeabi', 'YEP_SOFTEABI_ARM_ABI'),
+						  ('arm-hardeabi', 'YEP_HARDEABI_ARM_ABI')]
 
 		dispatch_table_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI _{0}_Default({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
 		for (abi_name, abi_test_macro) in yeppp_abi_list:
@@ -833,6 +842,7 @@ class FunctionGenerator:
 	def generate_group_prolog(self, module_name, group_name, group_comment, header_license, source_license):
 		from peachpy import x86
 		from peachpy import x64
+		from peachpy import arm
 
 		self.dispatch_table_header_generator = peachpy.codegen.CodeGenerator()
 		self.dispatch_table_header_generator.add_c_comment(source_license)
@@ -904,11 +914,36 @@ class FunctionGenerator:
 		self.assembly_implementation_generators = [
 # 			x86.Assembler(peachpy.c.ABI('x86')),
 			x64.Assembler(peachpy.c.ABI('x64-ms')),
-			x64.Assembler(peachpy.c.ABI('x64-sysv'))
+			x64.Assembler(peachpy.c.ABI('x64-sysv')),
+			arm.Assembler(peachpy.c.ABI('arm-softeabi')),
+			arm.Assembler(peachpy.c.ABI('arm-hardeabi'))
 		]
 		for assembly_implementation_generator in self.assembly_implementation_generators:
 			assembly_implementation_generator.add_assembly_comment(source_license)
 			assembly_implementation_generator.add_line()
+			if assembly_implementation_generator.abi.get_name() in ['arm-hardeabi', 'arm-softeabi']:
+				assembly_implementation_generator.add_line(".macro BEGIN_ARM_FUNCTION name")
+				assembly_implementation_generator.indent()
+				assembly_implementation_generator.add_line(".arm")
+				assembly_implementation_generator.add_line(".globl \\name")
+				assembly_implementation_generator.add_line(".align 2")
+				assembly_implementation_generator.add_line(".func \\name")
+				assembly_implementation_generator.add_line(".internal \\name")
+				assembly_implementation_generator.add_line("\\name:")
+				assembly_implementation_generator.dedent()
+				assembly_implementation_generator.add_line(".endm")
+				
+				assembly_implementation_generator.add_line()
+				
+				assembly_implementation_generator.add_line(".macro END_ARM_FUNCTION name")
+				assembly_implementation_generator.indent()
+				assembly_implementation_generator.add_line(".endfunc")
+				assembly_implementation_generator.add_line(".type \\name, %function")
+				assembly_implementation_generator.add_line(".size \\name, .-\\name")
+				assembly_implementation_generator.dedent()
+				assembly_implementation_generator.add_line(".endm")
+				
+				assembly_implementation_generator.add_line()
 
 		self.jni_implementation_generator = peachpy.codegen.CodeGenerator()
 		self.jni_implementation_generator.add_c_comment(source_license)
