@@ -40,14 +40,17 @@
 #include <yepTypes.h>
 #include <math.h>
 
-#if defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#include <intrin.h>
+#endif
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) && (defined(YEP_X86_CPU) || defined(YEP_X64_CPU))
+	#include <x86intrin.h>
 #endif
 
 YEP_NATIVE_FUNCTION static YEP_INLINE void yepBuiltin_Break() {
-#if defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	__debugbreak();
-#elif defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_UNIX) || defined(YEP_NVIDIA_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_NVIDIA_COMPILER)
 	__builtin_trap();
 #else
 	#error "Unsupported compiler"
@@ -55,7 +58,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE void yepBuiltin_Break() {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE void yepBuiltin_AssumeUnreachable() {
-#if defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	__assume(0);
 #elif defined(YEP_GNU_COMPILER)
 	/* Supported since in gcc 4.5 */
