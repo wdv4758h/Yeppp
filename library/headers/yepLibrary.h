@@ -581,12 +581,20 @@ extern "C" {
 	 * @ingroup yepLibrary
 	 * @defgroup yepLibrary_ToString	String representation for enumeration values
 	 */
-
+	/** @ingroup	yepLibrary_ToString */
+	/** @brief	Returns the #YepEnumeration value corresponding to ISA features of the given architecture */
+	/** @see	YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE, YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE, YepEnumeration */
 	#define YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architecture) (256 + (architecture))
+	/** @ingroup	yepLibrary_ToString */
+	/** @brief	Returns the #YepEnumeration value corresponding to SIMD features of the given architecture */
+	/** @see	YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE, YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE, YepEnumeration */
 	#define YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architecture) (512 + (architecture))
+	/** @ingroup	yepLibrary_ToString */
+	/** @brief	Returns the #YepEnumeration value corresponding to non-ISA or system features of the given architecture */
+	/** @see	YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE, YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE, YepEnumeration */
 	#define YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architecture) (768 + (architecture))
 	/** @ingroup	yepLibrary_ToString */
-	/** @brief	Indicates how to interpret integer value from one of @Yeppp enumerations. */
+	/** @brief	Indicates how to interpret integer value of @Yeppp enumeration. */
 	/** @see	yepLibrary_GetString */
 	enum YepEnumeration {
 		/** @brief	The enumeration type is #YepStatus */
