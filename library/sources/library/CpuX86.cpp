@@ -192,6 +192,8 @@
 								microarchitecture = YepCpuMicroarchitectureSaltwell;
 								break;
 							case 0x37:
+							case 0x4A:
+							case 0x4D:
 								microarchitecture = YepCpuMicroarchitectureSilvermont;
 								break;
 							case 0x1A: // Core iX (Bloomfield), Xeon (Gainestown)
@@ -212,8 +214,9 @@
 								microarchitecture = YepCpuMicroarchitectureIvyBridge;
 								break;
 							case 0x3C:
-							case 0x45:
-							case 0x46:
+							case 0x3F: // Haswell-E
+							case 0x45: // Haswell ULT
+							case 0x46: // Haswell with eDRAM
 								microarchitecture = YepCpuMicroarchitectureHaswell;
 								break;
 						}
