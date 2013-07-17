@@ -77,6 +77,30 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_Init_V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, const Yep32u seed[32]);
 	/**
 	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 8-bit samples with WELL1024a pseudo-random number generator.
+	 * @details	Each 8-bit number is generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	The @a state pointer is not naturally aligned.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V8u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep8u *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 16-bit samples with WELL1024a pseudo-random number generator.
+	 * @details	Each 16-bit number is generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V16u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep16u *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random 32-bit samples with WELL1024a pseudo-random number generator.
 	 * @details	Each 32-bit number is generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
@@ -87,6 +111,18 @@ extern "C" {
 	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 64-bit samples with WELL1024a pseudo-random number generator.
+	 * @details	Each 64-bit number is generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V64u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64u *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random 32-bit samples in the specified range with WELL1024a pseudo-random number generator.
