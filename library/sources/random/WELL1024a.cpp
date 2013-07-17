@@ -47,6 +47,69 @@ YepStatus YEPABI yepRandom_WELL1024a_Init_V32u(YepRandom_WELL1024a *YEP_RESTRICT
 	return YepStatusOk;
 }
 
+YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V8u(YepRandom_WELL1024a *YEP_RESTRICT rng, Yep8u *YEP_RESTRICT samples, YepSize length) {
+	if YEP_UNLIKELY(rng == YEP_NULL_POINTER) {
+		return YepStatusNullPointer;
+	}
+	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
+		return YepStatusNullPointer;
+	}
+	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
+		return YepStatusMisalignedPointer;
+	}
+
+	Yep32u index = rng->index;
+	while (length-- != 0) {
+		const Yep32u newIndex = (index - 1) % 32u;
+		const Yep32u vm1 = rng->state[(index + 3) % 32u];
+		const Yep32u vm2 = rng->state[(index + 24) % 32u];
+		const Yep32u vm3 = rng->state[(index + 10) % 32u];
+		const Yep32u z0 = rng->state[newIndex];
+		const Yep32u z1 = rng->state[index] ^ vm1 ^ (vm1 >> 8);
+		const Yep32u z2 = vm2 ^ (vm2 << 19) ^ vm3 ^ (vm3 << 14);
+		const Yep32u sample = z0 ^ (z0 << 11) ^ z1 ^ (z1 << 7) ^ z2 ^ (z2 << 13);
+		rng->state[index] = z1 ^ z2;
+		rng->state[newIndex] = sample;
+		index = newIndex;
+		*samples++ = Yep8u(sample ^ (sample >> 8) ^ (sample >> 16) ^ (sample >> 24));
+	}
+	rng->index = index;
+	return YepStatusOk;
+}
+
+YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V16u(YepRandom_WELL1024a *YEP_RESTRICT rng, Yep16u *YEP_RESTRICT samples, YepSize length) {
+	if YEP_UNLIKELY(rng == YEP_NULL_POINTER) {
+		return YepStatusNullPointer;
+	}
+	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
+		return YepStatusNullPointer;
+	}
+	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
+		return YepStatusMisalignedPointer;
+	}
+	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep16u)) != 0) {
+		return YepStatusMisalignedPointer;
+	}
+
+	Yep32u index = rng->index;
+	while (length-- != 0) {
+		const Yep32u newIndex = (index - 1) % 32u;
+		const Yep32u vm1 = rng->state[(index + 3) % 32u];
+		const Yep32u vm2 = rng->state[(index + 24) % 32u];
+		const Yep32u vm3 = rng->state[(index + 10) % 32u];
+		const Yep32u z0 = rng->state[newIndex];
+		const Yep32u z1 = rng->state[index] ^ vm1 ^ (vm1 >> 8);
+		const Yep32u z2 = vm2 ^ (vm2 << 19) ^ vm3 ^ (vm3 << 14);
+		const Yep32u sample = z0 ^ (z0 << 11) ^ z1 ^ (z1 << 7) ^ z2 ^ (z2 << 13);
+		rng->state[index] = z1 ^ z2;
+		rng->state[newIndex] = sample;
+		index = newIndex;
+		*samples++ = Yep16u(sample ^ (sample >> 16));
+	}
+	rng->index = index;
+	return YepStatusOk;
+}
+
 YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(YepRandom_WELL1024a *YEP_RESTRICT rng, Yep32u *YEP_RESTRICT samples, YepSize length) {
 	if YEP_UNLIKELY(rng == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
@@ -74,6 +137,56 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(YepRandom_WEL
 		rng->state[index] = z1 ^ z2;
 		rng->state[newIndex] = sample;
 		index = newIndex;
+		*samples++ = sample;
+	}
+	rng->index = index;
+	return YepStatusOk;
+}
+
+YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V64u(YepRandom_WELL1024a *YEP_RESTRICT rng, Yep64u *YEP_RESTRICT samples, YepSize length) {
+	if YEP_UNLIKELY(rng == YEP_NULL_POINTER) {
+		return YepStatusNullPointer;
+	}
+	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
+		return YepStatusNullPointer;
+	}
+	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
+		return YepStatusMisalignedPointer;
+	}
+	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64u)) != 0) {
+		return YepStatusMisalignedPointer;
+	}
+
+	Yep32u index = rng->index;
+	while (length-- != 0) {
+		const Yep32u newIndexLow = (index - 1) % 32u;
+		const Yep32u newIndexHigh = (index - 2) % 32u;
+
+		const Yep32u vm1High = rng->state[(index + 2) % 32u];
+		const Yep32u vm1Low = rng->state[(index + 3) % 32u];
+		const Yep32u vm2High = rng->state[(index + 23) % 32u];
+		const Yep32u vm2Low = rng->state[(index + 24) % 32u];
+		const Yep32u vm3High = rng->state[(index + 9) % 32u];
+		const Yep32u vm3Low = rng->state[(index + 10) % 32u];
+
+		const Yep32u z0High = rng->state[newIndexHigh];
+		const Yep32u z0Low = rng->state[newIndexLow];
+
+		const Yep32u z2Low = vm2Low ^ (vm2Low << 19) ^ vm3Low ^ (vm3Low << 14);
+		const Yep32u z2High = vm2High ^ (vm2High << 19) ^ vm3High ^ (vm3High << 14);
+
+		const Yep32u z1Low = rng->state[index] ^ vm1Low ^ (vm1Low >> 8);
+		const Yep32u sampleLow = z0Low ^ (z0Low << 11) ^ z1Low ^ (z1Low << 7) ^ z2Low ^ (z2Low << 13);
+
+		const Yep32u z1High = sampleLow ^ vm1High ^ (vm1High >> 8);
+		const Yep32u sampleHigh = z0High ^ (z0High << 11) ^ z1High ^ (z1High << 7) ^ z2High ^ (z2High << 13);
+
+		rng->state[index] = z1Low ^ z2Low;
+		rng->state[newIndexLow] = z1High^ z2High;
+		rng->state[newIndexHigh] = sampleHigh;
+		index = newIndexHigh;
+
+		const Yep64u sample = yepBuiltin_CombineParts_32u32u_64u(sampleHigh, sampleLow);
 		*samples++ = sample;
 	}
 	rng->index = index;
