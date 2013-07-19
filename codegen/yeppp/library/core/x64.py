@@ -228,9 +228,9 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 							instruction_columns = [InstructionStream() for _ in range(10)] 
 							for i in range(unroll_registers):
 								with instruction_columns[0]:
-									MOVQ( x[i], [xPointer + i * register_size] )
+									MOVQ( x[i], [xPointer + i * load_increment] )
 								with instruction_columns[1]:
-									MOVQ( y[i], [yPointer + i * register_size] )
+									MOVQ( y[i], [yPointer + i * load_increment] )
 								with instruction_columns[2]:
 									LOAD.ZERO( x_hi[i], input_type )
 								with instruction_columns[3]:
@@ -251,7 +251,7 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 								ADD( xPointer, load_increment * unroll_registers )
 							with instruction_columns[1]:
 								ADD( yPointer, load_increment * unroll_registers )
-							with instruction_columns[5]:
+							with instruction_columns[9]:
 								ADD( zPointer, register_size * unroll_registers )
 	
 						PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
