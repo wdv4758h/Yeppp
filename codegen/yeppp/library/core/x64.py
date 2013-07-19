@@ -989,8 +989,8 @@ def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scal
 	batch_bytes       = sum(register.get_size() for register in accumulators)
 	batch_elements    = batch_bytes / ctype.get_size()
 	
-	source_y_aligned          = Label("source_y_%sb_aligned" % max_register_size)
-	source_y_misaligned       = Label("source_y_%sb_misaligned" % max_register_size)
+	source_aligned            = Label("source_%sb_aligned" % max_register_size)
+	source_misaligned         = Label("source_%sb_misaligned" % max_register_size)
 	return_ok                 = Label("return_ok")
 	return_null_pointer       = Label("return_null_pointer")
 	return_misaligned_pointer = Label("return_misaligned_pointer")
@@ -1024,20 +1024,20 @@ def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scal
 		LOAD.ZERO( accumulator, ctype )
 
 	# If the y pointer is not aligned by register size, process by one element until it becomes aligned
-	TEST( yPointer, max_register_size - 1 )
-	JZ( source_y_aligned )
+	TEST( xPointer, max_register_size - 1 )
+	JZ( source_aligned )
 
-	LABEL( source_y_misaligned )
+	LABEL( source_misaligned )
 	scalar_function(accumulators[0], xPointer)
 	ADD( xPointer, ctype.get_size() )
-	ADD( yPointer, ctype.get_size() )
+	ADD( xPointer, ctype.get_size() )
 	SUB( length, 1 )
 	JZ( reduce_batch )
 
-	TEST( yPointer, max_register_size - 1 )
-	JNZ( source_y_misaligned )
+	TEST( xPointer, max_register_size - 1 )
+	JNZ( source_misaligned )
 
-	LABEL( source_y_aligned )
+	LABEL( source_aligned )
 	SUB( length, batch_elements )
 	JB( batch_process_finish )
 
