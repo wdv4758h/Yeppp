@@ -1497,7 +1497,7 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 						with instruction_columns[0]:
 							SIMD_LOAD( temp[i], [xPointer + offset])
 						with instruction_columns[1]:
-							SIMD_FMA4( acc[i], temp[i], [yPointer + offset], acc[i] )
+							SIMD_FMA4( acc[i], temp[i], temp[i], acc[i] )
 						offset += acc[i].get_size()
 					with instruction_columns[0]:
 						ADD( xPointer, sum(register.get_size() for register in acc) )
@@ -1518,7 +1518,7 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 						with instruction_columns[0]:
 							SIMD_LOAD( temp[i], [xPointer + i * register_size] )
 						with instruction_columns[1]:
-							SIMD_FMA3( acc[i], temp[i], [yPointer + i * register_size], acc[i] )
+							SIMD_FMA3( acc[i], temp[i], temp[i], acc[i] )
 					with instruction_columns[0]:
 						ADD( xPointer, register_size * unroll_registers )
 
