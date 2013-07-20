@@ -571,48 +571,13 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 						with instruction_columns[8]:
 							MOVDQA( [zPointer + i * register_size * 2], x[i] )
 						with instruction_columns[9]:
-							MOVDQA( [zPointer + i * register_size * 2 + 16], t[i] )
+							MOVDQA( [zPointer + i * register_size * 2 + register_size], t[i] )
 					with instruction_columns[0]:
 						ADD( xPointer, register_size * unroll_registers )
 					with instruction_columns[1]:
 						ADD( yPointer, register_size * unroll_registers )
 					with instruction_columns[9]:
 						ADD( zPointer, register_size * unroll_registers * 2 )
-
-					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
-
-				SIMD_MUL  = VPMULLD
-				SIMD_LOAD = VPMOVSXWD if z_type.is_signed_integer() else VPMOVZXWD
-
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
-					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
-					
-					unroll_registers = 5
-					register_size    = 16
-					load_increment   = 8
-					batch_elements   = unroll_registers * register_size / output_type.get_size()
-
-					x = [SSERegister() for _ in range(unroll_registers)]
-					y = [SSERegister() for _ in range(unroll_registers)]
-					z = [SSERegister() for _ in range(unroll_registers)]
-
-					instruction_offsets = (0, 0, 2, 4)
-					instruction_columns = [InstructionStream() for _ in range(4)] 
-					for i in range(unroll_registers):
-						with instruction_columns[0]:
-							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
-						with instruction_columns[1]:
-							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
-						with instruction_columns[2]:
-							SIMD_MUL( z[i], x[i], y[i] )
-						with instruction_columns[3]:
-							VMOVDQA( [zPointer + i * register_size], z[i] )
-					with instruction_columns[0]:
-						ADD( xPointer, load_increment * unroll_registers )
-					with instruction_columns[1]:
-						ADD( yPointer, load_increment * unroll_registers )
-					with instruction_columns[3]:
-						ADD( zPointer, register_size * unroll_registers )
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
@@ -661,45 +626,70 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
+				SIMD_MUL  = VPMULLD
+				SIMD_LOAD = VPMOVSXWD if z_type.is_signed_integer() else VPMOVZXWD
+
+				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 5
+					register_size    = 16
+					load_increment   = 8
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					x = [SSERegister() for _ in range(unroll_registers)]
+					y = [SSERegister() for _ in range(unroll_registers)]
+					z = [SSERegister() for _ in range(unroll_registers)]
+
+					instruction_offsets = (0, 0, 2, 4)
+					instruction_columns = [InstructionStream() for _ in range(4)] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
+						with instruction_columns[2]:
+							SIMD_MUL( z[i], x[i], y[i] )
+						with instruction_columns[3]:
+							VMOVDQA( [zPointer + i * register_size], z[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[1]:
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
 				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
-					unroll_registers = 3
+					unroll_registers = 5
 					register_size    = 32
-					batch_elements   = unroll_registers * register_size / input_type.get_size()
+					load_increment   = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
 
-					x       = [AVXRegister() for _ in range(unroll_registers)]
-					y       = [AVXRegister() for _ in range(unroll_registers)]
-					prod_lo = [AVXRegister() for _ in range(unroll_registers)]
-					prod_hi = [AVXRegister() for _ in range(unroll_registers)]
-					z_lo    = [AVXRegister() for _ in range(unroll_registers)]
-					z_hi    = [AVXRegister() for _ in range(unroll_registers)]
+					x = [AVXRegister() for _ in range(unroll_registers)]
+					y = [AVXRegister() for _ in range(unroll_registers)]
+					z = [AVXRegister() for _ in range(unroll_registers)]
 
-					instruction_offsets = (0, 0, 1, 1, 2, 2, 2, 2)
-					instruction_columns = [InstructionStream() for _ in range(8)] 
+					instruction_offsets = (0, 0, 2, 4)
+					instruction_columns = [InstructionStream() for _ in range(4)] 
 					for i in range(unroll_registers):
 						with instruction_columns[0]:
-							VMOVDQU( x[i], [xPointer + i * register_size] )
+							SIMD_LOAD( x[i], [xPointer + i * load_increment] )
 						with instruction_columns[1]:
-							VMOVDQU( y[i], [yPointer + i * register_size] )
+							SIMD_LOAD( y[i], [yPointer + i * load_increment] )
 						with instruction_columns[2]:
-							SIMD_MUL_LO( prod_lo[i], x[i], y[i] )
+							SIMD_MUL( z[i], x[i], y[i] )
 						with instruction_columns[3]:
-							SIMD_MUL_HI( prod_hi[i], x[i], y[i] )
-						with instruction_columns[4]:
-							VPUNPCKLWD( z_lo[i], prod_lo[i], prod_hi[i] )
-						with instruction_columns[5]:
-							VPUNPCKHWD( z_hi[i], prod_lo[i], prod_hi[i] )
-						with instruction_columns[6]:
-							VMOVDQA( [zPointer + i * register_size * 2], z_lo[i] )
-						with instruction_columns[7]:
-							VMOVDQA( [zPointer + i * register_size * 2 + 16], z_hi[i] )
+							VMOVDQA( [zPointer + i * register_size], z[i] )
 					with instruction_columns[0]:
-						ADD( xPointer, register_size * unroll_registers )
+						ADD( xPointer, load_increment * unroll_registers )
 					with instruction_columns[1]:
-						ADD( yPointer, register_size * unroll_registers )
-					with instruction_columns[7]:
-						ADD( zPointer, register_size * unroll_registers * 2 )
+						ADD( yPointer, load_increment * unroll_registers )
+					with instruction_columns[3]:
+						ADD( zPointer, register_size * unroll_registers )
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
