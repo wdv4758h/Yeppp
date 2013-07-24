@@ -58,6 +58,14 @@ public class X86CpuSimdFeature extends CpuSimdFeature {
 	public static final X86CpuSimdFeature KNF               = new X86CpuSimdFeature(20);
 	/** @brief Knights Corner (aka Xeon Phi) instruction set. */
 	public static final X86CpuSimdFeature KNÑ               = new X86CpuSimdFeature(21);
+	/** @brief AVX-512 Foundation instruction set. */
+	public static final X86CpuSimdFeature AVX512F           = new X86CpuSimdFeature(22);
+	/** @brief AVX-512 Conflict Detection instruction set. */
+	public static final X86CpuSimdFeature AVX512CD          = new X86CpuSimdFeature(23);
+	/** @brief AVX-512 Exponential and Reciprocal instruction set. */
+	public static final X86CpuSimdFeature AVX512ER          = new X86CpuSimdFeature(24);
+	/** @brief AVX-512 Prefetch instruction set. */
+	public static final X86CpuSimdFeature AVX512PF          = new X86CpuSimdFeature(25);
 
 	protected X86CpuSimdFeature(int id) {
 		super(id, CpuArchitecture.X86.getId());

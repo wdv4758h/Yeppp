@@ -747,6 +747,8 @@ extern "C" {
 	const Yep64u YepX86IsaFeatureXtest        = 0x0000000400000000ull;
 	const Yep64u YepX86IsaFeatureRdseed       = 0x0000000800000000ull;
 	const Yep64u YepX86IsaFeatureADX          = 0x0000001000000000ull;
+	const Yep64u YepX86IsaFeatureSHA          = 0x0000002000000000ull;
+	const Yep64u YepX86IsaFeatureMPX          = 0x0000004000000000ull;
 #else
 	/** @anchor	x86_ISA_Extensions
 	 *  @name	x86 and x86-64 ISA Extensions
@@ -863,6 +865,12 @@ extern "C" {
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief ADCX and ADOX instructions. */
 	#define YepX86IsaFeatureADX                   0x0000001000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief SHA instruction set. */
+	#define YepX86IsaFeatureSHA                   0x0000002000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Memory Protection Extension. */
+	#define YepX86IsaFeatureMPX                   0x0000004000000000ull
 	/**@}*/
 #endif
 
@@ -889,6 +897,10 @@ extern "C" {
 	const Yep64u YepX86SimdFeatureFMA4                 = 0x0000000000080000ull;
 	const Yep64u YepX86SimdFeatureKNF                  = 0x0000000000100000ull;
 	const Yep64u YepX86SimdFeatureKNC                  = 0x0000000000200000ull;
+	const Yep64u YepX86SimdFeatureAVX512F              = 0x0000000000400000ull;
+	const Yep64u YepX86SimdFeatureAVX512CD             = 0x0000000000800000ull;
+	const Yep64u YepX86SimdFeatureAVX512ER             = 0x0000000001000000ull;
+	const Yep64u YepX86SimdFeatureAVX512PF             = 0x0000000002000000ull;
 #else
 	/** @anchor	x86_SIMD_Extensions
 	 *  @name	x86 and x86-64 SIMD Extensions
@@ -978,20 +990,33 @@ extern "C" {
 	/** @brief Knights Corner (aka Xeon Phi) instruction set. */
 	/** @see YEP_COMPILER_SUPPORTS_X86_KNC_EXTENSION */
 	#define YepX86SimdFeatureKNC                  0x0000000000200000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief AVX-512 Foundation instruction set. */
+	#define YepX86SimdFeatureAVX512F              0x0000000000400000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief AVX-512 Conflict Detection instruction set. */
+	#define YepX86SimdFeatureAVX512CD             0x0000000000800000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief AVX-512 Exponential and Reciprocal instruction set. */
+	#define YepX86SimdFeatureAVX512ER             0x0000000001000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief AVX-512 Prefetch instruction set. */
+	#define YepX86SimdFeatureAVX512PF             0x0000000002000000ull
 	/**@}*/
 #endif
 
 #ifdef __cplusplus
 	const Yep64u YepX86SystemFeatureFPU                = 0x0000000100000000ull;
-	const Yep64u YepX86SystemFeatureSSE                = 0x0000000200000000ull;
-	const Yep64u YepX86SystemFeatureAVX                = 0x0000000400000000ull;
+	const Yep64u YepX86SystemFeatureXMM                = 0x0000000200000000ull;
+	const Yep64u YepX86SystemFeatureYMM                = 0x0000000400000000ull;
 	const Yep64u YepX86SystemFeatureMisalignedSSE      = 0x0000000800000000ull;
 	const Yep64u YepX86SystemFeatureACE                = 0x0000001000000000ull;
 	const Yep64u YepX86SystemFeatureACE2               = 0x0000002000000000ull;
 	const Yep64u YepX86SystemFeatureRNG                = 0x0000004000000000ull;
 	const Yep64u YepX86SystemFeaturePHE                = 0x0000008000000000ull;
 	const Yep64u YepX86SystemFeaturePMM                = 0x0000010000000000ull;
-	const Yep64u YepX86SystemFeatureMIC                = 0x0000020000000000ull;
+	const Yep64u YepX86SystemFeatureZMM                = 0x0000020000000000ull;
+	const Yep64u YepX86SystemFeatureBND                = 0x0000040000000000ull;
 #else
 	/** @anchor	x86_CPU_and_System_Features
 	 *  @name	x86 and x86-64 CPU and System Features
@@ -1001,10 +1026,10 @@ extern "C" {
 	/** @brief The CPU has x87 FPU registers, and the operating systems preserves them during context switch. */
 	#define YepX86SystemFeatureFPU                0x0000000100000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief The CPU has SSE registers, and the operating systems preserves them during context switch. */
+	/** @brief The CPU has xmm (SSE) registers, and the operating systems preserves them during context switch. */
 	#define YepX86SystemFeatureSSE                0x0000000200000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief The CPU has AVX registers, and the operating systems preserves them during context switch. */
+	/** @brief The CPU has ymm (AVX) registers, and the operating systems preserves them during context switch. */
 	#define YepX86SystemFeatureAVX                0x0000000400000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Processor allows to use misaligned memory operands in SSE instructions other than loads and stores. */
@@ -1025,8 +1050,11 @@ extern "C" {
 	/** @brief Processor and the operating system support the Padlock Montgomery Multiplier. */
 	#define YepX86SystemFeaturePMM                0x0000010000000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief The CPU has MIC registers, and the operating system preserves them during context switch. */
-	#define YepX86SystemFeatureMIC                0x0000020000000000ull
+	/** @brief The CPU has zmm (MIC or AVX-512) registers, and the operating system preserves them during context switch. */
+	#define YepX86SystemFeatureZMM                0x0000020000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has bnd (MPX) registers, and the operating system preserves them during context switch. */
+	#define YepX86SystemFeatureBND                0x0000040000000000ull
 	/**@}*/
 #endif
 

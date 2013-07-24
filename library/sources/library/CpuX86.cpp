@@ -330,7 +330,7 @@
 		
 		#if defined(YEP_K1OM_X64_ABI)
 			simdFeatures |= YepX86SimdFeatureKNC;
-			systemFeatures |= YepX86SystemFeatureMIC;
+			systemFeatures |= YepX86SystemFeatureZMM;
 		#endif
 
 		int basicInfo[4] = { 0, 0, 0, 0 };
@@ -340,22 +340,6 @@
 		int structuredFeatureInfo[4] = { 0, 0, 0, 0 };
 		if YEP_LIKELY(maxBaseCpuidIndex >= 7u) {
 			__cpuidex(structuredFeatureInfo, 7, 0);
-			// Intel, AMD: ebx[bit 3] in structured feature info (ecx = 0).
-			if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000008u) {
-				isaFeatures |= YepX86IsaFeatureBMI;
-			}
-			// Intel: ebx[bit 8] in structured feature info (ecx = 0).
-			if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000100u) {
-				isaFeatures |= YepX86IsaFeatureBMI2;
-			}
-			// Intel: ebx[bit 18] in structured feature info (ecx = 0).
-			if YEP_LIKELY(structuredFeatureInfo[1] & 0x00040000u) {
-				isaFeatures |= YepX86IsaFeatureRdseed;
-			}
-			// Intel: ebx[bit 19] in structured feature info (ecx = 0).
-			if YEP_LIKELY(structuredFeatureInfo[1] & 0x00080000u) {
-				isaFeatures |= YepX86IsaFeatureADX;
-			}
 		}
 		int extendedInfo[4] = { 0, 0, 0, 0 };
 		if YEP_LIKELY(maxExtendedCpuidIndex >= 0x80000001u) {
@@ -499,9 +483,25 @@
 		if YEP_LIKELY(basicInfo[2] & 0x10000000u) {
 			simdFeatures |= YepX86SimdFeatureAVX;
 		}
-		// Intel: ebx[bit 5] in structured feature into.
+		// Intel: ebx[bit 5] in structured feature info.
 		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000020u) {
 			simdFeatures |= YepX86SimdFeatureAVX2;
+		}
+		// Intel: ebx[bit 16] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00010000u) {
+			simdFeatures |= YepX86SimdFeatureAVX512F;
+		}
+		// Intel: ebx[bit 26] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x04000000u) {
+			simdFeatures |= YepX86SimdFeatureAVX512PF;
+		}
+		// Intel: ebx[bit 27] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x08000000u) {
+			simdFeatures |= YepX86SimdFeatureAVX512ER;
+		}
+		// Intel: ebx[bit 28] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x10000000u) {
+			simdFeatures |= YepX86SimdFeatureAVX512CD;
 		}
 
 		// Intel: ecx[bit 12] in basic info (reserved bit on AMD CPUs).
@@ -520,6 +520,23 @@
 		// Intel, AMD: ecx[bit 29] in basic info.
 		if YEP_LIKELY(basicInfo[2] & 0x20000000u) {
 			simdFeatures |= YepX86SimdFeatureF16C;
+		}
+
+		// Intel: ebx[bit 4] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000010u) {
+			isaFeatures |= YepX86IsaFeatureHLE;
+		}
+		// Intel: ebx[bit 11] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000800u) {
+			isaFeatures |= YepX86IsaFeatureRTM;
+		}
+		// Intel: either HLE or RTM is supported.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000810u) {
+			isaFeatures |= YepX86IsaFeatureXtest;
+		}
+		// Intel: ebx[bit 14] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00004000u) {
+			isaFeatures |= YepX86IsaFeatureMPX;
 		}
 
 		// Intel, AMD: ecx[bit 26] in basic info = XSAVE.
@@ -547,16 +564,31 @@
 			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureSSE) {
 				if YEP_LIKELY(xcr0ValidBits & 0x0000000000000002ull) {
 					if YEP_LIKELY(xfeatureEnabledMask & 0x0000000000000002ull) {
-						systemFeatures |= YepX86SystemFeatureSSE;
+						systemFeatures |= YepX86SystemFeatureXMM;
 					}
 				} else {
-					systemFeatures |= YepX86SystemFeatureSSE;
+					systemFeatures |= YepX86SystemFeatureXMM;
 				}
 			}
 			// Intel, AMD: XFEATURE_ENABLED_MASK[bit 2] for AVX XSAVE
 			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureAVX) {
-				if YEP_LIKELY((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000004ull) {
-					systemFeatures |= YepX86SystemFeatureAVX;
+				if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000006ull) == 0x0000000000000006ull) {
+					systemFeatures |= YepX86SystemFeatureYMM;
+				}
+			}
+			// Intel: XFEATURE_ENABLED_MASK[bit 5] for 8 64-bit OpMask registers (k0-k7)
+			// Intel: XFEATURE_ENABLED_MASK[bit 6] for the high 256 bits of the zmm registers zmm0-zmm15
+			// Intel: XFEATURE_ENABLED_MASK[bit 7] for the 512-bit wide zmm registers zmm16-zmm31
+			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureAVX512F) {
+				if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x00000000000000E6ull) == 0x00000000000000E6ull) {
+					systemFeatures |= YepX86SystemFeatureZMM;
+				}
+			}
+			// Intel: XFEATURE_ENABLED_MASK[bit 3] for BNDREGS
+			// Intel: XFEATURE_ENABLED_MASK[bit 4] for BNDCSR
+			if YEP_LIKELY(isaFeatures & YepX86IsaFeatureMPX) {
+				if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000018ull) == 0x0000000000000018ull) {
+					systemFeatures |= YepX86SystemFeatureBND;
 				}
 			}
 		} else {
@@ -565,7 +597,7 @@
 				systemFeatures |= YepX86SystemFeatureFPU;
 			}
 			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureSSE) {
-				systemFeatures |= YepX86SystemFeatureSSE;
+				systemFeatures |= YepX86SystemFeatureXMM;
 			}
 		}
 		
@@ -622,7 +654,6 @@
 		if YEP_LIKELY(extendedInfo[2] & 0x00200000u) {
 			isaFeatures |= YepX86IsaFeatureTBM;
 		}
-
 		// Intel, AMD: ebx[bit 3] in structured feature info.
 		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000008u) {
 			isaFeatures |= YepX86IsaFeatureBMI;
@@ -630,6 +661,10 @@
 		// Intel: ebx[bit 8] in structured feature info.
 		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000100u) {
 			isaFeatures |= YepX86IsaFeatureBMI2;
+		}
+		// Intel: ebx[bit 19] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00080000u) {
+			isaFeatures |= YepX86IsaFeatureADX;
 		}
 
 		// Intel: ecx[bit 25] in basic info (reserved bit on AMD CPUs).
@@ -643,6 +678,14 @@
 		// Intel: ecx[bit 30] in basic info (reserved bit on AMD CPUs).
 		if YEP_LIKELY(basicInfo[2] & 0x40000000u) {
 			isaFeatures |= YepX86IsaFeatureRdrand;
+		}
+		// Intel: ebx[bit 18] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00040000u) {
+			isaFeatures |= YepX86IsaFeatureRdseed;
+		}
+		// Intel: ebx[bit 29] in structured feature info.
+		if YEP_LIKELY(structuredFeatureInfo[1] & 0x20000000u) {
+			isaFeatures |= YepX86IsaFeatureSHA;
 		}
 
 		int padlockInfo[4] = { 0, 0, 0, 0 };
@@ -701,19 +744,6 @@
 		// Intel, AMD: edx[bit 27] in extended info.
 		if YEP_LIKELY(extendedInfo[3] & 0x08000000u) {
 			isaFeatures |= YepX86IsaFeatureRdtscp;
-		}
-
-		// Intel: ebx[bit 4] in structured feature info
-		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000010u) {
-			isaFeatures |= YepX86IsaFeatureHLE;
-		}
-		// Intel: ebx[bit 11] in structured feature info
-		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000800u) {
-			isaFeatures |= YepX86IsaFeatureRTM;
-		}
-		// Intel: either HLE or RTM is supported
-		if YEP_LIKELY(structuredFeatureInfo[1] & 0x00000810u) {
-			isaFeatures |= YepX86IsaFeatureXtest;
 		}
 	}
 

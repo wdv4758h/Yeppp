@@ -16,10 +16,10 @@ public class X86CpuSystemFeature extends CpuSystemFeature {
 
 	/** @brief The CPU has x87 registers, and the operating systems preserves them during context switch. */
 	public static final X86CpuSystemFeature FPU           = new X86CpuSystemFeature(32);
-	/** @brief The CPU has SSE registers, and the operating systems preserves them during context switch. */
-	public static final X86CpuSystemFeature SSE           = new X86CpuSystemFeature(33);
-	/** @brief The CPU has AVX registers, and the operating systems preserves them during context switch. */
-	public static final X86CpuSystemFeature AVX           = new X86CpuSystemFeature(34);
+	/** @brief The CPU has xmm (SSE) registers, and the operating systems preserves them during context switch. */
+	public static final X86CpuSystemFeature XMM           = new X86CpuSystemFeature(33);
+	/** @brief The CPU has ymm (AVX) registers, and the operating systems preserves them during context switch. */
+	public static final X86CpuSystemFeature YMM           = new X86CpuSystemFeature(34);
 	/** @brief Processor allows to use misaligned memory operands in SSE instructions other than loads and stores. */
 	public static final X86CpuSystemFeature MisalignedSSE = new X86CpuSystemFeature(35);
 	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine. */
@@ -32,8 +32,10 @@ public class X86CpuSystemFeature extends CpuSystemFeature {
 	public static final X86CpuSystemFeature PHE           = new X86CpuSystemFeature(39);
 	/** @brief Processor and the operating system support the Padlock Montgomery Multiplier. */
 	public static final X86CpuSystemFeature PMM           = new X86CpuSystemFeature(40);
-	/** @brief The CPU has MIC registers, and the operating system preserves them during context switch. */
-	public static final X86CpuSystemFeature MIC           = new X86CpuSystemFeature(41);
+	/** @brief The CPU has zmm (MIC or AVX-512) registers, and the operating system preserves them during context switch. */
+	public static final X86CpuSystemFeature ZMM           = new X86CpuSystemFeature(41);
+	/** @brief The CPU has bnd (MPX) registers, and the operating system preserved them during context switch. */
+	public static final X86CpuSystemFeature BND           = new X86CpuSystemFeature(42);
 
 	protected X86CpuSystemFeature(int id) {
 		super(id, CpuArchitecture.X86.getId());
