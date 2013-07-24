@@ -1009,12 +1009,14 @@ def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scal
 	TEST( yPointer, ctype.get_size() - 1 )
 	JNZ( return_misaligned_pointer )
 
+	LOAD.ZERO( accumulators[0], ctype )
+
 	# If length is zero, return immediately
 	TEST( length, length )
 	JZ( return_ok )
 
 	# Initialize accumulators to zero
-	for accumulator in accumulators:
+	for accumulator in accumulators[1:]:
 		LOAD.ZERO( accumulator, ctype )
 
 	if use_simd:
@@ -1072,10 +1074,10 @@ def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scal
 
 	LABEL( reduce_batch )
 	reduction_function(accumulators, ctype, ctype)
-	
-	STORE.ELEMENT( [yPointer], accumulators[0], ctype )
-	
+
 	LABEL( return_ok )
+
+	STORE.ELEMENT( [yPointer], accumulators[0], ctype )
 	XOR( eax, eax )
 	
 	LABEL( return_any )
@@ -1123,7 +1125,10 @@ def SumAbs_VXf_SXf_SSE(codegen, function_signature, module, function, arguments,
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					xmm_abs_mask = SSERegister()
-					LOAD.CONSTANT( xmm_abs_mask, Constant.uint64x2(0x7FFFFFFFFFFFFFFFL))
+					if ctype.get_size() == 4:
+						LOAD.CONSTANT( xmm_abs_mask, Constant.uint32x4(0x7FFFFFFF))
+					else:
+						LOAD.CONSTANT( xmm_abs_mask, Constant.uint64x2(0x7FFFFFFFFFFFFFFFL))
 
 					unroll_registers  = 7
 					register_size     = 16
@@ -1182,7 +1187,10 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments,
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					ymm_abs_mask = AVXRegister()
-					LOAD.CONSTANT( ymm_abs_mask, Constant.uint64x4(0x7FFFFFFFFFFFFFFFL))
+					if ctype.get_size() == 4:
+						LOAD.CONSTANT( ymm_abs_mask, Constant.uint32x8(0x7FFFFFFF))
+					else:
+						LOAD.CONSTANT( ymm_abs_mask, Constant.uint64x4(0x7FFFFFFFFFFFFFFFL))
 
 					unroll_registers  = 7
 					register_size     = 32
@@ -1208,7 +1216,10 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments,
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					ymm_abs_mask = AVXRegister()
-					LOAD.CONSTANT( ymm_abs_mask, Constant.uint64x4(0x7FFFFFFFFFFFFFFFL))
+					if ctype.get_size() == 4:
+						LOAD.CONSTANT( ymm_abs_mask, Constant.uint32x8(0x7FFFFFFF))
+					else:
+						LOAD.CONSTANT( ymm_abs_mask, Constant.uint64x4(0x7FFFFFFFFFFFFFFFL))
 
 					unroll_registers  = 6
 					acc  = [AVXRegister() if i % 3 == 2 else SSERegister() for i in range(unroll_registers)]
@@ -1559,12 +1570,14 @@ def PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, accumulators
 	TEST( zPointer, ctype.get_size() - 1 )
 	JNZ( return_misaligned_pointer )
 
+	LOAD.ZERO( accumulators[0], ctype )
+
 	# If length is zero, return immediately
 	TEST( length, length )
 	JZ( return_ok )
 
 	# Initialize accumulators to zero
-	for accumulator in accumulators:
+	for accumulator in accumulators[1:]:
 		LOAD.ZERO( accumulator, ctype )
 
 	if use_simd:
@@ -1625,9 +1638,9 @@ def PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, accumulators
 	LABEL( reduce_batch )
 	reduction_function(accumulators, ctype, ctype)
 	
-	STORE.ELEMENT( [zPointer], accumulators[0], ctype )
-	
 	LABEL( return_ok )
+
+	STORE.ELEMENT( [zPointer], accumulators[0], ctype )
 	XOR( eax, eax )
 	
 	LABEL( return_any )
