@@ -113,6 +113,7 @@ class Function:
 		self.c_implementation = None
 		self.c_documentation = None
 		self.java_documentation = None
+		self.unit_test = None
 
 	def __str__(self):
 		return self.name
@@ -137,4 +138,5 @@ class Function:
 		self.function_generator.default_documentation = self.c_documentation
 		self.function_generator.java_documentation = self.java_documentation
 		self.function_generator.default_implementation = self.c_implementation
+		self.function_generator.unit_test = self.unit_test
 		self.function_generator.generate(declaration)
