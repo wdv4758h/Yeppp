@@ -10,15 +10,16 @@ import yeppp.module
 import yeppp.library.core.x86
 import yeppp.library.core.x64
 import yeppp.library.core.arm
+from yeppp.test import *
 
 def generate_add(module):
 	with yeppp.module.Function(module, 'Add', 'Addition') as function:
 		function.c_documentation = """
-@brief	Adds corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
-@param[in]	x	Pointer the first array of %(InputType0)s elements to be added.
-@param[in]	y	Pointer the second array of %(InputType1)s elements to be added.
-@param[out]	sum	Pointer the array of %(OutputType0)s elements where the pairwise sums will be stored.
-@param[in]	length	The length of the arrays specified by @a x and @a y, and @a sum.
+@brief	Adds corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
+@param[in]	x	Pointer to the first addend array of %(InputType0)s elements.
+@param[in]	y	Pointer to the second addend array of %(InputType1)s elements.
+@param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
+@param[in]	length	Length of the arrays specified by @a x, @a y, and @a sum.
 """
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
@@ -34,6 +35,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Add_V8uV8u_V8u(x, y, sum, YepSize length)")
 		function.generate("yepCore_Add_V8uV8u_V16u(x, y, sum, YepSize length)")
 		function.generate("yepCore_Add_V8sV8s_V16s(x, y, sum, YepSize length)")
@@ -47,28 +49,35 @@ return YepStatusOk;
 		function.generate("yepCore_Add_V32fV32f_V32f(x, y, sum, YepSize length)")
 		function.generate("yepCore_Add_V64fV64f_V64f(x, y, sum, YepSize length)")
 
-# 		function.c_documentation = None
-# 		function.assembly_implementations = []
-# 		function.c_implementation = """
-# while (length-- != 0) {
-# 	const Yep%(OutputType0)s x = *xPointer++;
-# 	const Yep%(OutputType0)s sum = x + y;
-# 	*sumPointer++ = sum;
-# }
-# return YepStatusOk;
-# """
-# 		function.generate("yepCore_Add_V8uS8u_V8u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V8uS8u_V16u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V8sS8s_V16s(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V16uS16u_V16u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V16uS16u_V32u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V16sS16s_V32s(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V32uS32u_V32u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V32uS32u_V64u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V32sS32s_V64s(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V64uS64u_V64u(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V32fS32f_V32f(x, y, sum, YepSize length)")
-# 		function.generate("yepCore_Add_V64fS64f_V64f(x, y, sum, YepSize length)")
+		function.c_documentation = """
+@brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
+@param[in]	x	Pointer to the addend array of %(InputType0)s elements.
+@param[in]	y	The %(InputType1)s constant to be added.
+@param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
+@param[in]	length	The length of the arrays specified by @a x and @a sum.
+"""
+		function.assembly_implementations = []
+		function.c_implementation = """
+while (length-- != 0) {
+	const Yep%(OutputType0)s x = *xPointer++;
+	const Yep%(OutputType0)s sum = x + y;
+	*sumPointer++ = sum;
+}
+return YepStatusOk;
+"""
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		function.generate("yepCore_Add_V8uS8u_V8u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V8uS8u_V16u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V8sS8s_V16s(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V16uS16u_V16u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V16uS16u_V32u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V16sS16s_V32s(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V32uS32u_V32u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V32uS32u_V64u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V32sS32s_V64s(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V64uS64u_V64u(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V32fS32f_V32f(x, y, sum, YepSize length)")
+		function.generate("yepCore_Add_V64fS64f_V64f(x, y, sum, YepSize length)")
 # 
 # 		function.c_documentation = None
 # 		function.assembly_implementations = []
@@ -108,11 +117,11 @@ return YepStatusOk;
 def generate_subtract(module):
 	with yeppp.module.Function(module, 'Subtract', 'Subtraction') as function:
 		function.c_documentation = """
-@brief	Subtracts corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
-@param[in]	x	Pointer the minuend array of %(InputType0)s elements to be subtracted from.
-@param[in]	y	Pointer the subtrahend array of %(InputType1)s elements to be subtracted.
-@param[out]	difference	Pointer the array of %(OutputType0)s elements where the pairwise differences will be stored.
-@param[in]	length	The length of the arrays specified by @a x and @a y, and @a sum.
+@brief	Subtracts corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
+@param[in]	x	Pointer to the minuend array of %(InputType0)s elements.
+@param[in]	y	Pointer to the subtrahend array of %(InputType0)s elements.
+@param[out]	diff	Pointer to the difference array of %(OutputType0)s elements.
+@param[in]	length	Length of the arrays specified by @a x, @a y, and @a difference.
 """
 		function.assembly_implementations = list()
 		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
@@ -122,70 +131,85 @@ def generate_subtract(module):
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
 	const Yep%(OutputType0)s y = *yPointer++;
-	const Yep%(OutputType0)s difference = x - y;
-	*differencePointer++ = difference;
+	const Yep%(OutputType0)s diff = x - y;
+	*diffPointer++ = diff;
 }
 return YepStatusOk;
 """
-		function.generate("yepCore_Subtract_V8uV8u_V8u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V8uV8u_V16u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V8sV8s_V16s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V16uV16u_V16u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V16uV16u_V32u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V16sV16s_V32s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32uV32u_V32u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32uV32u_V64u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32sV32s_V64s(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V64uV64u_V64u(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V32fV32f_V32f(x, y, difference, YepSize length)")
-		function.generate("yepCore_Subtract_V64fV64f_V64f(x, y, difference, YepSize length)")
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		function.generate("yepCore_Subtract_V8uV8u_V8u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V8uV8u_V16u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V8sV8s_V16s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V16uV16u_V16u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V16uV16u_V32u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V16sV16s_V32s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32uV32u_V32u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32uV32u_V64u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32sV32s_V64s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V64uV64u_V64u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32fV32f_V32f(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V64fV64f_V64f(x, y, diff, YepSize length)")
 	
-# 		function.c_documentation = None
-# 		function.assembly_implementations = []
-# 		function.c_implementation = """
-# while (length-- != 0) {
-# 	const Yep%(OutputType0)s x = *xPointer++;
-# 	const Yep%(OutputType0)s difference = x - y;
-# 	*differencePointer++ = difference;
-# }
-# return YepStatusOk;
-# """
-# 		function.generate("yepCore_Subtract_V8uS8u_V8u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V8uS8u_V16u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V8sS8s_V16s(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V16uS16u_V16u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V16uS16u_V32u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V16sS16s_V32s(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V32uS32u_V32u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V32uS32u_V64u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V32sS32s_V64s(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V64uS64u_V64u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V32fS32f_V32f(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_V64fS64f_V64f(x, y, difference, YepSize length)")
-# 
-# 		function.c_documentation = None
-# 		function.assembly_implementations = []
-# 		function.c_implementation = """
-# while (length-- != 0) {
-# 	const Yep%(OutputType0)s y = *yPointer++;
-# 	const Yep%(OutputType0)s difference = x - y;
-# 	*differencePointer++ = difference;
-# }
-# return YepStatusOk;
-# """
-# 		function.generate("yepCore_Subtract_S8uV8u_V8u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S8uV8u_V16u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S8sV8s_V16s(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S16uV16u_V16u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S16uV16u_V32u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S16sV16s_V32s(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S32uV32u_V32u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S32uV32u_V64u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S32sV32s_V64s(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S64uV64u_V64u(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S32fV32f_V32f(x, y, difference, YepSize length)")
-# 		function.generate("yepCore_Subtract_S64fV64f_V64f(x, y, difference, YepSize length)")
-# 
+		function.c_documentation = """
+@brief	Subtracts a constant from %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
+@param[in]	x	Pointer to the minuend array of %(InputType0)s elements.
+@param[in]	y	The %(InputType1)s constant to be subtracted.
+@param[out]	diff	Pointer to the difference array of %(OutputType0)s elements.
+@param[in]	length	The length of the arrays specified by @a x and @a difference.
+"""
+		function.assembly_implementations = []
+		function.c_implementation = """
+while (length-- != 0) {
+	const Yep%(OutputType0)s x = *xPointer++;
+	const Yep%(OutputType0)s diff = x - y;
+	*diffPointer++ = diff;
+}
+return YepStatusOk;
+"""
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		function.generate("yepCore_Subtract_V8uS8u_V8u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V8uS8u_V16u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V8sS8s_V16s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V16uS16u_V16u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V16uS16u_V32u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V16sS16s_V32s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32uS32u_V32u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32uS32u_V64u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32sS32s_V64s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V64uS64u_V64u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V32fS32f_V32f(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_V64fS64f_V64f(x, y, diff, YepSize length)")
+
+		function.c_documentation = """
+@brief	Subtracts %(InputType0)s array elements from a constant. Produces an array of %(OutputType0)s elements.
+@param[in]	x	The %(InputType1)s constant to be subtracted from.
+@param[in]	y	Pointer to the subtrahend array of %(InputType1)s elements.
+@param[out]	diff	Pointer to the difference array of %(OutputType0)s elements.
+@param[in]	length	The length of the arrays specified by @a y and @a difference.
+"""
+		function.assembly_implementations = []
+		function.c_implementation = """
+while (length-- != 0) {
+	const Yep%(OutputType0)s y = *yPointer++;
+	const Yep%(OutputType0)s diff = x - y;
+	*diffPointer++ = diff;
+}
+return YepStatusOk;
+"""
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		function.generate("yepCore_Subtract_S8uV8u_V8u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S8uV8u_V16u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S8sV8s_V16s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S16uV16u_V16u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S16uV16u_V32u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S16sV16s_V32s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S32uV32u_V32u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S32uV32u_V64u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S32sV32s_V64s(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S64uV64u_V64u(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S32fV32f_V32f(x, y, diff, YepSize length)")
+		function.generate("yepCore_Subtract_S64fV64f_V64f(x, y, diff, YepSize length)")
+
 # 		function.c_documentation = None
 # 		function.assembly_implementations = []
 # 		function.c_implementation = """
@@ -324,6 +348,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Multiply_V8uV8u_V8u(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V8uV8u_V16u(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V8sV8s_V16s(x, y, product, YepSize length)")
@@ -347,6 +372,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Multiply_V8uS8u_V8u(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V8uS8u_V16u(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V8sS8s_V16s(x, y, product, YepSize length)")
@@ -371,6 +397,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Multiply_IV8uV8u_IV8u(x, y, YepSize length)")
 		function.generate("yepCore_Multiply_IV16uV16u_IV16u(x, y, YepSize length)")
 		function.generate("yepCore_Multiply_IV32uV32u_IV32u(x, y, YepSize length)")
@@ -388,6 +415,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Multiply_IV8uS8u_IV8u(x, y, YepSize length)")
 		function.generate("yepCore_Multiply_IV16uS16u_IV16u(x, y, YepSize length)")
 		function.generate("yepCore_Multiply_IV32uS32u_IV32u(x, y, YepSize length)")
@@ -663,6 +691,7 @@ while (--length != 0) {
 *minimumPointer++ = minimum;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(v = Uniform())
 		function.generate("yepCore_Min_V8s_S8s(v, minimum, YepSize length)")
 		function.generate("yepCore_Min_V8u_S8u(v, minimum, YepSize length)")
 		function.generate("yepCore_Min_V16s_S16s(v, minimum, YepSize length)")
@@ -685,6 +714,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Min_V8sV8s_V8s(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V8uV8u_V8u(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V16sV16s_V16s(x, y, minimum, YepSize length)")
@@ -706,6 +736,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Min_V8sS8s_V8s(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V8uS8u_V8u(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V16sS16s_V16s(x, y, minimum, YepSize length)")
@@ -728,6 +759,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Min_IV8sV8s_IV8s(x, y, YepSize length)")
 		function.generate("yepCore_Min_IV8uV8u_IV8u(x, y, YepSize length)")
 		function.generate("yepCore_Min_IV16sV16s_IV16s(x, y, YepSize length)")
@@ -749,6 +781,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Min_IV8sS8s_IV8s(x, y, YepSize length)")
 		function.generate("yepCore_Min_IV8uS8u_IV8u(x, y, YepSize length)")
 		function.generate("yepCore_Min_IV16sS16s_IV16s(x, y, YepSize length)")
@@ -778,6 +811,7 @@ while (--length != 0) {
 *maximumPointer = maximum;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(v = Uniform())
 		function.generate("yepCore_Max_V8s_S8s(v, maximum, YepSize length)")
 		function.generate("yepCore_Max_V8u_S8u(v, maximum, YepSize length)")
 		function.generate("yepCore_Max_V16s_S16s(v, maximum, YepSize length)")
@@ -800,6 +834,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Max_V8sV8s_V8s(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V8uV8u_V8u(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V16sV16s_V16s(x, y, maximum, YepSize length)")
@@ -821,6 +856,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Max_V8sS8s_V8s(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V8uS8u_V8u(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V16sS16s_V16s(x, y, maximum, YepSize length)")
@@ -843,6 +879,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Max_IV8sV8s_IV8s(x, y, YepSize length)")
 		function.generate("yepCore_Max_IV8uV8u_IV8u(x, y, YepSize length)")
 		function.generate("yepCore_Max_IV16sV16s_IV16s(x, y, YepSize length)")
@@ -864,6 +901,7 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
 		function.generate("yepCore_Max_IV8sS8s_IV8s(x, y, YepSize length)")
 		function.generate("yepCore_Max_IV8uS8u_IV8u(x, y, YepSize length)")
 		function.generate("yepCore_Max_IV16sS16s_IV16s(x, y, YepSize length)")
@@ -891,6 +929,7 @@ while (--length != 0) {
 *maximumPointer = maximum;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(v = Uniform())
 		function.generate("yepCore_MinMax_V8s_S8sS8s(v, minimum, maximum, YepSize length)")
 		function.generate("yepCore_MinMax_V8u_S8uS8u(v, minimum, maximum, YepSize length)")
 		function.generate("yepCore_MinMax_V16s_S16sS16s(v, minimum, maximum, YepSize length)")
@@ -922,6 +961,7 @@ while (length-- != 0) {
 *sumPointer = sum;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(v = Uniform(0.0, 1000.0))
 		function.generate("yepCore_Sum_V32f_S32f(v, sum, YepSize length)")
 		function.generate("yepCore_Sum_V64f_S64f(v, sum, YepSize length)")
 
@@ -945,6 +985,7 @@ while (length-- != 0) {
 *sumAbsPointer = sumAbs;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(v = Uniform(-100.0, 100.0))
 		function.generate("yepCore_SumAbs_V32f_S32f(v, sumAbs, YepSize length)")
 		function.generate("yepCore_SumAbs_V64f_S64f(v, sumAbs, YepSize length)")
 
@@ -968,6 +1009,7 @@ while (length-- != 0) {
 *sumSquaresPointer = sumSquares;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(v = Uniform())
 		function.generate("yepCore_SumSquares_V32f_S32f(v, sumSquares, YepSize length)")
 		function.generate("yepCore_SumSquares_V64f_S64f(v, sumSquares, YepSize length)")
 
@@ -993,6 +1035,7 @@ while (length-- != 0) {
 *dotProductPointer = dotProduct;
 return YepStatusOk;
 """
+		function.unit_test = ReferenceUnitTest(x = Uniform(0.0, 100.0), y = Uniform(-200.0, -20.0))
 		function.generate("yepCore_DotProduct_V32fV32f_S32f(x, y, dotProduct, YepSize length)")
 		function.generate("yepCore_DotProduct_V64fV64f_S64f(x, y, dotProduct, YepSize length)")
 
