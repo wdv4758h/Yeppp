@@ -125,7 +125,95 @@ extern "C" {
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V64u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64u *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom_WELL1024a
-	 * @brief	Generates random 32-bit samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @brief	Generates random 8-bit signed integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S8sS8s_V8s(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep8s supportMin, Yep8s supportMax, Yep8s *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 16-bit signed integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S16sS16s_V16s(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep16s supportMin, Yep16s supportMax, Yep16s *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 32-bit signed integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32sS32s_V32s(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32s supportMin, Yep32s supportMax, Yep32s *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 64-bit signed integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S64sS64s_V64s(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64s supportMin, Yep64s supportMax, Yep64s *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 8-bit unsigned integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S8uS8u_V8u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep8u supportMin, Yep8u supportMax, Yep8u *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 16-bit unsigned integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S16uS16u_V16u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep16u supportMin, Yep16u supportMax, Yep16u *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 32-bit unsigned integer samples in the specified range with WELL1024a pseudo-random number generator.
 	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
 	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
 	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
@@ -138,6 +226,21 @@ extern "C" {
 	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
 	 */
 	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep32u supportMin, Yep32u supportMax, Yep32u *YEP_RESTRICT samples, YepSize length);
+	/**
+	 * @ingroup yepRandom_WELL1024a
+	 * @brief	Generates random 64-bit unsigned integer samples in the specified range with WELL1024a pseudo-random number generator.
+	 * @details	All numbers between @a supportMin (inclusive) and @a supportMax (inclusive) are generated with the same probability.
+	 * @param[in,out]	state	Pointer to the WELL1024a random number generator state.
+	 * @param[in]	supportMin	The lower bound (inclusive) of the range of the generated samples.
+	 * @param[in]	supportMax	The upper bound (inclusive) of the range of the generated samples.
+	 * @param[out]	samples	Pointer to the output array for generated numbers.
+	 * @param[in]	length	Length of the output array.
+	 * @retval	#YepStatusOk	The random number generator is successfully initialized.
+	 * @retval	#YepStatusNullPointer	Either @a state or @a samples pointer is null.
+	 * @retval	#YepStatusMisalignedPointer	Either @a state or @a samples pointer is not naturally aligned.
+	 * @retval	#YepStatusInvalidArgument	If @a supportMin is not less than @a supportMax.
+	 */
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S64uS64u_V64u(struct YepRandom_WELL1024a *YEP_RESTRICT state, Yep64u supportMin, Yep64u supportMax, Yep64u *YEP_RESTRICT samples, YepSize length);
 	/**
 	 * @ingroup yepRandom_WELL1024a
 	 * @brief	Generates random single precision floating-point samples in the specified range with WELL1024a pseudo-random number generator and 32-bit accuracy.
