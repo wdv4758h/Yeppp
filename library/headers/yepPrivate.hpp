@@ -141,10 +141,15 @@ struct FunctionDescriptor {
 #endif
 };
 
-template <typename Function>
-struct DispatchTableDescriptor {
-	const FunctionDescriptor<Function>* table;
-#if defined(YEP_DEBUG_LIBRARY)
-	const char* name;
-#endif
-};
+template<class DescriptorType>
+static YEP_INLINE const DescriptorType* findDefaultDescriptor(const DescriptorType* descriptors) {
+	const DescriptorType* defaultDescriptor = &descriptors[0];
+	while ((defaultDescriptor ->isaFeatures != YepIsaFeaturesDefault) ||
+		(defaultDescriptor ->simdFeatures != YepSimdFeaturesDefault) ||
+		(defaultDescriptor ->systemFeatures != YepSystemFeaturesDefault) ||
+		(defaultDescriptor ->microarchitecture != YepCpuMicroarchitectureUnknown))
+	{
+		defaultDescriptor++;
+	}
+	return defaultDescriptor;
+}

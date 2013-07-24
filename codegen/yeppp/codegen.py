@@ -12,7 +12,9 @@ import peachpy.java
 import peachpy.fortran
 import peachpy.csharp
 import string
+import copy
 import re
+import yeppp.test
 
 class FunctionArgument(object):
 	def __init__(self, name, type = None):
@@ -815,6 +817,235 @@ class FunctionSpecialization:
 		csharp_safe_method_generator.dedent().add_line("}")
 		csharp_safe_method_generator.add_empty_lines(2)
 
+	def generate_cpp_unit_test(self, cpp_unit_test_generator, unit_test, cpp_units_tests):
+		if isinstance(unit_test, yeppp.test.ReferenceUnitTest):
+			# Create a copy of unit test arguments which will be updated specifically for this specialization 
+			test_arguments = copy.deepcopy(unit_test.arguments)
+			# Check that all arguments specified for the test are also among the function arguments
+			argument_names = set([argument.get_name() for argument in self.arguments])
+			for argument_name in test_arguments.iterkeys():
+				if argument_name not in argument_names:
+					raise ValueError('Unit test argument {0} in not a function argument'.format(argument_name))
+			for argument in self.arguments:
+				if argument.get_name() in test_arguments.iterkeys():
+					if argument.is_automatic():
+						test_arguments[argument.get_name()].check(argument.get_c_public_type())
+				else:
+					if argument.is_automatic() and argument.is_input:
+						raise KeyError("The input argument {0} is not specified in the unit test".format(argument.get_name()))
+					elif argument.is_automatic() and argument.is_output:
+						test_arguments[argument.get_name()] = yeppp.test.Uniform()
+					elif not argument.is_automatic() and argument.is_length_argument:
+						if argument.get_name() == "length":
+							test_arguments["length"] = [slice(0, 64), slice(1024, 1024 + 64)]
+						else:
+							raise KeyError("The length argument {0} is not specified in the unit test".format(argument.get_name()))
+
+			cpp_units_tests.append("Test_" + self.short_function_signature)
+			cpp_unit_test_generator.add_line("static Yep32s Test_{0}(Yep64u supportedIsaFeatures, Yep64u supportedSimdFeatures, Yep64u supportedSystemFeatures) {{".format(self.short_function_signature)).indent()
+			cpp_unit_test_generator.add_line("YepRandom_WELL1024a rng;")
+			cpp_unit_test_generator.add_line("YepStatus status = yepRandom_WELL1024a_Init(&rng);")
+			cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+			cpp_unit_test_generator.add_line()
+			cpp_unit_test_generator.add_line("auto defaultDescriptor = findDefaultDescriptor(_dispatchTable_{0});".format(self.c_function_signature))
+			cpp_unit_test_generator.add_line("auto defaultImplementation = defaultDescriptor->function;")
+			cpp_unit_test_generator.add_line("Yep32s failedTests = 0;")
+			cpp_unit_test_generator.add_line()
+
+			def get_length_bound(argument):
+				assert argument.is_automatic() and argument.is_vector
+				ranges = test_arguments[argument.length_argument_name]
+				length_bound = None
+				for range in ranges:
+					if isinstance(range, int):
+						length_bound = range if length_bound is None else max(length_bound, range)
+					elif isinstance(range, slice): 
+						length_bound = range.stop if length_bound is None else max(length_bound, range.stop)
+					else:
+						raise TypeError('Unsupported type for range %s' % range)
+				if length_bound is None:
+					raise KeyError('Unspecified length bound for argument %s' % argument.get_name())
+				else:
+					return length_bound
+				
+
+			for argument in self.arguments:
+				if argument.is_automatic():
+					if argument.is_vector:
+						cpp_unit_test_generator.add_line("YEP_ALIGN(64) {0} {1}Array[{2} + (64 / sizeof({0}))];".format(argument.get_c_public_type().get_primitive_type(), argument.get_name(), get_length_bound(argument)))
+						if argument.is_output:
+							cpp_unit_test_generator.add_line("YEP_ALIGN(64) {0} {1}InitArray[{2} + (64 / sizeof({0}))];".format(argument.get_c_public_type().get_primitive_type(), argument.get_name(), get_length_bound(argument)))
+							cpp_unit_test_generator.add_line("YEP_ALIGN(64) {0} {1}RefArray[{2} + (64 / sizeof({0}))];".format(argument.get_c_public_type().get_primitive_type(), argument.get_name(), get_length_bound(argument)))
+					elif argument.is_scalar:
+						cpp_unit_test_generator.add_line("{0} {1};".format(argument.get_c_public_type().get_primitive_type(), argument.get_name()))
+						if argument.is_output:
+							cpp_unit_test_generator.add_line("{0} {1}Init;".format(argument.get_c_public_type().get_primitive_type(), argument.get_name()))
+							cpp_unit_test_generator.add_line("{0} {1}Ref;".format(argument.get_c_public_type().get_primitive_type(), argument.get_name()))
+			cpp_unit_test_generator.add_line()
+
+			random_generator_function_map = {'Yep8u' : 'yepRandom_WELL1024a_GenerateDiscreteUniform_S8uS8u_V8u',
+			                                 'Yep16u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S16uS16u_V16u',
+			                                 'Yep32u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u',
+			                                 'Yep64u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S64uS64u_V64u',
+			                                 'Yep8s' : 'yepRandom_WELL1024a_GenerateDiscreteUniform_S8sS8s_V8s',
+			                                 'Yep16s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S16sS16s_V16s',
+			                                 'Yep32s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S32sS32s_V32s',
+			                                 'Yep64s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S64sS64s_V64s',
+			                                 'Yep32f': 'yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32',
+			                                 'Yep64f': 'yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64'}
+			for argument in self.arguments:
+				if argument.is_automatic():
+					if argument.is_vector:
+						argument_array_name = argument.get_name() + ("InitArray" if argument.is_output else "Array")
+						cpp_unit_test_generator.add_line("status = {0}(&rng, {1}, {2}, YEP_COUNT_OF({2}));".format(
+							random_generator_function_map[str(argument.c_public_arguments[0].get_type().get_primitive_type())],
+							", ".join(test_arguments[argument.get_name()].format(argument.get_c_public_type())),
+							argument_array_name))
+						cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+					elif argument.is_scalar:
+						argument_address_name = "&" + argument.get_name() + ("Init" if argument.is_output else "")
+						cpp_unit_test_generator.add_line("status = {0}(&rng, {1}, {2}, 1);".format(
+							random_generator_function_map[str(argument.c_public_arguments[0].get_type().get_primitive_type())],
+							", ".join(test_arguments[argument.get_name()].format(argument.get_c_public_type())),
+							argument_address_name))
+						cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+			cpp_unit_test_generator.add_line()
+
+			cpp_unit_test_generator.add_line("for (auto descriptor = &_dispatchTable_{0}[0]; descriptor != defaultDescriptor; descriptor++) {{".format(self.c_function_signature)).indent()
+			cpp_unit_test_generator.add_line("const Yep64u unsupportedRequiredFeatures = (descriptor->isaFeatures & ~supportedIsaFeatures) |")
+			cpp_unit_test_generator.add_line("\t(descriptor->simdFeatures & ~supportedSimdFeatures) |")
+			cpp_unit_test_generator.add_line("\t(descriptor->systemFeatures & ~supportedSystemFeatures);")
+			cpp_unit_test_generator.add_line("if (unsupportedRequiredFeatures == 0) {").indent()
+			def generate_loops(arguments):
+				if arguments:
+					argument = arguments[0]
+					arguments = arguments[1:]
+					if argument.is_automatic() and argument.is_vector:
+						cpp_unit_test_generator.add_line("for (YepSize {0}Offset = 0; {0}Offset < 64 / sizeof({1}); {0}Offset++) {{".format(argument.get_name(), argument.get_c_public_type().get_primitive_type()))
+						cpp_unit_test_generator.indent()
+	
+						generate_loops(arguments)
+	
+						cpp_unit_test_generator.dedent()
+						cpp_unit_test_generator.add_line("}")
+					elif not argument.is_automatic() and argument.is_length_argument:
+						for range in test_arguments[argument.get_name()]:
+							if isinstance(range, int) or isinstance(range, long) or isinstance(range, float):
+								cpp_unit_test_generator.add_line("const {0} {1} = {2}".format(argument.get_c_public_type(), argument.get_name(), range))
+								generate_loops(arguments)
+							elif isinstance(range, slice):
+								start = 0 if range.start is None else int(range.start)
+								stop = int(range.stop)
+								step = -cmp(range.start, range.stop) if range.step is None else range.step
+								cpp_unit_test_generator.add_line("for ({1} {0} = {2}; {0} < {3}; {0} += {4}) {{".format(argument.get_name(), argument.get_c_public_type().get_primitive_type(), start, stop, step))
+								cpp_unit_test_generator.indent()
+	
+								generate_loops(arguments)
+	
+								cpp_unit_test_generator.dedent()
+								cpp_unit_test_generator.add_line("}")
+					else:
+						generate_loops(arguments)
+				else:
+					call_arguments = list()
+					reference_call_arguments = list()
+					for argument in self.arguments:
+						if argument.is_automatic() and argument.is_vector:
+							call_arguments.append("&{0}Array[{0}Offset]".format(argument.get_name()))
+							if argument.is_output:
+								reference_call_arguments.append("&{0}RefArray[{0}Offset]".format(argument.get_name()))
+							else:
+								reference_call_arguments.append("&{0}Array[{0}Offset]".format(argument.get_name()))
+						elif argument.is_automatic() and argument.is_scalar and argument.is_output:
+							call_arguments.append("&" + argument.get_name())
+							reference_call_arguments.append("&" + argument.get_name() + "Ref")
+						else:
+							call_arguments.append(argument.get_name())
+							reference_call_arguments.append(argument.get_name())
+
+					# Initialize the reference outputs with default values
+					for argument in self.arguments:
+						if argument.is_automatic() and argument.is_vector and argument.is_output:
+							cpp_unit_test_generator.add_line("memcpy({0}RefArray, {0}InitArray, sizeof({0}RefArray));".format(argument.get_name()))
+						elif argument.is_automatic() and argument.is_scalar and argument.is_output:
+							cpp_unit_test_generator.add_line("{0}Ref = {0}Init;".format(argument.get_name()))
+
+					# Emit the reference function call
+					cpp_unit_test_generator.add_line("status = defaultImplementation(%s);" % ", ".join(reference_call_arguments))
+					cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+					cpp_unit_test_generator.add_line()
+
+					# Initialize the outputs with default values
+					for argument in self.arguments:
+						if argument.is_automatic() and argument.is_vector and argument.is_output:
+							cpp_unit_test_generator.add_line("memcpy({0}Array, {0}InitArray, sizeof({0}Array));".format(argument.get_name()))
+						elif argument.is_automatic() and argument.is_scalar and argument.is_output:
+							cpp_unit_test_generator.add_line("{0} = {0}Init;".format(argument.get_name()))
+
+					# Emit the optimized function call
+					cpp_unit_test_generator.add_line("status = descriptor->function(%s);" % ", ".join(call_arguments))
+					cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+					cpp_unit_test_generator.add_line()
+
+					# Check the results
+					for argument in self.arguments:
+						if argument.is_automatic() and argument.is_output:
+							if argument.is_vector:
+								if argument.get_c_public_type().get_primitive_type().is_integer():
+									cpp_unit_test_generator.add_line("if (memcmp({0}Array, {0}RefArray, sizeof({0}Array)) != 0) {{".format(argument.get_name())).indent()
+									cpp_unit_test_generator.add_line("failedTests += 1;")
+									cpp_unit_test_generator.add_line("printf(\"{0} (%s): FAILED\\n\", getMicroarchitectureName(descriptor->microarchitecture));".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("goto next_descriptor;")
+									cpp_unit_test_generator.dedent().add_line("}")
+								elif argument.get_c_public_type().get_primitive_type().is_floating_point():
+									max_ulp_error = unit_test.max_ulp_error
+									if max_ulp_error is None:
+										max_ulp_error = 5.0
+
+									cpp_unit_test_generator.add_line("for (YepSize i = 0; i < YEP_COUNT_OF({0}Array); i++) {{".format(argument.get_name())).indent()
+									cpp_unit_test_generator.add_line("const {1} ulpError = yepBuiltin_Abs_{2}f_{2}f({0}RefArray[i] - {0}Array[i]) / yepBuiltin_Ulp_{2}f_{2}f({0}RefArray[i]);".format(
+										argument.get_name(), argument.get_c_public_type().get_primitive_type(), argument.get_c_public_type().get_primitive_type().get_size() * 8))
+									cpp_unit_test_generator.add_line("if (ulpError > {0}) {{".format(max_ulp_error)).indent()
+									cpp_unit_test_generator.add_line("failedTests += 1;")
+									cpp_unit_test_generator.add_line("printf(\"{0} (%s): FAILED (%f ULP)\\n\", getMicroarchitectureName(descriptor->microarchitecture), float(ulpError));".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("goto next_descriptor;")
+									cpp_unit_test_generator.dedent().add_line("}")
+									cpp_unit_test_generator.dedent().add_line("}")
+							else:
+								if argument.get_c_public_type().get_primitive_type().is_integer():
+									cpp_unit_test_generator.add_line("if ({0} != {0}Ref) {{".format(argument.get_name())).indent()
+									cpp_unit_test_generator.add_line("failedTests += 1;")
+									cpp_unit_test_generator.add_line("printf(\"{0} (%s): FAILED\\n\", getMicroarchitectureName(descriptor->microarchitecture));".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("goto next_descriptor;")
+									cpp_unit_test_generator.dedent().add_line("}")
+								elif argument.get_c_public_type().get_primitive_type().is_floating_point():
+									max_ulp_error = unit_test.max_ulp_error
+									if max_ulp_error is None:
+										max_ulp_error = 1000.0
+
+									cpp_unit_test_generator.add_line("const {1} ulpError = yepBuiltin_Abs_{2}f_{2}f({0}Ref - {0}) / yepBuiltin_Ulp_{2}f_{2}f({0}Ref);".format(
+										argument.get_name(), argument.get_c_public_type().get_primitive_type(), argument.get_c_public_type().get_primitive_type().get_size() * 8))
+									cpp_unit_test_generator.add_line("if (ulpError > {0}f) {{".format(max_ulp_error)).indent()
+									cpp_unit_test_generator.add_line("failedTests += 1;")
+									cpp_unit_test_generator.add_line("printf(\"{0} (%s): FAILED (%f ULP)\\n\", getMicroarchitectureName(descriptor->microarchitecture), float(ulpError));".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("goto next_descriptor;")
+									cpp_unit_test_generator.dedent().add_line("}")
+
+			generate_loops(self.arguments)
+			cpp_unit_test_generator.add_line("printf(\"{0} (%s): PASSED\\n\", getMicroarchitectureName(descriptor->microarchitecture));".format(self.c_function_signature))
+			cpp_unit_test_generator.dedent().add_line("} else {").indent()
+			cpp_unit_test_generator.add_line("printf(\"{0} (%s): SKIPPED\\n\", getMicroarchitectureName(descriptor->microarchitecture));".format(self.c_function_signature))
+			cpp_unit_test_generator.dedent().add_line("}")
+			cpp_unit_test_generator.add_line("next_descriptor:", indent = 0)
+			cpp_unit_test_generator.add_line("continue;")
+			cpp_unit_test_generator.dedent().add_line("}")
+			cpp_unit_test_generator.add_line("return -failedTests;")
+			cpp_unit_test_generator.dedent().add_line("}")
+			cpp_unit_test_generator.add_line()
+		else:
+			raise TypeError('Unsupported unit test type')
+		
+
 class FunctionGenerator:
 	def __init__(self):
 		self.code = []
@@ -832,12 +1063,16 @@ class FunctionGenerator:
 		self.csharp_safe_method_generator = None
 		self.csharp_unsafe_method_generator = None
 		self.csharp_extern_method_generator = None
+		self.cpp_unit_test_generator = None
 		self.assembly_implementation_generators = dict()
 
 		self.default_implementation = None
 		self.assembly_implementations = list()
 		self.default_documentation = None
 		self.java_documentation = None
+
+		self.unit_test = None
+		self.cpp_unit_tests = list()
 
 	def generate_group_prolog(self, module_name, group_name, group_comment, header_license, source_license):
 		from peachpy import x86
@@ -978,6 +1213,31 @@ class FunctionGenerator:
 		self.csharp_dllimport_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_dllimport_method_generator.add_line().indent().indent()
 
+		self.cpp_unit_test_generator = peachpy.codegen.CodeGenerator()
+		self.cpp_unit_test_generator.add_c_comment(source_license)
+		self.cpp_unit_test_generator.add_line()
+		self.cpp_unit_test_generator.add_line("#include <yepPredefines.h>")
+		self.cpp_unit_test_generator.add_line("#include <yepPrivate.hpp>")
+		self.cpp_unit_test_generator.add_line("#include <yepLibrary.h>")
+		self.cpp_unit_test_generator.add_line("#include <library/functions.h>")
+		self.cpp_unit_test_generator.add_line("#include <yepRandom.h>")
+		self.cpp_unit_test_generator.add_line("#include <{0}/functions.h>".format(module_name.lower()))
+		self.cpp_unit_test_generator.add_line("#include <yepIntrinsics.h>")
+		self.cpp_unit_test_generator.add_line("#include <string.h>")
+		self.cpp_unit_test_generator.add_line("#include <stdio.h>")
+		self.cpp_unit_test_generator.add_line("#include <assert.h>")
+		self.cpp_unit_test_generator.add_line()
+		self.cpp_unit_test_generator.add_line("static const char* getMicroarchitectureName(YepCpuMicroarchitecture microarchitecture) {").indent()
+		self.cpp_unit_test_generator.add_line("const YepSize bufferSize = 1024;")
+		self.cpp_unit_test_generator.add_line("static char buffer[bufferSize];")
+		self.cpp_unit_test_generator.add_line("YepSize bufferLength = bufferSize - 1;")
+		self.cpp_unit_test_generator.add_line("YepStatus status = yepLibrary_GetString(YepEnumerationCpuMicroarchitecture, microarchitecture, buffer, &bufferLength);")
+		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+		self.cpp_unit_test_generator.add_line("buffer[bufferLength] = '\\0';")
+		self.cpp_unit_test_generator.add_line("return buffer;")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.add_line()
+
 	def generate_group_epilog(self, module_name, group_name):
 		self.initialization_function_generator.add_line("return YepStatusOk;")
 		self.initialization_function_generator.dedent()
@@ -993,6 +1253,27 @@ class FunctionGenerator:
 		self.csharp_dllimport_method_generator.dedent().add_line("}")
 		self.csharp_dllimport_method_generator.add_line().dedent().add_line("}")
 		self.csharp_dllimport_method_generator.add_line()
+
+		self.cpp_unit_test_generator.add_line("int main(int argc, char** argv) {").indent()
+		self.cpp_unit_test_generator.add_line("YepStatus status = _yepLibrary_InitCpuInfo();")
+		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+		self.cpp_unit_test_generator.add_line()
+		
+		self.cpp_unit_test_generator.add_line("Yep64u supportedIsaFeatures, supportedSimdFeatures, supportedSystemFeatures;")
+		self.cpp_unit_test_generator.add_line("status = yepLibrary_GetCpuIsaFeatures(&supportedIsaFeatures);")
+		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+		self.cpp_unit_test_generator.add_line("status = yepLibrary_GetCpuSimdFeatures(&supportedSimdFeatures);")
+		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+		self.cpp_unit_test_generator.add_line("status = yepLibrary_GetCpuSystemFeatures(&supportedSystemFeatures);")
+		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
+		self.cpp_unit_test_generator.add_line()
+
+		self.cpp_unit_test_generator.add_line("Yep32s failedTests = 0;")		
+		for cpp_unit_test in self.cpp_unit_tests:
+			self.cpp_unit_test_generator.add_line("failedTests += %s(supportedIsaFeatures, supportedSimdFeatures, supportedSystemFeatures);" % cpp_unit_test)
+		self.cpp_unit_test_generator.add_line("return failedTests;")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.add_line()
 
 		with open("library/sources/{0}/{1}.disp.h".format(module_name.lower(), group_name), "w+") as dispatch_header_file:
 			dispatch_header_file.write(self.dispatch_table_header_generator.get_code())
@@ -1021,6 +1302,9 @@ class FunctionGenerator:
 			with open('library/sources/{0}/{1}.{2}.asm'.format(module_name.lower(), group_name, assembly_implementation_generator.abi.get_name()), "w+") as assembly_implementation_file:
 				assembly_implementation_file.write(str(assembly_implementation_generator))
 
+		with open("unit-tests/sources/{0}/{1}.cpp".format(module_name.lower(), group_name), "w+") as cpp_unit_test_file:
+			cpp_unit_test_file.write(self.cpp_unit_test_generator.get_code())
+
 	def generate(self, declaration):
 		specialization = FunctionSpecialization(declaration)
 		for assembly_implementation in self.assembly_implementations:
@@ -1040,3 +1324,6 @@ class FunctionGenerator:
 		specialization.generate_csharp_dllimport_method(self.csharp_dllimport_method_generator)
 		specialization.generate_csharp_unsafe_method(self.csharp_unsafe_method_generator)
 		specialization.generate_csharp_safe_method(self.csharp_safe_method_generator)
+
+		if self.unit_test:
+			specialization.generate_cpp_unit_test(self.cpp_unit_test_generator, self.unit_test, self.cpp_unit_tests)
