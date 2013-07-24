@@ -360,6 +360,10 @@ static ConstantString getX86IsaFeatureString(Yep32u ctzIsaFeature) {
 			YEP_RETURN_CONSTANT_STRING("RDSEED instruction");
 		case CTZ<YepX86IsaFeatureADX>::result:
 			YEP_RETURN_CONSTANT_STRING("ADCX and ADOX instructions");
+		case CTZ<YepX86IsaFeatureSHA>::result:
+			YEP_RETURN_CONSTANT_STRING("SHA instructions");
+		case CTZ<YepX86IsaFeatureMPX>::result:
+			YEP_RETURN_CONSTANT_STRING("Memory Protection extension");
 		default:
 			return getGenericIsaFeatureString(ctzIsaFeature);
 	}
@@ -411,6 +415,14 @@ static ConstantString getX86SimdFeatureString(Yep32u ctzSimdFeature) {
 			YEP_RETURN_CONSTANT_STRING("KNF instruction set");
 		case CTZ<YepX86SimdFeatureKNC>::result:
 			YEP_RETURN_CONSTANT_STRING("KNC instruction set");
+		case CTZ<YepX86SimdFeatureAVX512F>::result:
+			YEP_RETURN_CONSTANT_STRING("AVX-512 Foundation instructions");
+		case CTZ<YepX86SimdFeatureAVX512CD>::result:
+			YEP_RETURN_CONSTANT_STRING("AVX-512 Conflict Detection instructions");
+		case CTZ<YepX86SimdFeatureAVX512ER>::result:
+			YEP_RETURN_CONSTANT_STRING("AVX-512 Exponential and Reciprocal instructions");
+		case CTZ<YepX86SimdFeatureAVX512PF>::result:
+			YEP_RETURN_CONSTANT_STRING("AVX-512 Prefetch instructions");
 		default:
 			return getGenericSimdFeatureString(ctzSimdFeature);
 	}
@@ -420,10 +432,10 @@ static ConstantString getX86SystemFeatureString(Yep32u ctzSystemFeature) {
 	switch (ctzSystemFeature) {
 		case CTZ<YepX86SystemFeatureFPU>::result:
 			YEP_RETURN_CONSTANT_STRING("x87 FPU registers");
-		case CTZ<YepX86SystemFeatureSSE>::result:
-			YEP_RETURN_CONSTANT_STRING("SSE registers");
-		case CTZ<YepX86SystemFeatureAVX>::result:
-			YEP_RETURN_CONSTANT_STRING("AVX registers");
+		case CTZ<YepX86SystemFeatureXMM>::result:
+			YEP_RETURN_CONSTANT_STRING("XMM registers");
+		case CTZ<YepX86SystemFeatureYMM>::result:
+			YEP_RETURN_CONSTANT_STRING("YMM registers");
 		case CTZ<YepX86SystemFeatureMisalignedSSE>::result:
 			YEP_RETURN_CONSTANT_STRING("Misaligned memory operands in SSE instructions");
 		case CTZ<YepX86SystemFeatureACE>::result:
@@ -436,8 +448,10 @@ static ConstantString getX86SystemFeatureString(Yep32u ctzSystemFeature) {
 			YEP_RETURN_CONSTANT_STRING("Padlock Hash Engine");
 		case CTZ<YepX86SystemFeaturePMM>::result:
 			YEP_RETURN_CONSTANT_STRING("Padlock Montgomery Multiplier");
-		case CTZ<YepX86SystemFeatureMIC>::result:
-			YEP_RETURN_CONSTANT_STRING("MIC registers");
+		case CTZ<YepX86SystemFeatureZMM>::result:
+			YEP_RETURN_CONSTANT_STRING("ZMM registers");
+		case CTZ<YepX86SystemFeatureBND>::result:
+			YEP_RETURN_CONSTANT_STRING("BND registers");
 		default:
 			return getGenericSystemFeatureString(ctzSystemFeature);
 	}

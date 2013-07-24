@@ -88,6 +88,10 @@ public class X86CpuIsaFeature extends CpuIsaFeature {
 	public static final X86CpuIsaFeature Rdseed     = new X86CpuIsaFeature(35);
 	/** @brief ADCX and ADOX instructions. */
 	public static final X86CpuIsaFeature ADX        = new X86CpuIsaFeature(36);
+	/** @brief SHA instruction set. */
+	public static final X86CpuIsaFeature SHA        = new X86CpuIsaFeature(37);
+	/** @brief Memory Protection Extension. */
+	public static final X86CpuIsaFeature MPX        = new X86CpuIsaFeature(38);
 
 	protected X86CpuIsaFeature(int id) {
 		super(id, CpuArchitecture.X86.getId());
