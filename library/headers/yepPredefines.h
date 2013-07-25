@@ -563,7 +563,7 @@
 				#define YEP_COMPILER_SUPPORTS_ARM_NEON_EXTENSION
 			#endif
 		#endif
-		#if defined(__VFP_FP__)
+		#if defined(__VFP_FP__) || defined(__ARM_FP)
 			#ifndef YEP_CPU_SUPPORTS_ARM_VFP_EXTENSION
 				#define YEP_CPU_SUPPORTS_ARM_VFP_EXTENSION
 			#endif
@@ -580,9 +580,19 @@
 				#ifndef YEP_CPU_SUPPORTS_ARM_VFP3_EXTENSION
 					#define YEP_CPU_SUPPORTS_ARM_VFP3_EXTENSION
 				#endif
+				#if defined(__ARM_FP) && ((__ARM_FP & 0x2) == 0x2)
+					#ifndef YEP_CPU_SUPPORTS_ARM_VFP3HP_EXTENSION
+						#define YEP_CPU_SUPPORTS_ARM_VFP3HP_EXTENSION
+					#endif
+				#endif
 				#if defined(YEP_CPU_SUPPORTS_ARM_NEON_EXTENSION)
 					#ifndef YEP_CPU_SUPPORTS_ARM_VFP3_D32_EXTENSION
 						#define YEP_CPU_SUPPORTS_ARM_VFP3_D32_EXTENSION
+					#endif
+				#endif
+				#if defined(__ARM_FEATURE_FMA) || (defined(__FP_FAST_FMA) && defined(__FP_FAST_FMAF))
+					#ifndef YEP_CPU_SUPPORTS_ARM_VFP4_EXTENSION
+						#define YEP_CPU_SUPPORTS_ARM_VFP4_EXTENSION
 					#endif
 				#endif
 			#endif

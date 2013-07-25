@@ -520,6 +520,18 @@
 #define YEP_CPU_SUPPORTS_ARM_VFP3_D32_EXTENSION
 /**
  * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports ARM VFPv3 half-precision extension.
+ * @see	#YepARMIsaFeatureVFP3HP
+ */
+#define YEP_CPU_SUPPORTS_ARM_VFP3HP_EXTENSION
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports ARM VFPv4 instruction set.
+ * @see	#YepARMIsaFeatureVFP4
+ */
+#define YEP_CPU_SUPPORTS_ARM_VFP4_EXTENSION
+/**
+ * @ingroup yepPredefines
  * @brief	Defined only when the target processor supports ARM SDIV/UDIV instructions.
  * @see	#YepARMIsaFeatureDiv
  */
