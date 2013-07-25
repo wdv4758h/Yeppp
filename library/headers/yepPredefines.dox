@@ -484,6 +484,12 @@
 #define YEP_CPU_SUPPORTS_ARM_WMMX_EXTENSION
 /**
  * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports ARM Wireless MMX 2 instruction set.
+ * @see	#YepARMSimdFeatureWMMX
+ */
+#define YEP_CPU_SUPPORTS_ARM_WMMX2_EXTENSION
+/**
+ * @ingroup yepPredefines
  * @brief	Defined only when the target processor supports ARM NEON instruction set.
  * @see	#YepARMSimdFeatureNEON
  */
@@ -697,6 +703,15 @@
  * @see	#yepLibrary_GetCpuSimdFeatures, #YepARMSimdFeatureWMMX, #YEP_CPU_SUPPORTS_ARM_WMMX_EXTENSION
  */
 #define YEP_COMPILER_SUPPORTS_ARM_WMMX_EXTENSION
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the compiler supports ARM WMMX 2 intrinsics for this compilation.
+ * @warning	This macro does not guarantee that the target processor supports WMMX 2 instruction set.
+ *         	Use #yepLibrary_GetCpuSimdFeatures function to detect in run-time if processor supports WMMX 2 instruction set,
+ *         	or #YEP_CPU_SUPPORTS_ARM_WMMX2_EXTENSION macro to check availability of WMMX 2 instructions on target processor in compile-time.
+ * @see	#yepLibrary_GetCpuSimdFeatures, #YepARMSimdFeatureWMMX2, #YEP_CPU_SUPPORTS_ARM_WMMX2_EXTENSION
+ */
+#define YEP_COMPILER_SUPPORTS_ARM_WMMX2_EXTENSION
 /**
  * @ingroup yepPredefines
  * @brief	Defined only when the compiler supports ARM NEON intrinsics for this compilation.
