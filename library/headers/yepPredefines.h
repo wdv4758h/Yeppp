@@ -805,7 +805,7 @@
 #elif defined(YE_ARM_COMPILER)
 	#define YEP_ALIGN_OF(type) __ALIGNOF__(type)
 #else
-	/* Do nothing. Let the use of YEP_ALIGN generate compiler error. */
+	/* Do nothing. Let the use of YEP_ALIGN_OF generate compiler error. */
 #endif
 
 #if defined(YEP_LINUX_OS)
