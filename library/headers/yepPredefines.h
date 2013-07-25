@@ -539,12 +539,20 @@
 				#define YEP_CPU_SUPPORTS_ARM_XSCALE_EXTENSION
 			#endif
 		#endif
-		#if defined(__IWMMXT__)
+		#if defined(__IWMMXT__) || defined(__ARM_WMMX)
 			#ifndef YEP_CPU_SUPPORTS_ARM_WMMX_EXTENSION
 				#define YEP_CPU_SUPPORTS_ARM_WMMX_EXTENSION
 			#endif
 			#ifndef YEP_COMPILER_SUPPORTS_ARM_WMMX_EXTENSION
 				#define YEP_COMPILER_SUPPORTS_ARM_WMMX_EXTENSION
+			#endif
+			#if defined(__IWMMXT2__) || (defined(__ARM_WMMX) && (__ARM_WMMX >= 2))
+				#ifndef YEP_CPU_SUPPORTS_ARM_WMMX2_EXTENSION
+					#define YEP_CPU_SUPPORTS_ARM_WMMX2_EXTENSION
+				#endif
+				#ifndef YEP_COMPILER_SUPPORTS_ARM_WMMX2_EXTENSION
+					#define YEP_COMPILER_SUPPORTS_ARM_WMMX2_EXTENSION
+				#endif
 			#endif
 		#endif
 		#if defined(__ARM_NEON__)
