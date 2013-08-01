@@ -15,7 +15,6 @@ class Entropy {
 			p[i] = 1.0 - rng.NextDouble();
 		}
 		
-		Yeppp.Library.Init();
 		/* Retrieve the number of timer ticks per second */
 		ulong frequency = Yeppp.Library.GetTimerFrequency();
 		
@@ -53,8 +52,6 @@ class Entropy {
 		Console.WriteLine("Yeppp! implementation (unsafe):");
 		Console.WriteLine("\tEntropy = {0:F}", entropyYepppUnsafe);
 		Console.WriteLine("\tTime = {0:F} secs", ((double)(endTimeYepppUnsafe - startTimeYepppUnsafe)) / ((double)(frequency)));
-		
-		Yeppp.Library.Release();
 	}
 	
 	/* The naive implementation of entropy computation using log function for LibM */

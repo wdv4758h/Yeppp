@@ -19,7 +19,7 @@ namespace Yeppp
 
 	public class Library
 	{
-		public static void Init()
+		internal static void Init()
 		{
 			Status status = yepLibrary_Init();
 			if (status != Status.Ok) {
