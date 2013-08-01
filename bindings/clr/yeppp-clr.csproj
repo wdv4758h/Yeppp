@@ -19,6 +19,7 @@
 			NoLogo="true"
 			AllowUnsafeBlocks="true"
 			Optimize="true" />
+		<Exec Command="InjectModuleInitializer.exe /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\$(MSBuildProjectName).dll" />
 	</Target>
 	<Target Name="Clean" >
 		<Delete Files="$(BuildDirectory)\Version.res;$(BuildDirectory)\$(MSBuildProjectName).dll" />
