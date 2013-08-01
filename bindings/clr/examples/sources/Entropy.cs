@@ -1,10 +1,10 @@
 using System;
 
 class Entropy {
-	
+
 	public static void Main(string[] args) {
 		const int arraySize = 1024*1024*64;
-		
+
 		/* Allocate an array of probabilities */
 		double[] p = new double[arraySize];
 
@@ -14,34 +14,34 @@ class Entropy {
 			/* 0 < p[i] <= 1.0 */
 			p[i] = 1.0 - rng.NextDouble();
 		}
-		
+
 		/* Retrieve the number of timer ticks per second */
 		ulong frequency = Yeppp.Library.GetTimerFrequency();
-		
+
 		/* Retrieve the number of timer ticks before calling naive entropy computation */
 		ulong startTimeNaive = Yeppp.Library.GetTimerTicks();
-		
+
 		double entropyNaive = computeEntropyNaive(p);
-		
+
 		/* Retrieve the number of timer ticks after calling naive entropy computation */
 		ulong endTimeNaive = Yeppp.Library.GetTimerTicks();
-		
+
 		/* Retrieve the number of timer ticks before calling safe Yeppp! entropy computation */
 		ulong startTimeYepppSafe = Yeppp.Library.GetTimerTicks();
-		
+
 		double entropyYepppSafe = computeEntropyYepppSafe(p);
-		
+
 		/* Retrieve the number of timer ticks after calling safe Yeppp! computation */
 		ulong endTimeYepppSafe = Yeppp.Library.GetTimerTicks();
-		
+
 		/* Retrieve the number of timer ticks before calling unsafe Yeppp! entropy computation */
 		ulong startTimeYepppUnsafe = Yeppp.Library.GetTimerTicks();
-		
+
 		double entropyYepppUnsafe = computeEntropyYepppUnsafe(p);
-		
+
 		/* Retrieve the number of timer ticks after calling unsafe Yeppp! computation */
 		ulong endTimeYepppUnsafe = Yeppp.Library.GetTimerTicks();
-		
+
 		/* Report the results */
 		Console.WriteLine("Naive implementation:");
 		Console.WriteLine("\tEntropy = {0:F}", entropyNaive);

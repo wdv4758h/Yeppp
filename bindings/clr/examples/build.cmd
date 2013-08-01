@@ -12,4 +12,6 @@ set MKDIRFLAGS=
 
 %CSC% %CSCFLAGS% /out:binaries/Entropy.exe sources\Entropy.cs
 
+%CSC% %CSCFLAGS% /out:binaries/SystemTimer.exe sources\SystemTimer.cs
+
 %CP% %CPFLAGS% ..\binaries\yeppp-clr.dll binaries\yeppp-clr.dll >NUL 2>NUL
