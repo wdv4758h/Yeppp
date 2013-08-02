@@ -1,8 +1,10 @@
 using System;
 
-class SystemTimer {
+class SystemTimer
+{
 
-	public static void Main(string[] args) {
+	public static void Main(string[] args)
+	{
 		const int arraySize = 1024*1024*16;
 
 		/* Allocate an array of numbers */
@@ -10,7 +12,8 @@ class SystemTimer {
 
 		/* Populate the array with random numbers */
 		Random rng = new Random();
-		for (int i = 0; i < arraySize; i++) {
+		for (int i = 0; i < arraySize; i++)
+		{
 			array[i] = rng.Next();
 		}
 

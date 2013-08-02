@@ -10,6 +10,14 @@ set MKDIRFLAGS=
 %RM% %RMFLAGS% "binaries" >NUL 2>NUL
 %MKDIR% %MKDIRFLAGS% "binaries" >NUL 2>NUL
 
+%CSC% %CSCFLAGS% /out:binaries/Polynomial.exe sources\Polynomial.cs
+
+%CSC% %CSCFLAGS% /out:binaries/PolynomialF.exe sources\PolynomialF.cs
+
+%CSC% %CSCFLAGS% /out:binaries/CpuCycles.exe sources\CpuCycles.cs
+
+%CSC% %CSCFLAGS% /out:binaries/CpuInfo.exe sources\CpuInfo.cs
+
 %CSC% %CSCFLAGS% /out:binaries/Entropy.exe sources\Entropy.cs
 
 %CSC% %CSCFLAGS% /out:binaries/SystemTimer.exe sources\SystemTimer.cs

@@ -2,7 +2,8 @@ using System;
 
 class Entropy {
 
-	public static void Main(string[] args) {
+	public static void Main(string[] args)
+	{
 		const int arraySize = 1024*1024*64;
 
 		/* Allocate an array of probabilities */
@@ -10,7 +11,8 @@ class Entropy {
 
 		/* Populate the array of probabilities with random probabilities */
 		Random rng = new Random();
-		for (int i = 0; i < arraySize; i++) {
+		for (int i = 0; i < arraySize; i++)
+		{
 			/* 0 < p[i] <= 1.0 */
 			p[i] = 1.0 - rng.NextDouble();
 		}
@@ -53,12 +55,14 @@ class Entropy {
 		Console.WriteLine("\tEntropy = {0:F}", entropyYepppUnsafe);
 		Console.WriteLine("\tTime = {0:F} secs", ((double)(endTimeYepppUnsafe - startTimeYepppUnsafe)) / ((double)(frequency)));
 	}
-	
+
 	/* The naive implementation of entropy computation using log function for LibM */
-	private static double computeEntropyNaive(double[] probabilities) {
+	private static double computeEntropyNaive(double[] probabilities)
+	{
 		double entropy = 0.0;
 		/** $\mathbb{H}\left[P\right] = - \sum_{i = 0}^{n} p_{i}\cdot\log\left(p_{i}\right) $ */
-		for (int i = 0; i < probabilities.Length; i++) {
+		for (int i = 0; i < probabilities.Length; i++)
+		{
 			double p = probabilities[i];
 			/* Compute $p_{i}\cdot\log\left(p_{i}\right)$ and subtract it from the current entropy value */
 			entropy -= p * Math.Log(p);
@@ -69,56 +73,61 @@ class Entropy {
 	/* The implementation of entropy computation using vector log and dot-product functions from Yeppp! library */
 	/* To avoid allocating a large array for logarithms (and also to benefit from cache locality) the logarithms are computed on small blocks of the input array */
 	/* The size of the block used to compute the logarithm */
-	private static double computeEntropyYepppSafe(double[] p) {
+	private static double computeEntropyYepppSafe(double[] p)
+	{
 		double entropy = 0.0;
 		const int blockSize = 1000;
 		/* The small array for computed logarithms of the part of the input array */
 		double[] logP = new double[blockSize];
-		
+
 		/** $\mathbb{H}\left[P\right] = - \sum_{i = 0}^{n} p_{i}\cdot\log\left(p_{i}\right) $ */
-		for (int index = 0; index < p.Length; index += blockSize) {
+		for (int index = 0; index < p.Length; index += blockSize)
+		{
 			/* Process min(BLOCK_SIZE, number of remaining elements) elements of the input array */
 			int blockLength = Math.Min(blockSize, p.Length - index);
-			
+
 			/* Compute logarithms of probabilities in the current block of the input array */
 			Yeppp.Math.Log_V64f_V64f(p, index, logP, 0, blockLength);
 			/* Compute the dot product of probabilities and log-probabilities of the current block */
 			/* This will give minus entropy of the current block */
 			double dotProduct = Yeppp.Core.DotProduct_V64fV64f_S64f(p, index, logP, 0, blockLength);
-			
+
 			/* Compute entropy of the current block and subtract it from the current entropy value */
 			entropy -= dotProduct;
 		}
-		
+
 		return entropy;
 	}
-	
+
 	/* The implementation of entropy computation using vector log and dot-product functions from Yeppp! library */
 	/* To avoid allocating a large array for logarithms (and also to benefit from cache locality) the logarithms are computed on small blocks of the input array */
 	/* The size of the block used to compute the logarithm */
-	private static unsafe double computeEntropyYepppUnsafe(double[] probabilities) {
+	private static unsafe double computeEntropyYepppUnsafe(double[] probabilities)
+	{
 		double entropy = 0.0;
 		const int blockSize = 1000;
 		/* The small array for computed logarithms of the part of the input array */
 		double* logP = stackalloc double[blockSize];
-		
-		fixed (double* p = &probabilities[0]) {
+
+		fixed (double* p = &probabilities[0])
+		{
 			/** $\mathbb{H}\left[P\right] = - \sum_{i = 0}^{n} p_{i}\cdot\log\left(p_{i}\right) $ */
-			for (int index = 0; index < probabilities.Length; index += blockSize) {
+			for (int index = 0; index < probabilities.Length; index += blockSize)
+			{
 				/* Process min(BLOCK_SIZE, number of remaining elements) elements of the input array */
 				int blockLength = Math.Min(blockSize, probabilities.Length - index);
-				
+
 				/* Compute logarithms of probabilities in the current block of the input array */
 				Yeppp.Math.Log_V64f_V64f(p + index, logP, blockLength);
 				/* Compute the dot product of probabilities and log-probabilities of the current block */
 				/* This will give minus entropy of the current block */
 				double dotProduct = Yeppp.Core.DotProduct_V64fV64f_S64f(p + index, logP, blockLength);
-				
+
 				/* Compute entropy of the current block and subtract it from the current entropy value */
 				entropy -= dotProduct;
 			}
 		}
-		
+
 		return entropy;
 	}
 }
