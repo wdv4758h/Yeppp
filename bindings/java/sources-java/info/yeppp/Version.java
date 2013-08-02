@@ -1,9 +1,8 @@
 /*
  *                      Yeppp! library implementation
  *
- * This file is part of Yeppp! library and licensed under 2-clause BSD license.
- * See library/LICENSE.txt for details.
- *
+ * This file is part of Yeppp! library and licensed under the New BSD license.
+ * See library/LICENSE.txt for the full text of the license.
  */
 
 package info.yeppp;
@@ -18,14 +17,13 @@ public class Version {
 		this.build = build;
 		this.releaseName = releaseName;
 	}
-	
+
 	final private int major;
 	final private int minor;
 	final private int patchLevel;
 	final private int build;
 	final private String releaseName;
-	
-	/** @brief A UTF-8 string with a human-readable name of this release. May contain non-ASCII characters. */
+
 	/**
 	 * @brief	Provides the major version number of @Yeppp library.
 	 * @details	Library releases with the same major versions are guaranteed to be API- and ABI-compatible.
