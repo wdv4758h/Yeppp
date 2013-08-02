@@ -643,9 +643,6 @@ static ConstantString getSPARCSystemFeatureString(Yep32u ctzSystemFeature) {
 };
 
 YepStatus YEPABI yepLibrary_GetString(YepEnumeration enumerationType, Yep32u enumerationValue, void *buffer, YepSize *lengthPointer) {
-	if YEP_UNLIKELY(buffer == YEP_NULL_POINTER) {
-		return YepStatusNullPointer;
-	}
 	if YEP_UNLIKELY(lengthPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
@@ -710,7 +707,7 @@ YepStatus YEPABI yepLibrary_GetString(YepEnumeration enumerationType, Yep32u enu
 	if YEP_UNLIKELY(constantString.isEmpty()) {
 		return YepStatusInvalidArgument;
 	}
-	if YEP_UNLIKELY(constantString.length > length) {
+	if (YEP_LIKELY(buffer == YEP_NULL_POINTER) || YEP_UNLIKELY(constantString.length > length)) {
 		*lengthPointer = constantString.length;
 		return YepStatusInsufficientBuffer;
 	} else {
