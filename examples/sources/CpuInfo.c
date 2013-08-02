@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 	buffer[bufferLength] = '\0'; /* Append terminating null */
 	printf("\tVendor: %s\n", buffer);
 
-	/* Retrieve information about processor vendor */
+	/* Retrieve information about processor microarchitecture */
 	status = yepLibrary_GetCpuMicroarchitecture(&microarchitecture);
 	assert(status == YepStatusOk);
 	/* Convert processor vendor into string */
