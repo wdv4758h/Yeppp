@@ -9,7 +9,6 @@ class CpuCycles {
 		final short[] array = new short[arraySize];
 		
 		/* Check if the system supports performance counters */
-		System.out.println(info.yeppp.CpuSystemFeature.CycleCounter.toString());
 		if (info.yeppp.Library.isSupported(info.yeppp.CpuSystemFeature.CycleCounter)) {
 			/* Estimate the measurement overhead */
 			long minOverhead = ulongMax();
@@ -37,7 +36,7 @@ class CpuCycles {
 			}
 			/* Subtract the overhead and normalize by the number of elements */
 			final double cpe = ulongToDouble(minCycles - minOverhead) / ((double)arraySize);
-			System.out.println(String.format("Cycles per element: %3.2f\n", cpe));
+			System.out.println(String.format("Cycles per element: %3.2f", cpe));
 		} else {
 			System.out.println("Processor cycle counter is not supported");
 		}
