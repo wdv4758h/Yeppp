@@ -22,4 +22,4 @@ rc /I../../library/headers /Fobinaries/x64-windows-ms-default/library/Version.re
 
 link /nologo /NODEFAULTLIB /DLL /MACHINE:X64 /OUT:binaries/x64-windows-ms-default/yeppp-jni.dll binaries/x64-windows-ms-default/core/*.obj binaries/x64-windows-ms-default/math/*.obj binaries/x64-windows-ms-default/library/*.obj binaries/x64-windows-ms-default/library/Version.res %IMPORT_LIBRARIES%
 
-%CP% %CPFLAGS% "binaries\x64-windows-ms-default\yeppp-jni.dll" "..\..\binaries\windows\x64\yeppp-jni.dll" >NUL 2>NUL
+%CP% %CPFLAGS% "binaries\x64-windows-ms-default\yeppp-jni.dll" "..\..\binaries\windows\amd64\yeppp-jni.dll" >NUL 2>NUL
