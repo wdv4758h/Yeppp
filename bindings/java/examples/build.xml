@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<project name="yeppp" default="build-all">
+<project name="yeppp" default="all">
 	<target name="clean" description="Delete all class and jar files">
 		<delete dir="binaries" />
 		<delete dir="classes" />
 	</target>
-	<target name="build-CpuCycles" description="Build CpuCycles example">
+	<target name="CpuCycles" description="Build CpuCycles example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
 		<javac srcdir="sources" includes="CpuCycles.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
@@ -17,7 +17,7 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="build-CpuInfo" description="Build CpuInfo example">
+	<target name="CpuInfo" description="Build CpuInfo example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
 		<javac srcdir="sources" includes="CpuInfo.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
@@ -30,7 +30,7 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="build-Entropy" description="Build Entropy example">
+	<target name="Entropy" description="Build Entropy example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
 		<javac srcdir="sources" includes="Entropy.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
@@ -43,7 +43,7 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="build-SystemTimer" description="Build SystemTimer example">
+	<target name="SystemTimer" description="Build SystemTimer example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
 		<javac srcdir="sources" includes="SystemTimer.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
@@ -56,5 +56,31 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="build-all" description="Build all examples" depends="build-CpuCycles,build-CpuInfo,build-Entropy,build-SystemTimer" />
+	<target name="PolynomialF" description="Build PolynomialF example">
+		<mkdir dir="binaries" />
+		<mkdir dir="classes" />
+		<javac srcdir="sources" includes="PolynomialF.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/PolynomialF.jar" level="9">
+			<fileset dir="classes" includes="PolynomialF.class" />
+			<manifest>
+				<attribute name="Main-Class" value="PolynomialF" />
+				<attribute name="Class-Path" value="yeppp.jar" />
+				<attribute name="Implementation-Title" value="Polynomial evaluation (single precision) example" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="Polynomial" description="Build Polynomial example">
+		<mkdir dir="binaries" />
+		<mkdir dir="classes" />
+		<javac srcdir="sources" includes="Polynomial.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<jar destfile="binaries/Polynomial.jar" level="9">
+			<fileset dir="classes" includes="Polynomial.class" />
+			<manifest>
+				<attribute name="Main-Class" value="Polynomial" />
+				<attribute name="Class-Path" value="yeppp.jar" />
+				<attribute name="Implementation-Title" value="Polynomial evaluation (double precision) example" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="all" description="Build all examples" depends="CpuCycles,CpuInfo,Entropy,SystemTimer,Polynomial,PolynomialF" />
 </project>
