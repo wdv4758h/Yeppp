@@ -1,5 +1,5 @@
 set CSC=csc
-set CSCFLAGS=/nologo /optimize+ /target:exe /unsafe /reference:..\binaries\yeppp-clr.dll
+set CSCFLAGS=/nologo /optimize+ /target:exe /unsafe /reference:%YEPROOT%\binaries\clr-2.0\yeppp-clr.dll
 set CP=copy
 set CPFLAGS=/Y
 set RM=del
@@ -22,4 +22,4 @@ set MKDIRFLAGS=
 
 %CSC% %CSCFLAGS% /out:binaries/SystemTimer.exe sources\SystemTimer.cs
 
-%CP% %CPFLAGS% ..\binaries\yeppp-clr.dll binaries\yeppp-clr.dll >NUL 2>NUL
+%CP% %CPFLAGS% %YEPROOT%\binaries\clr-2.0\yeppp-clr.dll binaries\yeppp-clr.dll >NUL 2>NUL

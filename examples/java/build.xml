@@ -7,7 +7,7 @@
 	<target name="CpuCycles" description="Build CpuCycles example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="CpuCycles.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="CpuCycles.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/CpuCycles.jar" level="9">
 			<fileset dir="classes" includes="CpuCycles.class" />
 			<manifest>
@@ -20,7 +20,7 @@
 	<target name="CpuInfo" description="Build CpuInfo example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="CpuInfo.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="CpuInfo.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/CpuInfo.jar" level="9">
 			<fileset dir="classes" includes="CpuInfo.class" />
 			<manifest>
@@ -33,7 +33,7 @@
 	<target name="Entropy" description="Build Entropy example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="Entropy.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="Entropy.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/Entropy.jar" level="9">
 			<fileset dir="classes" includes="Entropy.class" />
 			<manifest>
@@ -46,7 +46,7 @@
 	<target name="SystemTimer" description="Build SystemTimer example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="SystemTimer.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="SystemTimer.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/SystemTimer.jar" level="9">
 			<fileset dir="classes" includes="SystemTimer.class" />
 			<manifest>
@@ -59,7 +59,7 @@
 	<target name="PolynomialF" description="Build PolynomialF example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="PolynomialF.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="PolynomialF.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/PolynomialF.jar" level="9">
 			<fileset dir="classes" includes="PolynomialF.class" />
 			<manifest>
@@ -72,7 +72,7 @@
 	<target name="Polynomial" description="Build Polynomial example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="Polynomial.java" classpath="../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="Polynomial.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/Polynomial.jar" level="9">
 			<fileset dir="classes" includes="Polynomial.class" />
 			<manifest>
