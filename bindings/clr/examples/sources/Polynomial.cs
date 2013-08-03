@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System;
 
-class Entropy {
+class Polynomial {
 
 	public static void Main(string[] args)
 	{
