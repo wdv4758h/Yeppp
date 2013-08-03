@@ -18,6 +18,14 @@
  *  - ARM on Linux and Android.
  *  - MIPS on Android.
  *
+ * @example Entropy.java
+ *
+ * This example shows how to use @Yeppp library to compute the entropy of a distribution given by its probabilities:
+ *
+ * @example Polynomial.java
+ *
+ * This example demonstrates the use of @Yeppp library to evaluate a polynomial on an array:
+ *
  * @example CpuInfo.java
  *
  * This example shows how to use @Yeppp library to get information about processor and supported instruction extensions:
@@ -29,9 +37,5 @@
  * @example CpuCycles.java
  *
  * This example shows how to use @Yeppp library to measure the execution time in CPU cycles:
- *
- * @example Entropy.java
- *
- * This example shows how to use @Yeppp library to compute the entropy of a distribution given by its probabilities:
  *
  */
