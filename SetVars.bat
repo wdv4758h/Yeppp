@@ -22,14 +22,12 @@ GOTO help
 :x86
 SET YEPROOT=%~dp0
 SET PATH=%YEPROOT%binaries\windows\x86;%PATH%
-IF EXIST %YEPROOT%binaries\clr-2.0\yeppp-clr.dll SET PATH=%YEPROOT%binaries\clr-2.0;%PATH%
 IF EXIST %YEPROOT%binaries\java-1.5\yeppp.jar SET CLASSPATH=%YEPROOT%binaries\java-1.5\yeppp.jar;%CLASSPATH%
 EXIT /B 0
 
 :x64
 SET YEPROOT=%~dp0
-SET PATH=%YEPROOT%binaries\windows\x64;%PATH%
-IF EXIST %YEPROOT%binaries\clr-2.0\yeppp-clr.dll SET PATH=%YEPROOT%binaries\clr-2.0;%PATH%
+SET PATH=%YEPROOT%binaries\windows\amd64;%PATH%
 IF EXIST %YEPROOT%binaries\java-1.5\yeppp.jar SET CLASSPATH=%YEPROOT%binaries\java-1.5\yeppp.jar;%CLASSPATH%
 EXIT /B 0
 
