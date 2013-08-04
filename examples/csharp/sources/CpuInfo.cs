@@ -17,7 +17,7 @@ class CpuInfo {
 		if (architecture.CpuIsaFeatures.GetEnumerator().MoveNext()) {
 			Console.WriteLine("CPU ISA extensions:");
 			/* Iterate through ISA features */
-			foreach (var isaFeature in architecture.CpuIsaFeatures)
+			foreach (Yeppp.CpuIsaFeature isaFeature in architecture.CpuIsaFeatures)
 			{
 				Console.WriteLine(String.Format("\t{0, -60}\t{1}", isaFeature.ToString() + ":", (Yeppp.Library.IsSupported(isaFeature) ? "Yes" : "No")));
 			}
@@ -26,7 +26,7 @@ class CpuInfo {
 		if (architecture.CpuSimdFeatures.GetEnumerator().MoveNext()) {
 			Console.WriteLine("CPU SIMD extensions:");
 			/* Iterate through SIMD features */
-			foreach (var simdFeature in architecture.CpuSimdFeatures)
+			foreach (Yeppp.CpuSimdFeature simdFeature in architecture.CpuSimdFeatures)
 			{
 				Console.WriteLine(String.Format("\t{0, -60}\t{1}", simdFeature.ToString() + ":", (Yeppp.Library.IsSupported(simdFeature) ? "Yes" : "No")));
 			}
@@ -35,7 +35,7 @@ class CpuInfo {
 		if (architecture.CpuSystemFeatures.GetEnumerator().MoveNext()) {
 			Console.WriteLine("Non-ISA CPU and system features:");
 			/* Iterate through non-ISA CPU and system features */
-			foreach (var systemFeature in architecture.CpuSystemFeatures)
+			foreach (Yeppp.CpuSystemFeature systemFeature in architecture.CpuSystemFeatures)
 			{
 				Console.WriteLine(String.Format("\t{0, -60}\t{1}", systemFeature.ToString() + ":", (Yeppp.Library.IsSupported(systemFeature) ? "Yes" : "No")));
 			}
