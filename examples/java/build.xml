@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <project name="yeppp" default="all">
+	<property environment="env" />
+	<property name="yeppp.library.dir" value="${env.YEPROOT}/binaries/java-1.5/" />
+	<property name="yeppp.library.jar" value="${yeppp.library.dir}/yeppp.jar" />
 	<target name="clean" description="Delete all class and jar files">
 		<delete dir="binaries" />
 		<delete dir="classes" />
@@ -7,12 +10,12 @@
 	<target name="CpuCycles" description="Build CpuCycles example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="CpuCycles.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="CpuCycles.java" classpath="${yeppp.library.jar}" destdir="classes" source="1.5" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/CpuCycles.jar" level="9">
 			<fileset dir="classes" includes="CpuCycles.class" />
+			<zipgroupfileset dir="${yeppp.library.dir}" includes="**/yeppp.jar" />
 			<manifest>
 				<attribute name="Main-Class" value="CpuCycles"/>
-				<attribute name="Class-Path" value="yeppp.jar" />
 				<attribute name="Implementation-Title" value="Processor cycle counter access example" />
 			</manifest>
 		</jar>
@@ -20,12 +23,12 @@
 	<target name="CpuInfo" description="Build CpuInfo example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="CpuInfo.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="CpuInfo.java" classpath="${yeppp.library.jar}" destdir="classes" source="1.5" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/CpuInfo.jar" level="9">
 			<fileset dir="classes" includes="CpuInfo.class" />
+			<zipgroupfileset dir="${yeppp.library.dir}" includes="**/yeppp.jar" />
 			<manifest>
 				<attribute name="Main-Class" value="CpuInfo"/>
-				<attribute name="Class-Path" value="yeppp.jar" />
 				<attribute name="Implementation-Title" value="Processor features detection example" />
 			</manifest>
 		</jar>
@@ -33,12 +36,12 @@
 	<target name="Entropy" description="Build Entropy example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="Entropy.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="Entropy.java" classpath="${yeppp.library.jar}" destdir="classes" source="1.5" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/Entropy.jar" level="9">
 			<fileset dir="classes" includes="Entropy.class" />
+			<zipgroupfileset dir="${yeppp.library.dir}" includes="**/yeppp.jar" />
 			<manifest>
 				<attribute name="Main-Class" value="Entropy"/>
-				<attribute name="Class-Path" value="yeppp.jar" />
 				<attribute name="Implementation-Title" value="Entropy computation example" />
 			</manifest>
 		</jar>
@@ -46,12 +49,12 @@
 	<target name="SystemTimer" description="Build SystemTimer example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="SystemTimer.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="SystemTimer.java" classpath="${yeppp.library.jar}" destdir="classes" source="1.5" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/SystemTimer.jar" level="9">
 			<fileset dir="classes" includes="SystemTimer.class" />
+			<zipgroupfileset dir="${yeppp.library.dir}" includes="**/yeppp.jar" />
 			<manifest>
 				<attribute name="Main-Class" value="SystemTimer" />
-				<attribute name="Class-Path" value="yeppp.jar" />
 				<attribute name="Implementation-Title" value="System timer access example" />
 			</manifest>
 		</jar>
@@ -59,12 +62,12 @@
 	<target name="PolynomialF" description="Build PolynomialF example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="PolynomialF.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="PolynomialF.java" classpath="${yeppp.library.jar}" destdir="classes" source="1.5" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/PolynomialF.jar" level="9">
 			<fileset dir="classes" includes="PolynomialF.class" />
+			<zipgroupfileset dir="${yeppp.library.dir}" includes="**/yeppp.jar" />
 			<manifest>
 				<attribute name="Main-Class" value="PolynomialF" />
-				<attribute name="Class-Path" value="yeppp.jar" />
 				<attribute name="Implementation-Title" value="Polynomial evaluation (single precision) example" />
 			</manifest>
 		</jar>
@@ -72,12 +75,12 @@
 	<target name="Polynomial" description="Build Polynomial example">
 		<mkdir dir="binaries" />
 		<mkdir dir="classes" />
-		<javac srcdir="sources" includes="Polynomial.java" classpath="../../binaries/java-1.5/yeppp.jar" destdir="classes" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources" includes="Polynomial.java" classpath="${yeppp.library.jar}" destdir="classes" source="1.5" target="1.5" includeAntRuntime="false" />
 		<jar destfile="binaries/Polynomial.jar" level="9">
 			<fileset dir="classes" includes="Polynomial.class" />
+			<zipgroupfileset dir="${yeppp.library.dir}" includes="**/yeppp.jar" />
 			<manifest>
 				<attribute name="Main-Class" value="Polynomial" />
-				<attribute name="Class-Path" value="yeppp.jar" />
 				<attribute name="Implementation-Title" value="Polynomial evaluation (double precision) example" />
 			</manifest>
 		</jar>
