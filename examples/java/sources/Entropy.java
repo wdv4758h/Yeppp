@@ -1,7 +1,7 @@
 class Entropy {
 	
 	public static void main(String[] args) {
-		final int arraySize = 1024*1024*64;
+		final int arraySize = 1024*1024*16;
 		
 		/* Allocate an array of probabilities */
 		double[] p = new double[arraySize];
@@ -57,7 +57,7 @@ class Entropy {
 	/* The size of the block used to compute the logarithm */
 	private static double computeEntropyYeppp(final double[] p) {
 		double entropy = 0.0;
-		final int blockSize = 1000;
+		final int blockSize = 1024;
 		/* The small array for computed logarithms of the part of the input array */
 		double[] logP = new double[blockSize];
 		

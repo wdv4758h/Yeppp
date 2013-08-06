@@ -4,7 +4,7 @@ program entropy
     USE yepMath, ONLY: yepMath_Log_V64f_V64f
     USE ISO_C_BINDING, ONLY : C_SIZE_T, C_INT64_T, C_INT, C_DOUBLE
     implicit none
-    INTEGER(C_SIZE_T), PARAMETER :: n = 1024*1024*64
+    INTEGER(C_SIZE_T), PARAMETER :: n = 1024*1024*16
     INTEGER(C_INT64_T) :: ticksStart, ticksEnd, frequency
     real(C_DOUBLE) :: p(n), logP(n), H
     integer(C_INT) :: s

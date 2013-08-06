@@ -19,7 +19,7 @@ double compute_entropy_naive(const double *pPointer, size_t pLength) {
 /* The implementation of entropy computation using vector log and dot-product functions from Yeppp! library */
 /* To avoid allocating a large array for logarithms (and also to benefit from cache locality) the logarithms are computed on small blocks of the input array */
 /* The size of the block used to compute the logarithm */
-#define BLOCK_SIZE 1000
+#define BLOCK_SIZE 1024
 double compute_entropy_yeppp(const double *p, size_t length) {
 	enum YepStatus status;
 	Yep64f entropy = 0.0;
@@ -51,7 +51,7 @@ double compute_entropy_yeppp(const double *p, size_t length) {
 	return entropy;
 }
 
-#define ARRAY_SIZE (1024*1024*8)
+#define ARRAY_SIZE (1024*1024*16)
 
 int main(int argc, char **argv) {
 	enum YepStatus status;
