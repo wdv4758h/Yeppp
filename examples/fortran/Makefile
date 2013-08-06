@@ -1,4 +1,4 @@
-FCNAME=$(notdir ${F90})
+FCNAME=$(notdir ${FC})
 override FFLAGS += -O3
 override FFLAGS += -I${YEPROOT}/bindings/fortran/modules/${YEPPLATFORM}-${FCNAME}/
 ifeq (${YEPPLATFORM},x64-linux-sysv-default)
@@ -33,13 +33,13 @@ binaries/${YEPPLATFORM}:
 	-mkdir -p binaries/${YEPPLATFORM}
 
 binaries/${YEPPLATFORM}/Entropy: binaries/${YEPPLATFORM}
-	${F90} ${FFLAGS} -o binaries/${YEPPLATFORM}/Entropy sources/Entropy.f90 ${LDFLAGS} -lm
+	${FC} ${FFLAGS} -o binaries/${YEPPLATFORM}/Entropy sources/Entropy.f90 ${LDFLAGS} -lm
 
 binaries/${YEPPLATFORM}/Polynomial: binaries/${YEPPLATFORM}
-	${F90} ${FFLAGS} -o binaries/${YEPPLATFORM}/Polynomial sources/Polynomial.f90 ${LDFLAGS}
+	${FC} ${FFLAGS} -o binaries/${YEPPLATFORM}/Polynomial sources/Polynomial.f90 ${LDFLAGS}
 
 binaries/${YEPPLATFORM}/PolynomialF: binaries/${YEPPLATFORM}
-	${F90} ${FFLAGS} -o binaries/${YEPPLATFORM}/PolynomialF sources/PolynomialF.f90 ${LDFLAGS}
+	${FC} ${FFLAGS} -o binaries/${YEPPLATFORM}/PolynomialF sources/PolynomialF.f90 ${LDFLAGS}
 
 clean:
 	-rm -rf binaries/${YEPPLATFORM}
