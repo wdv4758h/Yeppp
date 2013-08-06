@@ -4,7 +4,7 @@ class Entropy {
 
 	public static void Main(string[] args)
 	{
-		const int arraySize = 1024*1024*64;
+		const int arraySize = 1024*1024*16;
 
 		/* Allocate an array of probabilities */
 		double[] p = new double[arraySize];
@@ -76,7 +76,7 @@ class Entropy {
 	private static double computeEntropyYepppSafe(double[] p)
 	{
 		double entropy = 0.0;
-		const int blockSize = 1000;
+		const int blockSize = 1024;
 		/* The small array for computed logarithms of the part of the input array */
 		double[] logP = new double[blockSize];
 
@@ -105,7 +105,7 @@ class Entropy {
 	private static unsafe double computeEntropyYepppUnsafe(double[] probabilities)
 	{
 		double entropy = 0.0;
-		const int blockSize = 1000;
+		const int blockSize = 1024;
 		/* The small array for computed logarithms of the part of the input array */
 		double* logP = stackalloc double[blockSize];
 
