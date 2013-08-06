@@ -164,9 +164,9 @@ int main(int argc, char **argv) {
 	struct YepRandom_WELL1024a rng;
 
 	/* Allocate arrays of inputs and outputs */
-	Yep32f *x = (Yep32f*)calloc(ARRAY_SIZE, sizeof(Yep64f));
-	Yep32f *pYeppp = (Yep32f*)calloc(ARRAY_SIZE, sizeof(Yep64f));
-	Yep32f *pNaive = (Yep32f*)calloc(ARRAY_SIZE, sizeof(Yep64f));
+	Yep32f *x = (Yep32f*)calloc(ARRAY_SIZE, sizeof(Yep32f));
+	Yep32f *pYeppp = (Yep32f*)calloc(ARRAY_SIZE, sizeof(Yep32f));
+	Yep32f *pNaive = (Yep32f*)calloc(ARRAY_SIZE, sizeof(Yep32f));
 	assert(x != NULL);
 	assert(pYeppp != NULL);
 	assert(pNaive != NULL);
@@ -182,6 +182,10 @@ int main(int argc, char **argv) {
 	/* Populate the array of inputs with random data */
 	status = yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32(&rng, 0.0f, 100.0f, x, ARRAY_SIZE);
 	assert(status == YepStatusOk);
+
+	/* Zero-initialize the output arrays */
+	memset(pYeppp, 0, ARRAY_SIZE * sizeof(Yep32f));
+	memset(pNaive, 0, ARRAY_SIZE * sizeof(Yep32f));
 
 	/* Retrieve the number of timer ticks per second */
 	status = yepLibrary_GetTimerFrequency(&frequency);

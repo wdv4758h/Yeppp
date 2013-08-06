@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 class PolynomialF {
 
 	public static void main(String[] args) {
@@ -13,6 +15,10 @@ class PolynomialF {
 		for (int i = 0; i < x.length; i++) {
 			x[i] = (float)Math.random();
 		}
+
+		/* Zero-initialize the output arrays */
+		Arrays.fill(pYeppp, 0.0f);
+		Arrays.fill(pNaive, 0.0f);
 
 		/* Retrieve the number of timer ticks per second */
 		final long frequency = info.yeppp.Library.getTimerFrequency();
