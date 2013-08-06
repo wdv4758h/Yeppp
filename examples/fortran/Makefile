@@ -1,20 +1,45 @@
-ifeq ($(FC),gfortran)
-    FFLAGS += -O3
-    FFLAGS += -march=native
-    FFLAGS += -std=f2003
+FCNAME=$(notdir ${F90})
+override FFLAGS += -O3
+override FFLAGS += -I${YEPROOT}/bindings/fortran/modules/${YEPPLATFORM}-${FCNAME}/
+ifeq (${YEPPLATFORM},x64-linux-sysv-default)
+    override FFLAGS += -m64
+else ifeq (${YEPPLATFORM},x64-macosx-sysv-default)
+    override FFLAGS += -m64
+else ifeq (${YEPPLATFORM},x64-linux-k1om-default)
+    ifeq (${F90},ifort)
+        override FFLAGS += -mmic
+    endif
+else ifeq (${YEPPLATFORM},x86-linux-pic-i586)
+    override FFLAGS += -m32
+else ifeq (${YEPPLATFORM},x86-macosx-pic-default)
+    override FFLAGS += -m32
+else ifeq (${YEPPLATFORM},arm-linux-softeabi-v5t)
+    
+else ifeq (${YEPPLATFORM},arm-linux-hardeabi-v7a)
+    
+else
+    $(error YEPPLATFORM variable is not defined or contains unsupported value)
 endif
+override LDFLAGS += -lyeppp
 
-ifeq ($(FC),ifort)
-    FFLAGS += -O3
-    FFLAGS += -xHost
-    FFLAGS += -std03
-endif
+all : Entropy Polynomial PolynomialF
 
-all: binaries/x64-linux-sysv-default binaries/x64-linux-sysv-default/Entropy
+Entropy : binaries/${YEPPLATFORM}/Entropy
+Polynomial : binaries/${YEPPLATFORM}/Polynomial
+PolynomialF : binaries/${YEPPLATFORM}/PolynomialF
 
-binaries/x64-linux-sysv-default:
+binaries/${YEPPLATFORM}:
 	-mkdir -p binaries
-	-mkdir -p binaries/x64-linux-sysv-default
+	-mkdir -p binaries/${YEPPLATFORM}
 
-binaries/x64-linux-sysv-default/Entropy: binaries/x64-linux-sysv-default sources/Entropy.f90
-	$(FC) -I$(YEPROOT)/bindings/fortran/sources -L$(YEPROOT)/binaries/linux/x86_64 sources/Entropy.f90 -o binaries/x64-linux-sysv-default/Entropy -lyeppp
+binaries/${YEPPLATFORM}/Entropy: binaries/${YEPPLATFORM}
+	${F90} ${FFLAGS} -o binaries/${YEPPLATFORM}/Entropy sources/Entropy.f90 ${LDFLAGS} -lm
+
+binaries/${YEPPLATFORM}/Polynomial: binaries/${YEPPLATFORM}
+	${F90} ${FFLAGS} -o binaries/${YEPPLATFORM}/Polynomial sources/Polynomial.f90 ${LDFLAGS}
+
+binaries/${YEPPLATFORM}/PolynomialF: binaries/${YEPPLATFORM}
+	${F90} ${FFLAGS} -o binaries/${YEPPLATFORM}/PolynomialF sources/PolynomialF.f90 ${LDFLAGS}
+
+clean:
+	-rm -rf binaries/${YEPPLATFORM}
