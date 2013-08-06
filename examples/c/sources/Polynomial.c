@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include <assert.h>
 #include <yepMath.h>
 #include <yepLibrary.h>
@@ -182,6 +183,10 @@ int main(int argc, char **argv) {
 	/* Populate the array of inputs with random data */
 	status = yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64(&rng, 0.0, 100.0, x, ARRAY_SIZE);
 	assert(status == YepStatusOk);
+
+	/* Zero-initialize the output arrays */
+	memset(pYeppp, 0, ARRAY_SIZE * sizeof(Yep64f));
+	memset(pNaive, 0, ARRAY_SIZE * sizeof(Yep64f));
 
 	/* Retrieve the number of timer ticks per second */
 	status = yepLibrary_GetTimerFrequency(&frequency);

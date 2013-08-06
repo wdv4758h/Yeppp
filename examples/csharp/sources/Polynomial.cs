@@ -19,6 +19,10 @@ class Polynomial {
 			x[i] = rng.NextDouble();
 		}
 
+		/* Zero-initialize the output arrays */
+		Array.Clear(pYeppp, 0, pYeppp.Length);
+		Array.Clear(pNaive, 0, pYeppp.Length);
+
 		/* Retrieve the number of timer ticks per second */
 		ulong frequency = Yeppp.Library.GetTimerFrequency();
 
