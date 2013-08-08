@@ -203,7 +203,6 @@ namespace Yeppp
 
 		/// <summary>Initializes the processor cycle counter and starts counting the processor cycles.</summary>
 		/// <remarks>Call <see cref="ReleaseCycleCounter" /> to get the number of processor cycles passed.</remarks>
-		/// <remarks>This function may allocate system resources. To avoid resource leak, always match a successfull call to <see cref="AcquireCycleCounter" /> with a call to <see cref="ReleaseCycleCounter" />.</remarks>
 		/// <remarks>The cycle counters are not guaranteed to be syncronized across different processors/cores in a multiprocessor/multicore system. It is recommended to bind the current thread to a particular logical processor before using this function.</remarks>
 		/// <returns>An object representing the state of the processor cycle counter. Pass this object to <see cref="ReleaseCycleCounter" /> to get the number of cycles passed.</returns>
 		/// <exception cref="System.PlatformNotSupportedException">The processor does not have a cycle counter or the operating system does not provide access to the CPU cycle counter</exception>
