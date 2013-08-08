@@ -56,7 +56,7 @@ namespace Yeppp
 		/// <summary>Knights Ferry (aka Larrabee) instruction set.</summary>
 		public static readonly X86CpuSimdFeature KNF               = new X86CpuSimdFeature(20);
 		/// <summary>Knights Corner (aka Xeon Phi) instruction set.</summary>
-		public static readonly X86CpuSimdFeature KNÑ               = new X86CpuSimdFeature(21);
+		public static readonly X86CpuSimdFeature KNC               = new X86CpuSimdFeature(21);
 		/// <summary>AVX-512 Foundation instruction set.</summary>
 		public static readonly X86CpuSimdFeature AVX512F           = new X86CpuSimdFeature(22);
 		/// <summary>AVX-512 Conflict Detection instruction set.</summary>
