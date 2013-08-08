@@ -6,17 +6,17 @@ ifeq (${FCNAME},ifort)
     override FFLAGS += -std03
     override FFLAGS += -syntax-only
     override FFLAGS += -module modules/${YEPPLATFORM}-${FCNAME}
-else ifeq (${FCNAME},gfortran)
-    # GNU Fortran Compiler
-    override FFLAGS += -std=f2003
-    override FFLAGS += -fsyntax-only
-    override FFLAGS += -Jmodules/${YEPPLATFORM}-${FCNAME}/
 else ifeq (${FCNAME},pathf95)
     # PathScale Fortran Compiler
     override FFLAGS += -module modules/${YEPPLATFORM}-${FCNAME}
 else ifeq (${FCNAME},pf90)
     # PGI Fortran Compiler
     override FFLAGS += -module modules/${YEPPLATFORM}-${FCNAME}
+else
+    # Assume GNU Fortran Compiler (e.g. x86_64-k1om-linux-gfortran or gfortran-4.8)
+    override FFLAGS += -std=f2003
+    override FFLAGS += -fsyntax-only
+    override FFLAGS += -Jmodules/${YEPPLATFORM}-${FCNAME}/
 endif
 
 modules/${YEPPLATFORM}-${FCNAME}:
