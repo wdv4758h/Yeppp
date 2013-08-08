@@ -6,14 +6,12 @@
  */
 
 import info.yeppp.ebuilda.*;
-import info.yeppp.ebuilda.filesystem.AbsoluteDirectoryPath;
-import info.yeppp.ebuilda.filesystem.AbsoluteFilePath;
-import info.yeppp.ebuilda.filesystem.RelativeDirectoryPath;
-import info.yeppp.ebuilda.filesystem.RelativeFilePath;
+import info.yeppp.ebuilda.filesystem.*;
 import info.yeppp.ebuilda.sdk.AndroidNDK;
 import info.yeppp.ebuilda.sdk.AndroidToolchain;
 import info.yeppp.ebuilda.sdk.WindowsSDK;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -154,7 +152,7 @@ public class CLIBuild {
 		}
 	}
 
-	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AbsoluteDirectoryPath yepppRoot) {
+	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AbsoluteDirectoryPath yepppRoot) throws IOException {
 		final ABI abi = cppCompiler.getABI();
 		final Architecture architecture = abi.getArchitecture();
 		final OperatingSystem operatingSystem = abi.getOperatingSystem();
@@ -208,9 +206,78 @@ public class CLIBuild {
 			buildMessages.add(gnuStrip.extractDebugInformation(libraryBinary, debugBinary));
 			buildMessages.add(gnuStrip.strip(libraryBinary));
 			buildMessages.add(gnuObjCopy.addGnuDebugLink(libraryBinary, debugBinary));
+			final AbsoluteFilePath finalLibraryBinary = new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), new RelativeFilePath("libyeppp.so"));
+			final AbsoluteFilePath finalDebugBinary = new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), new RelativeFilePath("libyeppp.dbg"));
+			try {
+				getBinariesDirectory(yepppRoot, abi).create();
+				FileSystem.copyFile(finalLibraryBinary, libraryBinary);
+				FileSystem.copyFile(finalDebugBinary, debugBinary);
+			} catch (IOException e) {
+			}
+		} else if (abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
+			final RelativeFilePath libraryBinary = new RelativeFilePath("yeppp.dll");
+			final RelativeFilePath importBinary = new RelativeFilePath("yeppp.lib");
+			final RelativeFilePath debugBinary = new RelativeFilePath("yeppp.pdb");
+			try {
+				getBinariesDirectory(yepppRoot, abi).create();
+				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), importBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), importBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), debugBinary));
+			} catch (IOException e) {
+			}
+		} else if (abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
+			final RelativeFilePath libraryBinary = new RelativeFilePath("libyeppp.dylib");
+			try {
+				getBinariesDirectory(yepppRoot, abi).create();
+				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary));
+			} catch (IOException e) {
+			}
 		}
 		for (BuildMessage buildMessage : buildMessages.iterable()) {
 			System.out.println(buildMessage.toString());
+		}
+	}
+
+	public static AbsoluteDirectoryPath getBinariesDirectory(AbsoluteDirectoryPath rootDirectory, ABI abi) {
+		switch (abi) {
+			case X86_Linux_Pic_i586:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/linux/i586"));
+			case X64_Linux_SystemV_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/linux/x86_64"));
+			case X64_Linux_KNC_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/linux/k1om"));
+			case ARM_Linux_OABI_V4T:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/linux/arm"));
+			case ARM_Linux_SoftEABI_V5T:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/linux/armel"));
+			case ARM_Linux_HardEABI_V7A:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/linux/armhf"));
+			case X86_Windows_Default_i586:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/windows/x86"));
+			case X64_Windows_Microsoft_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/windows/amd64"));
+			case IA64_Windows_Microsoft_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/windows/ia64"));
+			case ARM_Linux_SoftEABI_Android:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/armeabi"));
+			case ARM_Linux_SoftEABI_AndroidV7A:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/armeabiv7a"));
+			case X86_Linux_Pic_Android:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/x86"));
+			case MIPS_Linux_O32_Android:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/mips"));
+			case X86_MacOSX_Pic_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/macosx/x86"));
+			case X64_MacOSX_SystemV_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/macosx/x86_64"));
+			case X86_NaCl_NaCl_i686:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/nacl/x86"));
+			case X64_NaCl_NaCl_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/nacl/x86_64"));
+			case ARM_NaCl_NaCl_Default:
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/nacl/arm"));
+			default:
+				throw new Error(String.format("Unknown ABI %s", abi));
 		}
 	}
 
@@ -245,7 +312,7 @@ public class CLIBuild {
 			case ARM_Linux_SoftEABI_V5T:
 			{
 				final GnuToolchain gnuToolchain = GnuToolchain.enumerate(Machine.getLocal(), abi).getNewest();
-				return new Toolchain(gnuToolchain.getCppCompiler(), gnuToolchain.getAssembler(), gnuToolchain.getLinker());
+				return new Toolchain(gnuToolchain.getCppCompiler(), gnuToolchain.getAssembler(), gnuToolchain.getLinker(), gnuToolchain.getStrip(), gnuToolchain.getObjCopy());
 			}
 			default:
 				return null;
