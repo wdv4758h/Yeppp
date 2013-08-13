@@ -95,6 +95,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_GetLowPart_64u_32u(Yep64
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Cast_64f_64u(Yep64f x) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return __double_as_longlong(x);
+#elif defined(YEP_INTEL_COMPILER)
+	return _castf64_u64(x);
 #else
 	union {
 		Yep64f float64;
@@ -108,6 +110,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Cast_64f_64u(Yep64f x) {
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Cast_64u_64f(Yep64u x) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return __longlong_as_double(x);
+#elif defined(YEP_INTEL_COMPILER)
+	return _castu64_f64(x);
 #else
 	union {
 		Yep64f float64;
@@ -121,6 +125,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Cast_64u_64f(Yep64u x) {
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Cast_32f_32u(Yep32f x) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return __float_as_int(x);
+#elif defined(YEP_INTEL_COMPILER)
+	return _castf32_u32(x);
 #else
 	union {
 		Yep32f float32;
@@ -134,6 +140,8 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Cast_32f_32u(Yep32f x) {
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Cast_32u_32f(Yep32u x) {
 #if defined(YEP_NVIDIA_COMPILER)
 	return __int_as_float(x);
+#elif defined(YEP_INTEL_COMPILER)
+	return _castu32_f32(x);
 #else
 	union {
 		Yep32f float32;
@@ -177,11 +185,13 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Map_32u_32f(Yep32u n) {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_ByteSwap_16u_16u(Yep16u n) {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_LINUX)
-	/* Contrary to GCC documentation, this intrinsic is not supported in gcc/clang/icc */
-	/* return __builtin_bswap16(n); */
+#if defined(YEP_GNU_COMPILER) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8)) || ((__GNUC__ == 4) && (__GNUC_MINOR__ == 7) && (__GNUC_PATCHLEVEL__ >= 3)))
+	return __builtin_bswap16(n)
+#elif defined(YEP_CLANG_COMPILER) && ((__clang_major__ > 3) || ((__clang_major__ == 3) && (__clang_minor__ >= 2)))
+	return __builtin_bswap16(n)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return Yep16u(__builtin_bswap32(n << 16));
-#elif defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)
+#elif defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	return _byteswap_ushort(n);
 #else
 	return Yep16u(n >> 8) | Yep16u(n << 8);
