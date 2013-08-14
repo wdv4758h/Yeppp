@@ -79,7 +79,21 @@
 #include <yepPredefines.h>
 #include <stddef.h>
 
-#ifdef __DOXYGEN__
+#ifdef YEP_MICROSOFT_COMPILER
+	/* stdint.h is not supported before Visual Studio 2010 */
+	typedef unsigned __int8  Yep8u;
+	typedef unsigned __int16 Yep16u;
+	typedef unsigned __int32 Yep32u;
+	typedef unsigned __int64 Yep64u;
+
+	typedef signed __int8    Yep8s;
+	typedef signed __int16   Yep16s;
+	typedef signed __int32   Yep32s;
+	typedef signed __int64   Yep64s;
+
+#else
+	#include <stdint.h>
+
 	/** @name	Integral types */
 	/**@{*/
 	/**
@@ -122,32 +136,49 @@
 	 * @brief	64-bit signed integer type.
 	 */
 	typedef int64_t                        Yep64s;
-	/**
-	 * @ingroup	yepTypes
-	 * @brief	Unsigned integer type of pointer width.
-	 * @details	YepSize is 64-bit wide on systems with 64-bit pointers and 32-bit wide on systems with 32-bit pointers.
-	 */
-	typedef size_t                         YepSize;
+#endif
+/**
+ * @ingroup	yepTypes
+ * @brief	Unsigned integer type of pointer width.
+ * @details	YepSize is 64-bit wide on systems with 64-bit pointers and 32-bit wide on systems with 32-bit pointers.
+ */
+typedef size_t                         YepSize;
+
+#ifdef __DOXYGEN__
 	/**
 	 * @ingroup	yepTypes
 	 * @brief	Half-precision (16-bit) IEEE floating point type.
 	 */
 	typedef compiler_specific<half>        Yep16f;
-	/**
-	 * @ingroup	yepTypes
-	 * @brief	Single-precision (32-bit) IEEE floating point type.
-	 */
-	typedef float                          Yep32f;
-	/**
-	 * @ingroup	yepTypes
-	 * @brief	Double-precision (64-bit) IEEE floating point type.
-	 */
-	typedef double                         Yep64f;
+#else
+	typedef Yep16u Yep16f;
+#endif
+/**
+ * @ingroup	yepTypes
+ * @brief	Single-precision (32-bit) IEEE floating point type.
+ */
+typedef float                          Yep32f;
+/**
+ * @ingroup	yepTypes
+ * @brief	Double-precision (64-bit) IEEE floating point type.
+ */
+typedef double                         Yep64f;
+#ifdef __DOXYGEN__
 	/**
 	 * @ingroup	yepTypes
 	 * @brief	Extended-precision (80-bit) IEEE floating point type.
 	 */
 	typedef compiler_specific<long double> Yep80f;
+#else
+	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+		#if defined(YEP_GCC_COMPATIBLE_COMPILER) || (defined(YEP_INTEL_COMPILER_FOR_WINDOWS) && (__LONG_DOUBLE_SIZE__ == 80))
+			#define YEP_COMPILER_SUPPORTS_YEP80F_TYPE
+			typedef long double Yep80f;
+		#endif
+	#endif
+#endif
+
+#ifdef __DOXYGEN__
 	/**
 	 * @ingroup	yepTypes
 	 * @brief	Boolean type.
@@ -166,32 +197,9 @@
 	#define YepBooleanFalse                false
 	/**@}*/
 #else
-	/* stdint.h types might be unsupported on some compilers, so we use standard C types instead. */
-	typedef unsigned char      Yep8u;
-	typedef unsigned short     Yep16u;
-	typedef unsigned int       Yep32u;
-	typedef unsigned long long Yep64u;
-
-	typedef signed char        Yep8s;
-	typedef signed short       Yep16s;
-	typedef signed int         Yep32s;
-	typedef signed long long   Yep64s;
-
-	typedef float              Yep32f;
-	typedef double             Yep64f;
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
-		#if defined(YEP_GCC_COMPATIBLE_COMPILER) || (defined(YEP_INTEL_COMPILER_FOR_WINDOWS) && (__LONG_DOUBLE_SIZE__ == 80))
-			#define YEP_COMPILER_SUPPORTS_YEP80F_TYPE
-			typedef long double Yep80f;
-		#endif
-	#endif
-
-	typedef size_t             YepSize;
-
 	#ifndef __cplusplus
 		#if defined(YEP_MICROSOFT_COMPILER)
-			/* OMG! I can't believe it still doesn't have stdbool.h in 2012! */
-			typedef unsigned char      YepBoolean;
+			typedef unsigned __int8    YepBoolean;
 			#define YepBooleanTrue     1
 			#define YepBooleanFalse    0
 		#else
@@ -205,8 +213,6 @@
 		const YepBoolean YepBooleanTrue  = true;
 		const YepBoolean YepBooleanFalse = false;
 	#endif
-
-	typedef Yep16u Yep16f;
 #endif
 
 #pragma pack(push, 1)
@@ -215,54 +221,54 @@
  * @ingroup	yepTypes
  * @brief	Complex half-precision (16-bit) IEEE floating point type.
  */
-struct Yep16fc {
+typedef struct {
 	/** @brief	Real part of the complex number. */
 	Yep16f re;
 	/** @brief	Imaginary part of the complex number. */
 	Yep16f im;
-};
+} Yep16fc;
 
 /**
  * @ingroup	yepTypes
  * @brief	Complex single-precision (32-bit) IEEE floating point type.
  */
-struct Yep32fc {
+typedef struct {
 	/** @brief	Real part of the complex number. */
 	Yep32f re;
 	/** @brief	Imaginary part of the complex number. */
 	Yep32f im;
-};
+} Yep32fc;
 
 /**
  * @ingroup	yepTypes
  * @brief	Complex double-precision (64-bit) IEEE floating point type.
  */
-struct Yep64fc {
+typedef struct {
 	/** @brief	Real part of the complex number. */
 	Yep64f re;
 	/** @brief	Imaginary part of the complex number. */
 	Yep64f im;
-};
+} Yep64fc;
 
 /**
  * @ingroup	yepTypes
  * @brief	Dual single-precision (32-bit) IEEE floating point type.
  * @details	A number of this type is represented as an unevaluated sum of two Yep32f numbers.
  */
-struct Yep32df {
+typedef struct {
 	Yep32f high;
 	Yep32f low;
-};
+} Yep32df;
 
 /**
  * @ingroup	yepTypes
  * @brief	Dual double-precision (64-bit) IEEE floating point type.
  * @details	A number of this type is represented as an unevaluated sum of two Yep64f numbers.
  */
-struct Yep64df {
+typedef struct {
 	Yep64f high;
 	Yep64f low;
-};
+} Yep64df;
 
 #if defined(YEP_LITTLE_ENDIAN_BYTE_ORDER) || defined(__DOXYGEN__)
 	/**
@@ -293,7 +299,7 @@ struct Yep64df {
 		Yep64u low;
 	} Yep128s;
 #else
-	#error "Unknown or supported byte order"
+	#error "Unknown or unsupported byte order"
 #endif
 
 #pragma pack(pop)
