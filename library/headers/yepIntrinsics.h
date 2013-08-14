@@ -186,9 +186,11 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Map_32u_32f(Yep32u n) {
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_ByteSwap_16u_16u(Yep16u n) {
 #if defined(YEP_GNU_COMPILER) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8)) || ((__GNUC__ == 4) && (__GNUC_MINOR__ == 7) && (__GNUC_PATCHLEVEL__ >= 3)))
-	return __builtin_bswap16(n)
+	return __builtin_bswap16(n);
 #elif defined(YEP_CLANG_COMPILER) && ((__clang_major__ > 3) || ((__clang_major__ == 3) && (__clang_minor__ >= 2)))
-	return __builtin_bswap16(n)
+	return __builtin_bswap16(n);
+#elif defined(YEP_INTEL_COMPILER)
+	return _rotwl(n, 8);
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return Yep16u(__builtin_bswap32(n << 16));
 #elif defined(YEP_MSVC_COMPATIBLE_COMPILER)
