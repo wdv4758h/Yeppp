@@ -119,8 +119,8 @@ public class CLIBuild {
 		linker.setBinariesDirectory(objectDirectory);
 		linker.addDefaultGlobalLibraryDirectories();
 		if (!abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
-			GnuLinker gnuLinker = (GnuLinker)linker;
-			gnuLinker.setPIC(GnuLinker.PositionIndependentCode.Unlimited);
+			GnuCppCompilerLinker gnuLinker = (GnuCppCompilerLinker)linker;
+			gnuLinker.setPIC(GnuCppCompilerLinker.PositionIndependentCode.Unlimited);
 		}
 		linker.setVerboseBuild(true);
 		linker.setRuntimeLibraryUse(false);
@@ -220,16 +220,16 @@ public class CLIBuild {
 			final RelativeFilePath debugBinary = new RelativeFilePath("yeppp.pdb");
 			try {
 				getBinariesDirectory(yepppRoot, abi).create();
-				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary));
-				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), importBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), importBinary));
-				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), debugBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), importBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), importBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), debugBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary));
 			} catch (IOException e) {
 			}
 		} else if (abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
 			final RelativeFilePath libraryBinary = new RelativeFilePath("libyeppp.dylib");
 			try {
 				getBinariesDirectory(yepppRoot, abi).create();
-				FileSystem.copyFile(new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary), new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary));
 			} catch (IOException e) {
 			}
 		}
