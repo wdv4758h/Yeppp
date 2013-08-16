@@ -34,11 +34,9 @@
 
 #if defined(_WIN32_WCE) || defined(WIN32_PLATFORM_HPC2000) || defined(WIN32_PLATFORM_HPCPRO) || defined(WIN32_PLATFORM_PSPC) || defined(WIN32_PLATFORM_WFSP)
 	#define YEP_WINDOWSCE_OS
-#endif
-#if (defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)) && !defined(YEP_WINDOWSCE_OS)
+#elif defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 	#define YEP_WINDOWS_OS
-#endif
-#if defined(__linux) || defined(__linux__) || defined(linux)
+#elif defined(__linux) || defined(__linux__) || defined(linux)
 	#define YEP_LINUX_OS
 	#if defined(ANDROID) || defined(__ANDROID__)
 		#define YEP_ANDROID_LINUX_OS
@@ -46,8 +44,7 @@
 	#if defined(__gnu_linux__)
 		#define YEP_GNU_LINUX_OS
 	#endif
-#endif
-#if defined(__APPLE__) && defined(__MACH__)
+#elif defined(__APPLE__) && defined(__MACH__)
 	#define YEP_MACOSX_OS
 #endif
 
@@ -59,25 +56,28 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 	#define YEP_MICROSOFT_COMPILER
-#endif
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && !defined(__CUDA_ARCH__)
+#elif defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && !defined(__CUDA_ARCH__)
 	#define YEP_GNU_COMPILER
-#endif
-#if defined(__INTEL_COMPILER)
+#elif defined(__INTEL_COMPILER)
 	#define YEP_INTEL_COMPILER
 	#if defined(_MSC_VER)
 		#define YEP_INTEL_COMPILER_FOR_WINDOWS
 	#else
 		#define YEP_INTEL_COMPILER_FOR_UNIX
 	#endif
-#endif
-#if defined(__clang__)
+#elif defined(__clang__)
 	#define YEP_CLANG_COMPILER
-#endif
-#if defined(__ARMCC_VERSION)
+#elif defined(__xlc__) || defined(__xlC__) || defined(__IBMC__) || defined(__IBMCPP__)
+	#define YEP_IBM_COMPILER
+#elif defined(__PGI)
+	#define YEP_PGI_COMPILER
+#elif defined(__BORLANDC__) || defined(__CODEGEARC__)
+	#define YEP_EMBARCADERO_COMPILER
+#elif defined(__PATHCC__)
+	#define YEP_PATHSCALE_COMPILER
+#elif defined(__CC_ARM)
 	#define YEP_ARM_COMPILER
-#endif
-#if defined(__CUDA_ARCH__)
+#elif defined(__CUDA_ARCH__)
 	#define YEP_NVIDIA_COMPILER
 #endif
 
@@ -99,26 +99,33 @@
 	#endif
 #endif
 
-#if defined(_M_IX86) || defined(i386) || defined(__i386__) || defined(_X86_)
+#if defined(_M_IX86) || defined(i386) || defined(__i386) || defined(__i386__) || defined(_X86_) || defined(__X86__) || defined(__I86__) || defined(__INTEL__) || defined(__THW_INTEL__)
 	#define YEP_X86_CPU
+	#define YEP_X86_ABI
 #endif
 #if defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
 	#define YEP_X64_CPU
+	#define YEP_X64_ABI
 #endif
-#if defined(_M_IA64) || defined(__itanium__) || defined(__ia64__) || defined(_IA64) || defined(__IA64__)
+#if defined(_M_IA64) || defined(__itanium__) || defined(__ia64) || defined(__ia64__) || defined(_IA64) || defined(__IA64__)
 	#define YEP_IA64_CPU
+	#define YEP_IA64_ABI
 #endif
-#if defined(_M_ARM) || defined(__arm__) || defined(__arm)
+#if defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) ||  defined(__thumb__) || defined(__arm) || defined(_ARM)
 	#define YEP_ARM_CPU
+	#define YEP_ARM_ABI
 #endif
 #if defined(_M_MRX000) || defined(_MIPS_) || defined(_MIPS64) || defined(__mips__) || defined(__mips) || defined(__MIPS__)
 	#define YEP_MIPS_CPU
+	#define YEP_MIPS_ABI
 #endif
 #if defined(__sparc__) || defined(__sparc)
 	#define YEP_SPARC_CPU
+	#define YEP_SPARC_ABI
 #endif
 #if defined(_M_PPC) || defined(__powerpc) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc__)
 	#define YEP_POWERPC_CPU
+	#define YEP_POWERPC_ABI
 #endif
 #if defined(__CUDA_ARCH__)
 	#define YEP_CUDA_GPU
@@ -604,11 +611,48 @@
 		#endif
 	#endif
 #elif defined(YEP_MIPS_CPU)
-	#ifndef YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
-		#define YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
+	#if defined(YEP_GCC_COMPATIBLE_COMPILER)
+		#if defined(__mips_isa_rev) && (__mips_isa_rev >= 2)
+			#ifndef YEP_PROCESSOR_SUPPORTS_MIPS_R2_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_MIPS_R2_INSTRUCTIONS
+			#endif
+		#endif
+		#if defined(__mips_dsp)
+			#ifndef YEP_PROCESSOR_SUPPORTS_MIPS_DSP_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_MIPS_DSP_INSTRUCTIONS
+			#endif
+			#if defined(__mips_dsp_rev) && (__mips_dsp_rev >= 2)
+				#ifndef YEP_PROCESSOR_SUPPORTS_MIPS_DSP2_INSTRUCTIONS
+					#define YEP_PROCESSOR_SUPPORTS_MIPS_DSP2_INSTRUCTIONS
+				#endif
+			#endif
+		#endif
+		#if defined(__mips_paired_single_float)
+			#ifndef YEP_PROCESSOR_SUPPORTS_MIPS_PAIREDSINGLE_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_MIPS_PAIREDSINGLE_INSTRUCTIONS
+			#endif
+		#endif
+		#if defined(__mips3d)
+			#ifndef YEP_PROCESSOR_SUPPORTS_MIPS_3D_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_MIPS_3D_INSTRUCTIONS
+			#endif
+		#endif
+		#if defined(__mips_hard_float)
+			#ifndef YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
+			#endif
+			#ifndef YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
+			#endif
+		#endif
 	#endif
-	#ifndef YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
-		#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
+	#if defined(YEP_ANDROID_LINUX_OS)
+		#ifndef YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
+			#define YEP_PROCESSOR_SUPPORTS_DOUBLE_PRECISION_FPU_INSTRUCTIONS
+		#endif
+		#ifndef YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
+			#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
+		#endif
 	#endif
 #elif defined(YEP_CUDA_GPU)
 	#ifndef YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
@@ -692,6 +736,8 @@
 	#define YEP_LITTLE_ENDIAN_BYTE_ORDER
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 	#define YEP_BIG_ENDIAN_BYTE_ORDER
+#elif defined(_BIG_ENDIAN) || defined(__BIG_ENDIAN__)
+	#define YEP_BIG_ENDIAN_BYTE_ORDER
 #elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
 	#define YEP_LITTLE_ENDIAN_BYTE_ORDER
 #elif (defined(YEP_ARM_CPU) || defined(YEP_MIPS_CPU)) && defined(__ANDROID__)
@@ -700,12 +746,7 @@
 	#define YEP_LITTLE_ENDIAN_BYTE_ORDER
 #endif
  
-#if defined(YEP_X86_CPU)
-	#define YEP_X86_ABI
-#endif
- 
-#if defined(YEP_X64_CPU)
-	#define YEP_X64_ABI
+#if defined(YEP_X64_ABI)
 	#if defined(YEP_WINDOWS_OS)
 		#define YEP_MICROSOFT_X64_ABI
 	#elif defined(__KNC__)
@@ -713,14 +754,15 @@
 	#else
 		#define YEP_SYSTEMV_X64_ABI
 	#endif
-#endif
-
-#if defined(YEP_ARM_CPU)
-	#define YEP_ARM_ABI
+#elif defined(YEP_ARM_ABI)
 	#if defined(__ARM_PCS_VFP)
 		#define YEP_HARDEABI_ARM_ABI
 	#else
 		#define YEP_SOFTEABI_ARM_ABI
+	#endif
+#elif defined(YEP_MIPS_ABI)
+	#if defined(_ABIO32) && defined(__mips_hard_float)
+		#define YEP_HARDO32_MIPS_ABI
 	#endif
 #endif
 
