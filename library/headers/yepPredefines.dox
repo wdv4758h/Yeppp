@@ -25,6 +25,16 @@
 #define YEP_GNU_COMPILER
 /**
  * @ingroup yepPredefines
+ * @brief	Defined only when Clang compiler (clang/clang++) is used for compilation.
+ */
+#define YEP_CLANG_COMPILER
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when Borland/Codegear/Embarcadero compiler (bcc) is used for compilation.
+ */
+#define YEP_EMBARCADERO_COMPILER
+/**
+ * @ingroup yepPredefines
  * @brief	Defined only when Intel C/C++ compiler is used for compilation.
  */
 #define YEP_INTEL_COMPILER
@@ -40,14 +50,24 @@
 #define YEP_INTEL_COMPILER_FOR_UNIX
 /**
  * @ingroup yepPredefines
- * @brief	Defined only when Clang compiler (clang/clang++) is used for compilation.
- */
-#define YEP_CLANG_COMPILER
-/**
- * @ingroup yepPredefines
  * @brief	Defined only when ARM compiler (armcc) is used for compilation.
  */
 #define YEP_ARM_COMPILER
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when IBM compiler (xlc) is used for compilation.
+ */
+#define YEP_IBM_COMPILER
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when PGI compiler (pgcc) is used for compilation.
+ */
+#define YEP_PGI_COMPILER
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when PathScale compiler (pathcc) is used for compilation.
+ */
+#define YEP_PATHSCALE_COMPILER
 /**
  * @ingroup yepPredefines
  * @brief	Defined only when nVidia CUDA compiler (nvcc) is used for compilation of GPU-specific code.
@@ -258,6 +278,17 @@
  * @brief	Defined only when the target ABI is ARM EABI with floating-point parameters passed in general-purpose registers.
  */
 #define YEP_SOFTEABI_ARM_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is a MIPS ABI.
+ * @see	YEP_HARDO32_MIPS_ABI
+ */
+#define YEP_MIPS_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is MIPS O32 ABI with floating-point parameters passed in FPU registers.
+ */
+#define YEP_HARDO32_MIPS_ABI
 /**@}*/
 
 /** @name	Common Target ISA Feature Identification */
@@ -536,6 +567,40 @@
  * @see	#YepARMIsaFeatureDiv
  */
 #define YEP_PROCESSOR_SUPPORTS_ARM_DIV_EXTENSION
+/**@}*/
+
+/** @name	MIPS Target ISA Feature Identification */
+/**@{*/
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports MIPS R2 instruction set.
+ * @see	#YepMIPSIsaFeatureR2
+ */
+#define YEP_PROCESSOR_SUPPORTS_MIPS_R2_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports MIPS 3D instruction set.
+ * @see	#YepMIPSSimdFeatureMIPS3D
+ */
+#define YEP_PROCESSOR_SUPPORTS_MIPS_3D_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports Paired Single instructions.
+ * @see	#YepMIPSSimdFeaturePairedSingle
+ */
+#define YEP_PROCESSOR_SUPPORTS_MIPS_PAIREDSINGLE_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports MIPS DSP instruction set.
+ * @see	#YepMIPSSimdFeatureDSP
+ */
+#define YEP_PROCESSOR_SUPPORTS_MIPS_DSP_INSTRUCTIONS
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target processor supports MIPS DSPr2 instruction set.
+ * @see	#YepMIPSSimdFeatureDSP2
+ */
+#define YEP_PROCESSOR_SUPPORTS_MIPS_DSP2_INSTRUCTIONS
 /**@}*/
 
 /** @name	Compiler Support Identification for x86/x86-64 Intrinsics */
