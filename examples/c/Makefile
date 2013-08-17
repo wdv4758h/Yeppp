@@ -42,7 +42,7 @@ else
 endif
 override LDFLAGS += -lyeppp
 
-all : Entropy CpuInfo CpuInfoEx CpuCycles Polynomial PolynomialF SystemTimer EnergyCounter
+all : Entropy CpuInfo CpuInfoEx CpuCycles Polynomial PolynomialF SystemTimer EnergyCounter CompileTimeInfo
 
 Entropy : binaries/${YEPPLATFORM}/Entropy
 CpuInfo : binaries/${YEPPLATFORM}/CpuInfo
@@ -52,6 +52,7 @@ Polynomial : binaries/${YEPPLATFORM}/Polynomial
 PolynomialF : binaries/${YEPPLATFORM}/PolynomialF
 SystemTimer: binaries/${YEPPLATFORM}/SystemTimer
 EnergyCounter: binaries/${YEPPLATFORM}/EnergyCounter
+CompileTimeInfo: binaries/${YEPPLATFORM}/CompileTimeInfo
 
 binaries/${YEPPLATFORM}:
 	-mkdir -p binaries
@@ -80,6 +81,9 @@ binaries/${YEPPLATFORM}/SystemTimer: binaries/${YEPPLATFORM}
 
 binaries/${YEPPLATFORM}/EnergyCounter: binaries/${YEPPLATFORM}
 	$(CC) $(CFLAGS) -o binaries/${YEPPLATFORM}/EnergyCounter sources/EnergyCounter.c $(LDFLAGS)
+
+binaries/${YEPPLATFORM}/CompileTimeInfo: binaries/${YEPPLATFORM}
+	$(CC) $(CFLAGS) -o binaries/${YEPPLATFORM}/CompileTimeInfo sources/CompileTimeInfo.c $(LDFLAGS)
 
 clean:
 	-rm -rf binaries/${YEPPLATFORM}
