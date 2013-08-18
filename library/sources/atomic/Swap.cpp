@@ -28,7 +28,7 @@ YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *valuePoin
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		*oldValuePointer = _InterlockedExchange_nf((volatile long*)(valuePointer), static_cast<long>(newValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		*oldValuePointer = _InterlockedExchange((long*)(valuePointer), static_cast<long>(newValue));
 	#elif defined(YEP_IA64_CPU)
 		*oldValuePointer = _InterlockedExchange_acq((long*)(valuePointer), static_cast<long>(newValue));
@@ -37,7 +37,7 @@ YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *valuePoin
 	#endif
 	return YepStatusOk;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value = newValue;
 		asm volatile (
 			"XCHGL %[value], %[valuePointer];"
@@ -131,7 +131,7 @@ YepStatus YEPABI yepAtomic_Swap_Acquire_S32uS32u_S32u(volatile Yep32u *valuePoin
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		*oldValuePointer = _InterlockedExchange_acq((volatile long*)(valuePointer), static_cast<long>(newValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		*oldValuePointer = _InterlockedExchange((long*)(valuePointer), static_cast<long>(newValue));
 	#elif defined(YEP_IA64_CPU)
 		*oldValuePointer = _InterlockedExchange_acq((long*)(valuePointer), static_cast<long>(newValue));
@@ -140,7 +140,7 @@ YepStatus YEPABI yepAtomic_Swap_Acquire_S32uS32u_S32u(volatile Yep32u *valuePoin
 	#endif
 	return YepStatusOk;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value = newValue;
 		asm volatile (
 			"XCHGL %[value], %[valuePointer];"
@@ -256,7 +256,7 @@ YepStatus YEPABI yepAtomic_Swap_Release_S32uS32u_S32u(volatile Yep32u *valuePoin
 		__dmb(_ARM_BARRIER_ISH);
 		_ReadWriteBarrier();
 		*oldValuePointer = _InterlockedExchange_nf((volatile long*)(valuePointer), static_cast<long>(newValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		*oldValuePointer = _InterlockedExchange((long*)(valuePointer), static_cast<long>(newValue));
 	#elif defined(YEP_IA64_CPU)
 		*oldValuePointer = _InterlockedExchange((long*)(valuePointer), static_cast<long>(newValue));
@@ -265,7 +265,7 @@ YepStatus YEPABI yepAtomic_Swap_Release_S32uS32u_S32u(volatile Yep32u *valuePoin
 	#endif
 	return YepStatusOk;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value = newValue;
 		asm volatile (
 			"XCHGL %[value], %[valuePointer];"
@@ -379,7 +379,7 @@ YepStatus YEPABI yepAtomic_Swap_Ordered_S32uS32u_S32u(volatile Yep32u *valuePoin
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		*oldValuePointer = _InterlockedExchange((volatile long*)(valuePointer), static_cast<long>(newValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		*oldValuePointer = _InterlockedExchange((long*)(valuePointer), static_cast<long>(newValue));
 	#elif defined(YEP_IA64_CPU)
 		*oldValuePointer = _InterlockedExchange((long*)(valuePointer), static_cast<long>(newValue));
@@ -388,7 +388,7 @@ YepStatus YEPABI yepAtomic_Swap_Ordered_S32uS32u_S32u(volatile Yep32u *valuePoin
 	#endif
 	return YepStatusOk;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value = newValue;
 		asm volatile (
 			"XCHGL %[value], %[valuePointer];"

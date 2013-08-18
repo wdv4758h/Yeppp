@@ -37,7 +37,7 @@ YepStatus YEPABI yepLibrary_GetCpuArchitecture(YepCpuArchitecture *architectureP
 	if YEP_UNLIKELY(architecturePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		*architecturePointer = YepCpuArchitectureX86;
 	#elif defined(YEP_ARM_CPU)
 		*architecturePointer = YepCpuArchitectureARM;

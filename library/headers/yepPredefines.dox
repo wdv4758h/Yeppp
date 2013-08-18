@@ -121,16 +121,10 @@
 /**@{*/
 /**
  * @ingroup yepPredefines
- * @brief	Defined only when the target architecture is x86.
+ * @brief	Defined only when the target architecture is x86 or x86-64.
  * @see	#YepCpuArchitectureX86
  */
 #define YEP_X86_CPU
-/**
- * @ingroup yepPredefines
- * @brief	Defined only when the target architecture is x86-64.
- * @see	#YepCpuArchitectureX86
- */
-#define YEP_X64_CPU
 /**
  * @ingroup yepPredefines
  * @brief	Defined only when the target architecture is IA64.
@@ -187,7 +181,7 @@
 #define YEP_X86_ABI
 /**
  * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is an x86-64 ABI.
+ * @brief	Defined only when the target ABI is x86-64 ABI.
  * @see	YEP_MICROSOFT_X64_ABI, YEP_SYSTEMV_X64_ABI, YEP_K1OM_X64_ABI
  */
 #define YEP_X64_ABI
@@ -265,9 +259,15 @@
 /**
  * @ingroup yepPredefines
  * @brief	Defined only when the target ABI is a 32-bit ARM ABI.
- * @see	YEP_HARDEABI_ARM_ABI, YEP_SOFTEABI_ARM_ABI
+ * @see	YEP_EABI_ARM_ABI, YEP_HARDEABI_ARM_ABI, YEP_SOFTEABI_ARM_ABI
  */
 #define YEP_ARM_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is a variant of ARM EABI.
+ * @see	YEP_HARDEABI_ARM_ABI, YEP_SOFTEABI_ARM_ABI
+ */
+#define YEP_EABI_ARM_ABI
 /**
  * @ingroup yepPredefines
  * @brief	Defined only when the target ABI is ARM EABI with floating-point parameters passed in VFP registers.
@@ -280,10 +280,21 @@
 #define YEP_SOFTEABI_ARM_ABI
 /**
  * @ingroup yepPredefines
- * @brief	Defined only when the target ABI is a MIPS ABI.
+ * @brief	Defined only when the target ABI is a 32-bit MIPS ABI.
+ * @see	YEP_O32_MIPS_ABI, YEP_HARDO32_MIPS_ABI
+ */
+#define YEP_MIPS32_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is a 64-bit MIPS ABI.
+ */
+#define YEP_MIPS64_ABI
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target ABI is a variant of MIPS O32 ABI.
  * @see	YEP_HARDO32_MIPS_ABI
  */
-#define YEP_MIPS_ABI
+#define YEP_O32_MIPS_ABI
 /**
  * @ingroup yepPredefines
  * @brief	Defined only when the target ABI is MIPS O32 ABI with floating-point parameters passed in FPU registers.

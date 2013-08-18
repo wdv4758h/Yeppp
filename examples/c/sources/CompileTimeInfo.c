@@ -2,7 +2,7 @@
 #include <yepPredefines.h>
 
 int main(int argc, char **argv) {
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		#if defined(YEP_X86_ABI)
 			printf("Target architecture: x86 (standard x86 ABI)\n");
 		#elif defined(YEP_MICROSOFT_X64_ABI)
@@ -11,6 +11,8 @@ int main(int argc, char **argv) {
 			printf("Target architecture: x86 (System V x86-64 ABI)\n");
 		#elif defined(YEP_K1OM_X64_ABI)
 			printf("Target architecture: x86 (K1OM x86-64 ABI)\n");
+		#elif defined(YEP_X64_ABI)
+			printf("Target architecture: x86 (unknown variant of x86-64 ABI)\n");
 		#else
 			printf("Target architecture: x86 (unknown ABI)\n");
 		#endif
@@ -19,12 +21,18 @@ int main(int argc, char **argv) {
 			printf("Target architecture: ARM (Hard-Float EABI)\n");
 		#elif defined(YEP_SOFTEABI_ARM_ABI)
 			printf("Target architecture: ARM (Soft-Float EABI)\n");
+		#elif defined(YEP_EABI_ARM_ABI)
+			printf("Target architecture: ARM (unknown variant of EABI)\n");
 		#else
 			printf("Target architecture: ARM (unknown ABI)\n");
 		#endif
 	#elif defined(YEP_MIPS_CPU)
 		#if defined(YEP_HARDO32_MIPS_ABI)
 			printf("Target architecture: MIPS (Hard-Float O32 ABI)\n");
+		#elif defined(YEP_O32_MIPS_ABI)
+			printf("Target architecture: MIPS (unknown variant of O32 ABI)\n");
+		#elif defined(YEP_MIPS32_ABI)
+			printf("Target architecture: MIPS (unknown variant of MIPS32 ABI)\n");
 		#else
 			printf("Target architecture: MIPS (unknown ABI)\n");
 		#endif

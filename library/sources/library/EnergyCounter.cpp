@@ -28,7 +28,7 @@
 	#include <linux/unistd.h>
 #endif
 
-#if (defined(YEP_X86_CPU) || defined(YEP_X64_CPU)) && defined(YEP_LINUX_OS)
+#if defined(YEP_X86_CPU) && defined(YEP_LINUX_OS)
 	const Yep64u energyCounterMagic        = 0x14CFC5C1u;
 
 	enum Msr {
@@ -134,7 +134,7 @@ YepStatus YEPABI yepLibrary_GetEnergyCounterAcquire(YepEnergyCounterType type, Y
 	if YEP_UNLIKELY(energyCounter == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	#if defined(YEP_LINUX_OS)
 		Msr raplMsr = getRaplEnergyMsr(type);
 		if YEP_LIKELY(raplMsr != MsrNull) {
@@ -228,7 +228,7 @@ YepStatus YEPABI yepLibrary_GetEnergyCounterRelease(YepEnergyCounter *energyCoun
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(measurement, sizeof(Yep64f)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	#if defined(YEP_LINUX_OS)
 		if YEP_LIKELY(yepBuiltin_GetLowPart_64u_32u(energyCounter->state[0]) == energyCounterMagic) {
 			YepStatus status = YepStatusOk;

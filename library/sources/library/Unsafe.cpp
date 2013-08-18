@@ -64,7 +64,6 @@
 	#error "The functions in this file should only be used in and compiled for Linux"
 #endif
 
-
 #if (defined(YEP_ARM_CPU) || defined(YEP_MIPS_CPU)) && defined(YEP_LINUX_OS)
 	#if defined(YEP_ARM_CPU)
 		static void _yepLibrary_ProbeSignalHandler(int, siginfo_t *, void* ptr) {
@@ -76,7 +75,7 @@
 		static void _yepLibrary_ReadCoprocessorSignalHandler(int, siginfo_t *, void* ptr) {
 			ucontext_t* ctx = (ucontext_t*)ptr;
 			ctx->uc_mcontext.arm_pc += 4; // All read coprocessor instructions are four bytes long both in ARM and Thumb-2 mode
-			ctx->uc_mcontext.arm_r0 = 0; // Emulate reading all zeroes from coprocessor register
+			ctx->uc_mcontext.arm_r0 = 0; // To indicate that the signal handler was called
 		}
 	#elif defined(YEP_MIPS_CPU)
 		static void _yepLibrary_ProbeSignalHandler(int, siginfo_t *, void* ptr) {
@@ -85,7 +84,6 @@
 			ctx->uc_mcontext.sc_regs[2] = 1; // Change $2 = $v0 to 1 to indicate that the signal handler was called
 		}
 	#endif
-
 
 	Yep32u _yepLibrary_ProbeInstruction(Yep32u (*ProbeFunction)()) {
 		struct kernel_sigaction oldSigillAction;

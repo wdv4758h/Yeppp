@@ -147,8 +147,8 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
 	if YEP_UNLIKELY(statePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
-	#if defined(YEP_X86_CPU)
+#if defined(YEP_X86_CPU)
+	#if defined(YEP_X86_ABI)
 		if YEP_UNLIKELY((_systemFeatures & YepSystemFeatureCycleCounter) == 0) {
 			return YepStatusUnsupportedHardware;
 		}
@@ -167,7 +167,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
 		Yep64u state;
 		do {
 			Yep32u lo, hi;
-			#if defined(YEP_X64_CPU)
+			#if defined(YEP_X64_ABI)
 				asm volatile (
 					"xorl %%eax,%%eax;"
 					"cpuid;"
@@ -283,7 +283,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 	if YEP_UNLIKELY(ticksPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	#if defined(YEP_MICROSOFT_COMPILER)
 		if YEP_LIKELY(_isaFeatures & YepX86IsaFeatureRdtscp) {
 			unsigned int aux;
@@ -299,7 +299,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 				return YepStatusInvalidState;
 			}
 		} else {
-			#if defined(YEP_X86_CPU)
+			#if defined(YEP_X86_ABI)
 			if YEP_LIKELY(_systemFeatures & YepSystemFeatureCycleCounter) {
 			#endif
 				int registers[4];
@@ -316,7 +316,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 				} else {
 					return YepStatusInvalidState;
 				}
-			#if defined(YEP_X86_CPU)
+			#if defined(YEP_X86_ABI)
 			} else {
 				return YepStatusUnsupportedHardware;
 			}
@@ -326,7 +326,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 		Yep32u lo, hi;
 		#if !defined(YEP_K1OM_X64_ABI)
 			if YEP_LIKELY(_isaFeatures & YepX86IsaFeatureRdtscp) {
-				#if defined(YEP_X64_CPU)
+				#if defined(YEP_X64_ABI)
 					asm volatile (
 						"rdtscp;"
 						: "=a" (lo), "=d" (hi)
@@ -345,7 +345,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 		#else
 			{
 		#endif
-			#if defined(YEP_X64_CPU)
+			#if defined(YEP_X64_ABI)
 				asm volatile (
 					"xorl %%eax,%%eax;"
 					"cpuid;"

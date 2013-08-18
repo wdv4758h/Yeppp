@@ -51,23 +51,23 @@
 
 
 	#ifndef __NR_getcpu
-		#if defined(YEP_ARM_CPU)
+		#if defined(YEP_EABI_ARM_ABI)
 			#define __NR_getcpu 345
-		#elif defined(YEP_X64_CPU)
+		#elif defined(YEP_SYSTEMV_X64_ABI) || defined(YEP_K1OM_X64_ABI)
 			#define __NR_getcpu 309
 		#endif
 	#endif
 
-	#if defined(__ANDROID__)
+	#if defined(YEP_ANDROID_LINUX_OS)
 		#ifndef __NR_perf_event_open
-			#if defined(YEP_ARM_CPU)
+			#if defined(YEP_EABI_ARM_ABI)
 				#define __NR_perf_event_open 364
 			#endif
-			#if defined(YEP_MIPS_CPU)
+			#if defined(YEP_O32_MIPS_ABI)
 				#define __NR_perf_event_open 333
 			#endif
 		#endif
-		#if defined(YEP_ARM_CPU)
+		#if defined(YEP_EABI_ARM_ABI)
 			#undef P_ALL
 			#undef P_PID
 			#undef P_PGID
@@ -79,7 +79,7 @@
 		#endif
 	#endif
 	
-	#if defined(YEP_ARM_CPU)
+	#if defined(YEP_EABI_ARM_ABI)
 		#define KERNEL_NSIG 64
 		struct kernel_sigset_t {
 			Yep32u sig[KERNEL_NSIG / 32];
@@ -102,7 +102,7 @@
 			struct kernel_sigset_t sa_mask;
 		};
 	#endif
-	#if defined(YEP_MIPS_CPU)
+	#if defined(YEP_O32_MIPS_ABI)
 		#define KERNEL_NSIG 128
 		struct kernel_sigset_t {
 			Yep32u sig[KERNEL_NSIG / 32];
@@ -127,7 +127,7 @@
 #endif
 
 #if defined(YEP_LINUX_OS)
-	#if defined(YEP_X86_CPU)
+	#if defined(YEP_X86_ABI)
 		static YEP_INLINE int yepSyscall_uname(char *buffer) {
 			int result;
 			#if defined(YEP_PIC)
@@ -396,7 +396,7 @@
 			#endif
 			return result;
 		}
-	#elif defined(YEP_X64_CPU)
+	#elif defined(YEP_SYSTEMV_X64_ABI) || defined(YEP_K1OM_X64_ABI)
 		static YEP_INLINE int yepSyscall_uname(char *buffer) {
 			int result;
 			asm volatile(
@@ -543,7 +543,7 @@
 			);
 			return result;
 		}
-	#elif defined(YEP_ARM_CPU)
+	#elif defined(YEP_EABI_ARM_ABI)
 		static YEP_INLINE int yepSyscall_uname(char *buffer) {
 			register Yep32u r0 asm ("r0") = reinterpret_cast<Yep32u>(buffer);
 			register Yep32u r7 asm ("r7") = __NR_uname;
@@ -1105,7 +1105,7 @@
 			);
 			return static_cast<int>(r0);
 		}
-	#elif defined(YEP_MIPS_CPU)
+	#elif defined(YEP_O32_MIPS_ABI)
 		static YEP_INLINE int yepSyscall_uname(char *buffer) {
 			register Yep32u v0 asm ("v0") = __NR_uname;
 			register Yep32u a0 asm ("a0") = reinterpret_cast<Yep32u>(buffer);
