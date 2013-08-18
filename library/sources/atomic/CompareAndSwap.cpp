@@ -22,7 +22,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Relaxed_S32uS32uS32u(volatile Yep32u *
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		const long value = _InterlockedCompareExchange_nf((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		const long value = _InterlockedCompareExchange((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
 	#elif defined(YEP_IA64_CPU)
 		const long value = _InterlockedCompareExchange_acq((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
@@ -31,7 +31,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Relaxed_S32uS32uS32u(volatile Yep32u *
 	#endif
 	return static_cast<Yep32u>(value) == oldValue ? YepStatusOk : YepStatusInvalidState;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value;
 		asm volatile (
 			"LOCK CMPXCHGL %[newValue], %[valuePointer];"
@@ -141,7 +141,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Acquire_S32uS32uS32u(volatile Yep32u *
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		const long value = _InterlockedCompareExchange_acq((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		const long value = _InterlockedCompareExchange((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
 	#elif defined(YEP_IA64_CPU)
 		const long value = _InterlockedCompareExchange_acq((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
@@ -150,7 +150,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Acquire_S32uS32uS32u(volatile Yep32u *
 	#endif
 	return static_cast<Yep32u>(value) == oldValue ? YepStatusOk : YepStatusInvalidState;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value;
 		asm volatile (
 			"LOCK CMPXCHGL %[newValue], %[valuePointer];"
@@ -288,7 +288,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Release_S32uS32uS32u(volatile Yep32u *
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		const long value = _InterlockedCompareExchange_rel((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		const long value = _InterlockedCompareExchange((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
 	#elif defined(YEP_IA64_CPU)
 		const long value = _InterlockedCompareExchange_rel((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
@@ -297,7 +297,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Release_S32uS32uS32u(volatile Yep32u *
 	#endif
 	return static_cast<Yep32u>(value) == oldValue ? YepStatusOk : YepStatusInvalidState;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value;
 		asm volatile (
 			"LOCK CMPXCHGL %[newValue], %[valuePointer];"
@@ -435,7 +435,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Ordered_S32uS32uS32u(volatile Yep32u *
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#if defined(YEP_ARM_CPU)
 		const long value = _InterlockedCompareExchange((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
-	#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#elif defined(YEP_X86_CPU)
 		const long value = _InterlockedCompareExchange((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
 	#elif defined(YEP_IA64_CPU)
 		const long value = _InterlockedCompareExchange((long*)(valuePointer), static_cast<long>(newValue), static_cast<long>(oldValue));
@@ -444,7 +444,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Ordered_S32uS32uS32u(volatile Yep32u *
 	#endif
 	return static_cast<Yep32u>(value) == oldValue ? YepStatusOk : YepStatusInvalidState;
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		Yep32u value;
 		asm volatile (
 			"LOCK CMPXCHGL %[newValue], %[valuePointer];"

@@ -43,7 +43,7 @@
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#include <intrin.h>
 #endif
-#if defined(YEP_GCC_COMPATIBLE_COMPILER) && (defined(YEP_X86_CPU) || defined(YEP_X64_CPU))
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_X86_CPU)
 	#include <x86intrin.h>
 #endif
 
@@ -609,7 +609,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_NaN_64f() {
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Nlz_64u_32u(Yep64u x) {
 #if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_UNIX)
 	return __builtin_clzl(x);
-#elif (defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)) && (defined(YEP_IA64_CPU) || defined(YEP_X64_CPU))
+#elif (defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)) && (defined(YEP_IA64_ABI) || defined(YEP_X64_ABI))
 	if (x == 0ull) {
 		return 64u;
 	} else {
@@ -1601,13 +1601,13 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32s yepBuiltin_MultiplyHigh_32s32s_32s(
 #endif
 }
 
-#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && (defined(YEP_X64_CPU) || defined(YEP_IA64_CPU))
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && (defined(YEP_X64_ABI) || defined(YEP_IA64_ABI))
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep128u yepBuiltin_Multiply_64u64u_128u(Yep64u x, Yep64u y) {
 	Yep128u result;
 	result.low = _umul128(x, y, &result.high);
 	return result;
 }
-#elif defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_X64_CPU)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_X64_ABI)
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep128u yepBuiltin_Multiply_64u64u_128u(Yep64u x, Yep64u y) {
 	const __uint128_t product = ((__uint128_t)x) * ((__uint128_t)y);
 	Yep128u result;
@@ -1624,7 +1624,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128u yepBuiltin_Multiply_64u64u_128u(Ye
 }
 #endif
 
-#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && (defined(YEP_X64_CPU) || defined(YEP_IA64_CPU))
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && (defined(YEP_X64_ABI) || defined(YEP_IA64_ABI))
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Yep64s x, Yep64s y) {
 	Yep128s result;
 	__int64 highPart;
@@ -1632,7 +1632,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 	result.high = highPart;
 	return result;
 }
-#elif defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_X64_CPU)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER) && defined(YEP_X64_ABI)
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Yep64s x, Yep64s y) {
 	const __int128_t product = ((__int128_t)x) * ((__int128_t)y);
 	Yep128s result;
@@ -1650,9 +1650,9 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 #endif
 
 /* Emulation of __cpuid, __cpuidex, and _xgetbv intrinsics on x86 and x86-64 */
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	#if defined(YEP_GCC_COMPATIBLE_COMPILER)
-		#if defined(YEP_X86_CPU) && defined(YEP_PIC)
+		#if defined(YEP_X86_ABI) && defined(YEP_PIC)
 			static YEP_INLINE void __cpuid(int CPUInfo[4], int InfoType) {
 				CPUInfo[0] = InfoType;
 				asm volatile (

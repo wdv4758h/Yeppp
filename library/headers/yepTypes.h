@@ -170,7 +170,7 @@ typedef double                         Yep64f;
 	 */
 	typedef compiler_specific<long double> Yep80f;
 #else
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		#if defined(YEP_GCC_COMPATIBLE_COMPILER) || (defined(YEP_INTEL_COMPILER_FOR_WINDOWS) && (__LONG_DOUBLE_SIZE__ == 80))
 			#define YEP_COMPILER_SUPPORTS_YEP80F_TYPE
 			typedef long double Yep80f;

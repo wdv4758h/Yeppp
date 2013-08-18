@@ -89,7 +89,7 @@ extern YEP_PRIVATE_SYMBOL YepCpuVendor _vendor;
 extern YEP_PRIVATE_SYMBOL YepCpuMicroarchitecture _microarchitecture;
 extern YEP_PRIVATE_SYMBOL Yep32u _logicalCoresCount;
 extern YEP_PRIVATE_SYMBOL CacheHierarchyInfo _cache;
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	struct ModelInfo {
 		ModelInfo() :
 			baseModel(0xFFu),

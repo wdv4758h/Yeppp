@@ -12,7 +12,7 @@
 #include <library/functions.h>
 
 YEP_PRIVATE_SYMBOL const YepCpuMicroarchitecture *_yepLibrary_GetMicroarchitectureDispatchList(YepCpuMicroarchitecture microarchitecture) {
-#if defined(YEP_X86_CPU)
+#if defined(YEP_X86_ABI)
 	static const YepCpuMicroarchitecture dispatchUnknown[] = { YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchP5[] = { YepCpuMicroarchitectureP5, YepCpuMicroarchitectureK5, YepCpuMicroarchitectureKnightsFerry, YepCpuMicroarchitectureKnightsCorner, YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchP6[] = { YepCpuMicroarchitectureP6, YepCpuMicroarchitectureDothan, YepCpuMicroarchitectureK7, YepCpuMicroarchitectureK6, YepCpuMicroarchitectureYonah, YepCpuMicroarchitectureConroe, YepCpuMicroarchitecturePenryn, YepCpuMicroarchitectureUnknown };
@@ -103,7 +103,7 @@ YEP_PRIVATE_SYMBOL const YepCpuMicroarchitecture *_yepLibrary_GetMicroarchitectu
 		default:
 			return dispatchUnknown;
 	}
-#elif defined(YEP_X64_CPU)
+#elif defined(YEP_X64_ABI)
 	static const YepCpuMicroarchitecture dispatchUnknown[] = { YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchPrescott[] = { YepCpuMicroarchitecturePrescott, YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchConroe[] = { YepCpuMicroarchitectureConroe, YepCpuMicroarchitecturePenryn, YepCpuMicroarchitectureNehalem, YepCpuMicroarchitectureSandyBridge, YepCpuMicroarchitectureIvyBridge, YepCpuMicroarchitectureUnknown };
@@ -167,7 +167,7 @@ YEP_PRIVATE_SYMBOL const YepCpuMicroarchitecture *_yepLibrary_GetMicroarchitectu
 		default:
 			return dispatchUnknown;
 	}
-#elif defined(YEP_ARM_CPU)
+#elif defined(YEP_ARM_ABI)
 	static const YepCpuMicroarchitecture dispatchUnknown[] = { YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchStrongARM[] = { YepCpuMicroarchitectureStrongARM, YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchXScale[] = { YepCpuMicroarchitectureXScale, YepCpuMicroarchitectureARM9, YepCpuMicroarchitectureUnknown };
@@ -219,7 +219,7 @@ YEP_PRIVATE_SYMBOL const YepCpuMicroarchitecture *_yepLibrary_GetMicroarchitectu
 		default:
 			return dispatchUnknown;
 	}
-#elif defined(YEP_MIPS_CPU)
+#elif defined(YEP_MIPS32_ABI)
 	static const YepCpuMicroarchitecture dispatchUnknown[] = { YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchMIPS24K[] = { YepCpuMicroarchitectureMIPS24K, YepCpuMicroarchitectureUnknown };
 	static const YepCpuMicroarchitecture dispatchMIPS34K[] = { YepCpuMicroarchitectureMIPS34K, YepCpuMicroarchitectureUnknown };

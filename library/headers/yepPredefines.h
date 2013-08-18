@@ -102,35 +102,31 @@
 #if defined(_M_IX86) || defined(i386) || defined(__i386) || defined(__i386__) || defined(_X86_) || defined(__X86__) || defined(__I86__) || defined(__INTEL__) || defined(__THW_INTEL__)
 	#define YEP_X86_CPU
 	#define YEP_X86_ABI
-#endif
-#if defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
-	#define YEP_X64_CPU
+#elif defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
+	#define YEP_X86_CPU
 	#define YEP_X64_ABI
-#endif
-#if defined(_M_IA64) || defined(__itanium__) || defined(__ia64) || defined(__ia64__) || defined(_IA64) || defined(__IA64__)
+#elif defined(_M_IA64) || defined(__itanium__) || defined(__ia64) || defined(__ia64__) || defined(_IA64) || defined(__IA64__)
 	#define YEP_IA64_CPU
 	#define YEP_IA64_ABI
-#endif
-#if defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) ||  defined(__thumb__) || defined(__arm) || defined(_ARM)
+#elif defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) ||  defined(__thumb__) || defined(__arm) || defined(_ARM)
 	#define YEP_ARM_CPU
 	#define YEP_ARM_ABI
-#endif
-#if defined(_M_MRX000) || defined(_MIPS_) || defined(_MIPS64) || defined(__mips__) || defined(__mips) || defined(__MIPS__)
+#elif defined(_M_MRX000) || defined(_MIPS_) || defined(_MIPS64) || defined(__mips__) || defined(__mips) || defined(__MIPS__)
 	#define YEP_MIPS_CPU
-	#define YEP_MIPS_ABI
-#endif
-#if defined(__sparc__) || defined(__sparc)
+	#if defined(__mips) && (__mips == 64)
+		#define YEP_MIPS64_ABI
+	#else
+		#define YEP_MIPS32_ABI
+	#endif
+#elif defined(__sparc__) || defined(__sparc)
 	#define YEP_SPARC_CPU
 	#define YEP_SPARC_ABI
-#endif
-#if defined(_M_PPC) || defined(__powerpc) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc__)
+#elif defined(_M_PPC) || defined(__powerpc) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc__)
 	#define YEP_POWERPC_CPU
 	#define YEP_POWERPC_ABI
-#endif
-#if defined(__CUDA_ARCH__)
+#elif defined(__CUDA_ARCH__)
 	#define YEP_CUDA_GPU
-#endif
-#if defined(__OPENCL_VERSION__)
+#elif defined(__OPENCL_VERSION__)
 	#define YEP_OPENCL_DEVICE
 	#if defined(__CPU__)
 		#define YEP_OPENCL_CPU
@@ -139,7 +135,7 @@
 	#endif
 #endif
 
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	#ifndef YEP_PROCESSOR_SUPPORTS_MISALIGNED_MEMORY_ACCESS
 		#define YEP_PROCESSOR_SUPPORTS_MISALIGNED_MEMORY_ACCESS
 	#endif
@@ -738,7 +734,7 @@
 	#define YEP_BIG_ENDIAN_BYTE_ORDER
 #elif defined(_BIG_ENDIAN) || defined(__BIG_ENDIAN__)
 	#define YEP_BIG_ENDIAN_BYTE_ORDER
-#elif defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#elif defined(YEP_X86_CPU)
 	#define YEP_LITTLE_ENDIAN_BYTE_ORDER
 #elif (defined(YEP_ARM_CPU) || defined(YEP_MIPS_CPU)) && defined(__ANDROID__)
 	#define YEP_LITTLE_ENDIAN_BYTE_ORDER
@@ -755,14 +751,20 @@
 		#define YEP_SYSTEMV_X64_ABI
 	#endif
 #elif defined(YEP_ARM_ABI)
-	#if defined(__ARM_PCS_VFP)
-		#define YEP_HARDEABI_ARM_ABI
-	#else
-		#define YEP_SOFTEABI_ARM_ABI
+	#if defined(__ARM_EABI__)
+		#define YEP_EABI_ARM_ABI
+		#if defined(__ARM_PCS_VFP)
+			#define YEP_HARDEABI_ARM_ABI
+		#else
+			#define YEP_SOFTEABI_ARM_ABI
+		#endif
 	#endif
-#elif defined(YEP_MIPS_ABI)
-	#if defined(_ABIO32) && defined(__mips_hard_float)
-		#define YEP_HARDO32_MIPS_ABI
+#elif defined(YEP_MIPS32_ABI)
+	#if defined(_ABIO32)
+		#define YEP_O32_MIPS_ABI
+		#if defined(__mips_hard_float)
+			#define YEP_HARDO32_MIPS_ABI
+		#endif
 	#endif
 #endif
 

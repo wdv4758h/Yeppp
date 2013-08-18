@@ -17,7 +17,7 @@
 #include <yepIntrinsics.h>
 #include <string.h>
 
-#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+#if defined(YEP_X86_CPU)
 	static void getCpuidMaxIndex(Yep32u& maxBaseCpuidIndex, Yep32u& maxExtendedCpuidIndex) {
 		int registers[4];
 		__cpuid(registers, 0u);
@@ -147,14 +147,14 @@
 		switch (vendor) {
 			case YepCpuVendorIntel:
 				switch (modelInfo.family) {
-	#ifndef YEP_X64_CPU
+	#ifndef YEP_X64_ABI
 					case 0x05:
 						microarchitecture = YepCpuMicroarchitectureP5;
 						break;
 	#endif
 					case 0x06:
 						switch (modelInfo.model) {
-	#ifndef YEP_X64_CPU
+	#ifndef YEP_X64_ABI
 							case 0x01: // Pentium Pro
 							case 0x03: // Pentium II (Klamath) and Pentium II Overdrive
 							case 0x05: // Pentium II (Deschutes, Tonga), Pentium II Celeron (Covington), Pentium II Xeon (Drake)
@@ -246,7 +246,7 @@
 				break;
 			case YepCpuVendorAMD:
 				switch (modelInfo.family) {
-	#ifndef YEP_X64_CPU
+	#ifndef YEP_X64_ABI
 					case 0x5:
 						switch (modelInfo.model) {
 							case 0x00:
@@ -323,7 +323,7 @@
 		isaFeatures |= YepX86IsaFeatureCpuid;
 		// All x86 and x86-64 processors support misaligned memory access
 		systemFeatures |= YepSystemFeatureMisalignedAccess;
-	#if defined(YEP_X64_CPU)
+	#if defined(YEP_X64_ABI)
 		systemFeatures |= YepSystemFeatureAddressSpace64Bit;
 		systemFeatures |= YepSystemFeatureGPRegisters64Bit;
 	#endif
@@ -347,7 +347,7 @@
 		}
 
 		// Check for RDTSC instruction.
-	#if defined(YEP_X86_CPU)
+	#if defined(YEP_X86_ABI)
 		// Intel, AMD: edx[bit 4] in basic info.
 		// AMD: edx [bit 4] in extended info (reserved bit on Intel CPUs).
 		if YEP_LIKELY((basicInfo[3] | extendedInfo[3]) & 0x00000010u) {
@@ -388,7 +388,7 @@
 			isaFeatures |= YepX86IsaFeatureFXSAVE;
 		}
 		if YEP_LIKELY(extendedInfo[3] & 0x01000000u) {
-	#if defined(YEP_X86_CPU)
+	#if defined(YEP_X86_ABI)
 			if YEP_UNLIKELY(vendor == YepCpuVendorCyrix) {
 				simdFeatures |= YepX86SimdFeatureEMMX;
 			} else {
@@ -611,7 +611,7 @@
 		}
 	#endif
 
-	#if defined(YEP_X64_CPU)
+	#if defined(YEP_X64_ABI)
 		isaFeatures |= YepX86IsaFeatureCmpxchg8b;
 	#else
 		// Intel, AMD: edx[bit 8] in basic info.
@@ -1945,7 +1945,7 @@
 			}
 		}
 		
-		#if defined(YEP_X64_CPU)
+		#if defined(YEP_X64_ABI)
 			#if defined(YEP_K1OM_X64_ABI)
 				switch (_logicalCoresCount) {
 					case 244:
