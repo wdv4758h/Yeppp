@@ -55,8 +55,6 @@ error_shell()
 
 setup_universal()
 {
-	export YEPROOT="$1"
-
 	if [ -z "${INCLUDE}" ]
 	then
 		export INCLUDE="${YEPROOT}/library/headers"
@@ -69,6 +67,13 @@ setup_universal()
 		export CPATH="${YEPROOT}/library/headers"
 	else
 		export CPATH="${YEPROOT}/library/headers:${CPATH}"
+	fi
+
+	if [ -z "${NDK_MODULE_PATH}" ]
+	then
+		export NDK_MODULE_PATH="${YEPROOT}/binaries/android"
+	else
+		export NDK_MODULE_PATH="${YEPROOT}/binaries/android:${NDK_MODULE_PATH}"
 	fi
 
 	if [ -z "${CLASSPATH}" ]
@@ -84,37 +89,41 @@ setup_x86()
 	OS_KERNEL=$(uname -s)
 	case "${OS_KERNEL}" in
 		"Linux")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/i586"
 			export YEPPLATFORM="x86-linux-pic-i586"
 
 			if [ -z "${LD_LIBRARY_PATH}" ]
 			then
-				export LD_LIBRARY_PATH="$1/binaries/linux/i586"
+				export LD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LD_LIBRARY_PATH="$1/binaries/linux/i586:${LD_LIBRARY_PATH}"
+				export LD_LIBRARY_PATH="${YEPBINARIES}:${LD_LIBRARY_PATH}"
 			fi
 
 			if [ -z "${LIBRARY_PATH}" ]
 			then
-				export LIBRARY_PATH="$1/binaries/linux/i586"
+				export LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LIBRARY_PATH="$1/binaries/linux/i586:${LIBRARY_PATH}"
+				export LIBRARY_PATH="${YEPBINARIES}:${LIBRARY_PATH}"
 			fi
 		;;
 		"Darwin")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/macosx/x86"
 			export YEPPLATFORM="x86-macosx-pic-default"
 
 			if [ -z "$DYLD_LIBRARY_PATH" ]
 			then
-				export DYLD_LIBRARY_PATH="$1/binaries/macosx/x86"
+				export DYLD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export DYLD_LIBRARY_PATH="$1/binaries/macosx/x86:$DYLD_LIBRARY_PATH"
+				export DYLD_LIBRARY_PATH="${YEPBINARIES}:$DYLD_LIBRARY_PATH"
 			fi
 
 			if [ -z "${LIBRARY_PATH}" ]
 			then
-				export LIBRARY_PATH="$1/binaries/macosx/x86"
+				export LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LIBRARY_PATH="$1/binaries/macosx/x86:${LIBRARY_PATH}"
+				export LIBRARY_PATH="${YEPBINARIES}:${LIBRARY_PATH}"
 			fi
 		;;
 		*)
@@ -122,7 +131,7 @@ setup_x86()
 			return 1
 		;;
 	esac
-	setup_universal "$1"
+	setup_universal
 	return 0
 }
 
@@ -132,37 +141,41 @@ setup_x64()
 	ARCHITECTURE=$(uname -m)
 	case "${OS_KERNEL}" in
 		"Linux")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/x86_64"
 			export YEPPLATFORM="x64-linux-sysv-default"
 
 			if [ -z "${LD_LIBRARY_PATH}" ]
 			then
-				export LD_LIBRARY_PATH="$1/binaries/linux/x86_64"
+				export LD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LD_LIBRARY_PATH="$1/binaries/linux/x86_64:${LD_LIBRARY_PATH}"
+				export LD_LIBRARY_PATH="${YEPBINARIES}:${LD_LIBRARY_PATH}"
 			fi
 
 			if [ -z "${LIBRARY_PATH}" ]
 			then
-				export LIBRARY_PATH="$1/binaries/linux/x86_64"
+				export LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LIBRARY_PATH="$1/binaries/linux/x86_64:${LIBRARY_PATH}"
+				export LIBRARY_PATH="${YEPBINARIES}:${LIBRARY_PATH}"
 			fi
 		;;
 		"Darwin")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/macosx/x86_64"
 			export YEPPLATFORM="x64-macosx-sysv-default"
 
 			if [ -z "$DYLD_LIBRARY_PATH" ]
 			then
-				export DYLD_LIBRARY_PATH="$1/binaries/macosx/x86_64"
+				export DYLD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export DYLD_LIBRARY_PATH="$1/binaries/macosx/x86_64:$DYLD_LIBRARY_PATH"
+				export DYLD_LIBRARY_PATH="${YEPBINARIES}:$DYLD_LIBRARY_PATH"
 			fi
 
 			if [ -z "${LIBRARY_PATH}" ]
 			then
-				export LIBRARY_PATH="$1/binaries/macosx/x86_64"
+				export LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LIBRARY_PATH="$1/binaries/macosx/x86_64:${LIBRARY_PATH}"
+				export LIBRARY_PATH="${YEPBINARIES}:${LIBRARY_PATH}"
 			fi
 		;;
 		*)
@@ -170,7 +183,7 @@ setup_x64()
 			return 1
 		;;
 	esac
-	setup_universal "$1"
+	setup_universal
 	return 0
 }
 
@@ -180,13 +193,15 @@ setup_k1om()
 	OS_KERNEL=$(uname -s)
 	case "${OS_KERNEL}" in
 		"Linux")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/k1om"
 			export YEPPLATFORM="x64-linux-k1om-default"
 
 			if [ -z "${LD_LIBRARY_PATH}" ]
 			then
-				export LD_LIBRARY_PATH="$1/binaries/linux/x86_64"
+				export LD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LD_LIBRARY_PATH="$1/binaries/linux/x86_64:${LD_LIBRARY_PATH}"
+				export LD_LIBRARY_PATH="${YEPBINARIES}:${LD_LIBRARY_PATH}"
 			fi
 		;;
 		*)
@@ -203,20 +218,22 @@ setup_armel()
 	ARCHITECTURE=$(uname -m)
 	case "${OS_KERNEL}" in
 		"Linux")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/armel"
 			export YEPPLATFORM="arm-linux-softeabi-v5t"
 
 			if [ -z "${LD_LIBRARY_PATH}" ]
 			then
-				export LD_LIBRARY_PATH="$1/binaries/linux/armel"
+				export LD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LD_LIBRARY_PATH="$1/binaries/linux/armel:${LD_LIBRARY_PATH}"
+				export LD_LIBRARY_PATH="${YEPBINARIES}:${LD_LIBRARY_PATH}"
 			fi
 
 			if [ -z "${LIBRARY_PATH}" ]
 			then
-				export LIBRARY_PATH="$1/binaries/linux/armel"
+				export LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LIBRARY_PATH="$1/binaries/linux/armel:${LIBRARY_PATH}"
+				export LIBRARY_PATH="${YEPBINARIES}:${LIBRARY_PATH}"
 			fi
 		;;
 		*)
@@ -224,7 +241,7 @@ setup_armel()
 			return 1
 		;;
 	esac
-	setup_universal "$1"
+	setup_universal
 	return 0
 }
 
@@ -234,20 +251,22 @@ setup_armhf()
 	ARCHITECTURE=$(uname -m)
 	case "${OS_KERNEL}" in
 		"Linux")
+			export YEPROOT="$1"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/armhf"
 			export YEPPLATFORM="arm-linux-hardeabi-v7a"
 
 			if [ -z "${LD_LIBRARY_PATH}" ]
 			then
-				export LD_LIBRARY_PATH="$1/binaries/linux/armhf"
+				export LD_LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LD_LIBRARY_PATH="$1/binaries/linux/armhf:${LD_LIBRARY_PATH}"
+				export LD_LIBRARY_PATH="${YEPBINARIES}:${LD_LIBRARY_PATH}"
 			fi
 
 			if [ -z "${LIBRARY_PATH}" ]
 			then
-				export LIBRARY_PATH="$1/binaries/linux/armhf"
+				export LIBRARY_PATH="${YEPBINARIES}"
 			else
-				export LIBRARY_PATH="$1/binaries/linux/armhf:${LIBRARY_PATH}"
+				export LIBRARY_PATH="${YEPBINARIES}:${LIBRARY_PATH}"
 			fi
 		;;
 		*)
@@ -255,7 +274,7 @@ setup_armhf()
 			return 1
 		;;
 	esac
-	setup_universal "$1"
+	setup_universal
 	return 0
 }
 
@@ -295,7 +314,7 @@ setup_guess()
 						error_os_arch_abi "${OS_KERNEL}" "${ARCHITECTURE}" "${ABI}"
 					fi
 				else
-					echo "Warning: could reliably detect ABI. Assume soft-float ARM EABI" >&2
+					echo "Warning: could not reliably detect ABI. Assume soft-float ARM EABI" >&2
 					setup_armel "$1"
 					return $?
 				fi
@@ -317,7 +336,7 @@ setup_guess()
 						error_os_arch_abi "${OS_KERNEL}" "${ARCHITECTURE}" "${ABI}"
 					fi
 				else
-					echo "Warning: could reliably detect ABI. Assume hard-float ARM EABI" >&2
+					echo "Warning: could not reliably detect ABI. Assume hard-float ARM EABI" >&2
 					setup_armhf "$1"
 					return $?
 				fi
@@ -347,7 +366,7 @@ setup_guess()
 		error_os "${OS_KERNEL}"
 	fi
 	setup_universal "$1"
-	return 0
+	return 1
 }
 
 if [ -n "${BASH_SOURCE}" ]
