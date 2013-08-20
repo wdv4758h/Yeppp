@@ -30,7 +30,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#ifndef YEP_PREPROCESS_TO_XML
+	#pragma once
+#endif
 
 #define YEP_MAJOR_VERSION 0
 #define YEP_MINOR_VERSION 9
