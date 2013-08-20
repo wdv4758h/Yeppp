@@ -17,7 +17,7 @@ struct CacheLevelInfo {
 		isUnified(false)
 	{
 	}
-			
+
 	Yep32u cacheSize;
 	Yep16u lineSize;
 	Yep8u associativity;
@@ -30,7 +30,7 @@ struct TraceCacheInfo {
 		associativity(0)
 	{
 	}
-	
+
 	Yep32u microops;
 	Yep32u associativity;
 };
@@ -41,7 +41,7 @@ struct CacheHierarchyInfo {
 		clflushLineSize(0)
 	{
 	}
-			
+
 	CacheLevelInfo L0ICacheInfo;
 	CacheLevelInfo L0DCacheInfo;
 	CacheLevelInfo L1ICacheInfo;
@@ -59,19 +59,19 @@ struct ConstantString {
 		length(length)
 	{
 	}
-	
+
 	YEP_INLINE ConstantString() :
 		pointer(YEP_NULL_POINTER),
 		length(0)
 	{
 	}
-	
+
 	YEP_INLINE YepBoolean isEmpty() const {
 		const YepBoolean isNullPointer = (pointer == YEP_NULL_POINTER);
 		const YepBoolean isZeroLength = (length == 0);
 		return isNullPointer && isZeroLength;
 	}
-	
+
 	const char* pointer;
 	YepSize length;
 };
