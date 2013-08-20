@@ -13,30 +13,7 @@ else ifeq (${YEPPLATFORM},x86-linux-pic-i586)
 else ifeq (${YEPPLATFORM},x86-macosx-pic-default)
     override CFLAGS += -m32
 else ifeq (${YEPPLATFORM},arm-linux-softeabi-v5t)
-    
 else ifeq (${YEPPLATFORM},arm-linux-hardeabi-v7a)
-    
-else ifeq (${YEPPLATFORM},arm-linux-softeabi-android)
-    override CFLAGS += -I${ANDROID_NDK_ROOT}/platforms/android-3/arch-arm/usr/include
-    override CFLAGS += -I${YEPROOT}/library/headers
-    override LDFLAGS += -L"${YEPROOT}/binaries/android/armeabi"
-    override LDFLAGS += --sysroot=${ANDROID_NDK_ROOT}/platforms/android-3/arch-arm
-else ifeq (${YEPPLATFORM},arm-linux-softeabi-androidv7a)
-    override CFLAGS += -I${ANDROID_NDK_ROOT}/platforms/android-3/arch-arm/usr/include
-    override CFLAGS += -I${YEPROOT}/library/headers
-    override LDFLAGS += -L"${YEPROOT}/binaries/android/armeabiv7a"
-    override LDFLAGS += --sysroot=${ANDROID_NDK_ROOT}/platforms/android-3/arch-arm
-else ifeq (${YEPPLATFORM},x86-linux-pic-android)
-    override CFLAGS += -m32
-    override CFLAGS += -I${ANDROID_NDK_ROOT}/platforms/android-9/arch-x86/usr/include
-    override CFLAGS += -I${YEPROOT}/library/headers
-    override LDFLAGS += -L"${YEPROOT}/binaries/android/x86"
-    override LDFLAGS += --sysroot=${ANDROID_NDK_ROOT}/platforms/android-9/arch-x86
-else ifeq (${YEPPLATFORM},mips-linux-o32-android)
-    override CFLAGS += -I${ANDROID_NDK_ROOT}/platforms/android-9/arch-mips/usr/include
-    override CFLAGS += -I${YEPROOT}/library/headers
-    override LDFLAGS += -L"${YEPROOT}/binaries/android/mips"
-    override LDFLAGS += --sysroot=${ANDROID_NDK_ROOT}/platforms/android-9/arch-mips
 else
     $(error YEPPLATFORM variable is not defined or contains unsupported value)
 endif
