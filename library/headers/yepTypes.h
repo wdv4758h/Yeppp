@@ -32,48 +32,6 @@
 
 #pragma once
 
-/**
- * @mainpage Yeppp! library documentation for C programmers
- *
- * @section Introduction	Introduction
- *
- * @Yeppp library is a collection of low-level functions optimized for modern CPU microarchitectures.
- * Each library function has several versions optimized for different processor microarchitectures.
- * During initialization @Yeppp library detects the processor it is running on, and chooses the optimal function implementations.
- *
- * Additionally, the library provides information about the CPU, such as processor vendor and microarchitecture,
- * and an OS- and hardware-independent interface to processor cycle counters, and high-resolution timers.
- *
- * @section Platforms	Supported Platforms
- *
- * In this release @Yeppp library supports the following hardware and software platforms:
- *  - x86 on Windows, Linux, and Android.
- *  - x86-64 on Windows and Linux.
- *  - ARM on Linux and Android.
- *  - MIPS on Android.
- *
- * @example Entropy.c
- *
- * This example shows how to use @Yeppp library to compute the entropy of a distribution given by its probabilities:
- *
- * @example Polynomial.c
- *
- * This example demonstrates the use of @Yeppp library to evaluate a polynomial on an array:
- *
- * @example CpuInfo.c
- *
- * This example shows how to use @Yeppp library to get information about processor and supported instruction extensions:
- *
- * @example SystemTimer.c
- *
- * This example shows how to use @Yeppp library to do cross-platform measurements of execution time using high-frequency system timer:
- *
- * @example CpuCycles.c
- *
- * This example shows how to use @Yeppp library to measure the execution time in CPU cycles:
- *
- */
-
 /** @defgroup yepTypes	yepTypes.h: common Yeppp! data types. */
 
 #include <yepPredefines.h>
