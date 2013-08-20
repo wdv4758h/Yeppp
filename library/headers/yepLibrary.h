@@ -57,7 +57,7 @@ extern "C" {
 	/**
 	 * @ingroup yepLibrary_Init
 	 * @brief	Deinitialized the @Yeppp library and releases the consumed system resources.
-	 * @retval	#YepStatusOk	The library is successfully initialized.
+	 * @retval	#YepStatusOk	The library is successfully deinitialized.
 	 * @retval	#YepStatusSystemError	The library failed to release some of the resources due to a failed call to the OS kernel.
 	 * @see	yepLibrary_Init
 	 */
