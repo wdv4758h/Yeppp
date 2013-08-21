@@ -698,19 +698,19 @@
 		}
 		if YEP_LIKELY(cpuInfo.cpuArchitecture.version >= 5) {
 			isaFeatures |= YepARMIsaFeatureV5;
-			if (cpuInfo.cpuArchitecture.E) {
+			if YEP_LIKELY(cpuInfo.cpuArchitecture.E) {
 				isaFeatures |= YepARMIsaFeatureV5E;
 			}
 
 			const Yep32u probeXScaleResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeXScale);
-			if (probeXScaleResult == 0) {
+			if YEP_UNLIKELY(probeXScaleResult == 0) {
 				simdFeatures |= YepARMSimdFeatureXScale;
 			}
 		}
 		if YEP_LIKELY(cpuInfo.cpuArchitecture.version >= 6) {
 			isaFeatures |= YepARMIsaFeatureV6;
 			
-			if (cpuInfo.cpuArchitecture.version == 6) {
+			if YEP_UNLIKELY(cpuInfo.cpuArchitecture.version == 6) {
 				const Yep32u probeV6KResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeV6K);
 				if (probeV6KResult == 0) {
 					isaFeatures |= YepARMIsaFeatureV6K;
@@ -719,7 +719,7 @@
 		}
 		if YEP_LIKELY(cpuInfo.cpuArchitecture.version >= 7) {
 			// WTF? Raspberry Pi shows Architecture: 7 in /proc/cpuinfo
-			if (microarchitecture != YepCpuMicroarchitectureARM11) {
+			if YEP_LIKELY(microarchitecture != YepCpuMicroarchitectureARM11) {
 				isaFeatures |= YepARMIsaFeatureV5E;
 				isaFeatures |= YepARMIsaFeatureV6K;
 				isaFeatures |= YepARMIsaFeatureV7;
@@ -727,28 +727,31 @@
 				isaFeatures |= YepARMIsaFeatureThumb2;
 
 				const Yep32u probeV7MPResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeV7MP);
-				if (probeV7MPResult == 0) {
+				if YEP_LIKELY(probeV7MPResult == 0) {
 					isaFeatures |= YepARMIsaFeatureV7MP;
 				}
 			}
 		}
 
-		if (cpuInfo.features.thumb) {
+		if YEP_LIKELY(cpuInfo.features.thumb) {
 			isaFeatures |= YepARMIsaFeatureThumb;
 		}
-		if (cpuInfo.features.fpa) {
+		if YEP_UNLIKELY(cpuInfo.features.fpa) {
 			isaFeatures |= YepARMIsaFeatureFPA;
+			systemFeatures |= YepARMSystemFeatureFPA;
 		}
-		if (cpuInfo.features.vfp) {
+		if YEP_LIKELY(cpuInfo.features.vfp) {
 			isaFeatures |= YepARMIsaFeatureVFP;
+			systemFeatures |= YepARMSystemFeatureS32;
 		}
-		if (cpuInfo.features.edsp) {
+		if YEP_LIKELY(cpuInfo.features.edsp) {
 			isaFeatures |= YepARMIsaFeatureV5E;
 		}
-		if (cpuInfo.features.java) {
+		if YEP_UNLIKELY(cpuInfo.features.java) {
 			isaFeatures |= YepARMIsaFeatureJazelle;
 		}
-		if (cpuInfo.features.iwmmxt) {
+		if YEP_UNLIKELY(cpuInfo.features.iwmmxt) {
+			systemFeatures |= YepARMSystemFeatureWMMX;
 			const Yep64u wcidReadResult = _yepLibrary_ReadCoprocessor(&_yepLibrary_ReadWCID);
 			const Yep32u wcidReadSuccess = yepBuiltin_GetLowPart_64u_32u(wcidReadResult);
 			if YEP_LIKELY(wcidReadSuccess) {
@@ -762,40 +765,59 @@
 				}
 			}
 		}
-		if (cpuInfo.features.thumbee) {
+		if YEP_LIKELY(cpuInfo.features.thumbee) {
 			isaFeatures |= YepARMIsaFeatureThumbEE;
 		}
-		if (cpuInfo.features.neon) {
+		if YEP_LIKELY(cpuInfo.features.neon) {
 			simdFeatures |= YepARMSimdFeatureNEON;
 			/* NEON mandates support for VFPv3-D32 */
 			isaFeatures |= YepARMIsaFeatureVFP;
 			isaFeatures |= YepARMIsaFeatureVFP2;
 			isaFeatures |= YepARMIsaFeatureVFP3;
 			isaFeatures |= YepARMIsaFeatureVFPd32;
+			/* NEON mandates 32 D registers */
+			systemFeatures |= YepARMSystemFeatureS32;
+			systemFeatures |= YepARMSystemFeatureD32;
 		}
-		if (cpuInfo.features.vfpv3) {
+		if YEP_LIKELY(cpuInfo.features.vfpv3) {
+			systemFeatures |= YepARMSystemFeatureS32;
 			isaFeatures |= YepARMIsaFeatureVFP;
 			isaFeatures |= YepARMIsaFeatureVFP2;
 			isaFeatures |= YepARMIsaFeatureVFP3;
-			/* VFPv3 could mean either VFPv3-D16 or VFPv3-D32 */
-			const Yep32u probeVFPd32Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVFPd32);
-			if (probeVFPd32Result == 0) {
-				isaFeatures |= YepARMIsaFeatureVFPd32;
+			if YEP_UNLIKELY(!cpuInfo.features.neon) {
+				/* VFPv3 could mean either VFPv3-D16 or VFPv3-D32 */
+				const Yep32u probeVFPd32Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVFPd32);
+				if YEP_LIKELY(probeVFPd32Result == 0) {
+					/* Processor supports VFP-D32, but there is no guarantee that the upper D registers are preserved during context switch */
+					isaFeatures |= YepARMIsaFeatureVFPd32;
+				}
 			}
 		}
-		if (cpuInfo.features.vfpv3d16) {
+		if YEP_UNLIKELY(cpuInfo.features.vfpv3d16) {
+			systemFeatures |= YepARMSystemFeatureS32;
+			systemFeatures &= ~YepARMSystemFeatureD32;
 			isaFeatures |= YepARMIsaFeatureVFP;
 			isaFeatures |= YepARMIsaFeatureVFP2;
 			isaFeatures |= YepARMIsaFeatureVFP3;
+			isaFeatures &= ~YepARMIsaFeatureVFPd32;
 		}
-		if (cpuInfo.features.vfpv4) {
+		if YEP_LIKELY(cpuInfo.features.vfpv4) {
+			systemFeatures |= YepARMSystemFeatureS32;
 			isaFeatures |= YepARMIsaFeatureVFP;
 			isaFeatures |= YepARMIsaFeatureVFP2;
 			isaFeatures |= YepARMIsaFeatureVFP3;
-			isaFeatures |= YepARMIsaFeatureVFPd32;
+			isaFeatures |= YepARMIsaFeatureVFP3HP;
 			isaFeatures |= YepARMIsaFeatureVFP4;
+			if YEP_UNLIKELY(!cpuInfo.features.neon) {
+				/* VFPv4 could mean either VFPv4-D16 or VFPv4-D32 */
+				const Yep32u probeVFPd32Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVFPd32);
+				if YEP_LIKELY(probeVFPd32Result == 0) {
+					/* Processor supports VFP-D32, but there is no guarantee that the upper D registers are preserved during context switch */
+					isaFeatures |= YepARMIsaFeatureVFPd32;
+				}
+			}
 		}
-		if (cpuInfo.features.idiva) {
+		if YEP_LIKELY(cpuInfo.features.idiva) {
 			isaFeatures |= YepARMIsaFeatureDiv;
 		}
 
@@ -820,14 +842,16 @@
 			}
 		}
 		// If CPU supports VFPv3, perhaps it supports half-precision extension
-		if (isaFeatures & YepARMIsaFeatureVFP3) {
-			const Yep32u probeVFP3HPResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVFP3HP);
-			if YEP_LIKELY(probeVFP3HPResult == 0) {
-				isaFeatures |= YepARMIsaFeatureVFP3HP;
+		if YEP_LIKELY(isaFeatures & YepARMIsaFeatureVFP3) {
+			if YEP_UNLIKELY(!(isaFeatures & YepARMIsaFeatureVFP3HP)) {
+				const Yep32u probeVFP3HPResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVFP3HP);
+				if YEP_LIKELY(probeVFP3HPResult == 0) {
+					isaFeatures |= YepARMIsaFeatureVFP3HP;
+				}
 			}
 		}
-		// If CPU supports VFPv3, but doesn't support VFPv4, it seems strange...
-		if ((isaFeatures & YepARMIsaFeatureVFP3) && !(isaFeatures & YepARMIsaFeatureVFP4)) {
+		// If CPU supports VFPv3HP, but doesn't support VFPv4, it seems strange...
+		if ((isaFeatures & YepARMIsaFeatureVFP3HP) && !(isaFeatures & YepARMIsaFeatureVFP4)) {
 			const Yep32u probeVFP4Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVFP4);
 			if YEP_LIKELY(probeVFP4Result == 0) {
 				isaFeatures |= YepARMIsaFeatureVFP4;
@@ -855,11 +879,11 @@
 				isaFeatures |= YepARMIsaFeatureArmada;
 			}
 		}
-		
+
 		if YEP_LIKELY(isaFeatures & YepARMIsaFeatureV6) {
 			systemFeatures |= YepSystemFeatureMisalignedAccess;
 		}
-		
+
 		// VFPv2 is not permitted on ARMv7.
 		if YEP_UNLIKELY(!(isaFeatures & YepARMIsaFeatureV7)) {
 			if YEP_UNLIKELY(!(isaFeatures & YepARMIsaFeatureVFP2)) {

@@ -831,14 +831,6 @@ static ConstantString getX86SimdFeatureID(Yep32u ctzSimdFeature) {
 
 static ConstantString getX86SystemFeatureDescription(Yep32u ctzSystemFeature) {
 	switch (ctzSystemFeature) {
-		case CTZ<YepX86SystemFeatureFPU>::result:
-			YEP_RETURN_CONSTANT_STRING("x87 FPU registers");
-		case CTZ<YepX86SystemFeatureXMM>::result:
-			YEP_RETURN_CONSTANT_STRING("XMM registers");
-		case CTZ<YepX86SystemFeatureYMM>::result:
-			YEP_RETURN_CONSTANT_STRING("YMM registers");
-		case CTZ<YepX86SystemFeatureMisalignedSSE>::result:
-			YEP_RETURN_CONSTANT_STRING("Misaligned memory operands in SSE instructions");
 		case CTZ<YepX86SystemFeatureACE>::result:
 			YEP_RETURN_CONSTANT_STRING("Padlock Advanced Cryptography Engine");
 		case CTZ<YepX86SystemFeatureACE2>::result:
@@ -849,6 +841,14 @@ static ConstantString getX86SystemFeatureDescription(Yep32u ctzSystemFeature) {
 			YEP_RETURN_CONSTANT_STRING("Padlock Hash Engine");
 		case CTZ<YepX86SystemFeaturePMM>::result:
 			YEP_RETURN_CONSTANT_STRING("Padlock Montgomery Multiplier");
+		case CTZ<YepX86SystemFeatureMisalignedSSE>::result:
+			YEP_RETURN_CONSTANT_STRING("Misaligned memory operands in SSE instructions");
+		case CTZ<YepX86SystemFeatureFPU>::result:
+			YEP_RETURN_CONSTANT_STRING("x87 FPU registers");
+		case CTZ<YepX86SystemFeatureXMM>::result:
+			YEP_RETURN_CONSTANT_STRING("XMM registers");
+		case CTZ<YepX86SystemFeatureYMM>::result:
+			YEP_RETURN_CONSTANT_STRING("YMM registers");
 		case CTZ<YepX86SystemFeatureZMM>::result:
 			YEP_RETURN_CONSTANT_STRING("ZMM registers");
 		case CTZ<YepX86SystemFeatureBND>::result:
@@ -860,14 +860,6 @@ static ConstantString getX86SystemFeatureDescription(Yep32u ctzSystemFeature) {
 
 static ConstantString getX86SystemFeatureID(Yep32u ctzSystemFeature) {
 	switch (ctzSystemFeature) {
-		case CTZ<YepX86SystemFeatureFPU>::result:
-			YEP_RETURN_CONSTANT_STRING("FPU");
-		case CTZ<YepX86SystemFeatureXMM>::result:
-			YEP_RETURN_CONSTANT_STRING("XMM");
-		case CTZ<YepX86SystemFeatureYMM>::result:
-			YEP_RETURN_CONSTANT_STRING("YMM");
-		case CTZ<YepX86SystemFeatureMisalignedSSE>::result:
-			YEP_RETURN_CONSTANT_STRING("MisalignedSSE");
 		case CTZ<YepX86SystemFeatureACE>::result:
 			YEP_RETURN_CONSTANT_STRING("ACE");
 		case CTZ<YepX86SystemFeatureACE2>::result:
@@ -878,6 +870,14 @@ static ConstantString getX86SystemFeatureID(Yep32u ctzSystemFeature) {
 			YEP_RETURN_CONSTANT_STRING("PHE");
 		case CTZ<YepX86SystemFeaturePMM>::result:
 			YEP_RETURN_CONSTANT_STRING("PMM");
+		case CTZ<YepX86SystemFeatureMisalignedSSE>::result:
+			YEP_RETURN_CONSTANT_STRING("MisalignedSSE");
+		case CTZ<YepX86SystemFeatureFPU>::result:
+			YEP_RETURN_CONSTANT_STRING("FPU");
+		case CTZ<YepX86SystemFeatureXMM>::result:
+			YEP_RETURN_CONSTANT_STRING("XMM");
+		case CTZ<YepX86SystemFeatureYMM>::result:
+			YEP_RETURN_CONSTANT_STRING("YMM");
 		case CTZ<YepX86SystemFeatureZMM>::result:
 			YEP_RETURN_CONSTANT_STRING("ZMM");
 		case CTZ<YepX86SystemFeatureBND>::result:
@@ -1023,6 +1023,14 @@ static ConstantString getARMSystemFeatureDescription(Yep32u ctzSystemFeature) {
 	switch (ctzSystemFeature) {
 		case CTZ<YepARMSystemFeatureVFPVectorMode>::result:
 			YEP_RETURN_CONSTANT_STRING("Hardware VFP vector mode");
+		case CTZ<YepARMSystemFeatureFPA>::result:
+			YEP_RETURN_CONSTANT_STRING("FPA registers");
+		case CTZ<YepARMSystemFeatureWMMX>::result:
+			YEP_RETURN_CONSTANT_STRING("WMMX registers");
+		case CTZ<YepARMSystemFeatureS32>::result:
+			YEP_RETURN_CONSTANT_STRING("32 VFP S registers");
+		case CTZ<YepARMSystemFeatureD32>::result:
+			YEP_RETURN_CONSTANT_STRING("32 VFP D registers");
 		default:
 			return getGenericSystemFeatureDescription(ctzSystemFeature);
 	}
@@ -1032,6 +1040,14 @@ static ConstantString getARMSystemFeatureID(Yep32u ctzSystemFeature) {
 	switch (ctzSystemFeature) {
 		case CTZ<YepARMSystemFeatureVFPVectorMode>::result:
 			YEP_RETURN_CONSTANT_STRING("VFPVectorMode");
+		case CTZ<YepARMSystemFeatureFPA>::result:
+			YEP_RETURN_CONSTANT_STRING("FPA");
+		case CTZ<YepARMSystemFeatureWMMX>::result:
+			YEP_RETURN_CONSTANT_STRING("WMMX");
+		case CTZ<YepARMSystemFeatureS32>::result:
+			YEP_RETURN_CONSTANT_STRING("S32");
+		case CTZ<YepARMSystemFeatureD32>::result:
+			YEP_RETURN_CONSTANT_STRING("D32");
 		default:
 			return getGenericSystemFeatureID(ctzSystemFeature);
 	}
