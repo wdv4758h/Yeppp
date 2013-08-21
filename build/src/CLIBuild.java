@@ -261,7 +261,7 @@ public class CLIBuild {
 			case ARM_Linux_SoftEABI_Android:
 				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/armeabi"));
 			case ARM_Linux_SoftEABI_AndroidV7A:
-				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/armeabiv7a"));
+				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/armeabi-v7a"));
 			case X86_Linux_Pic_Android:
 				return new AbsoluteDirectoryPath(rootDirectory, new RelativeDirectoryPath("binaries/android/x86"));
 			case MIPS_Linux_O32_Android:
