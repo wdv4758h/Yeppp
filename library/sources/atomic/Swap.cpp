@@ -64,7 +64,7 @@ YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *valuePoin
 		*oldValuePointer = oldValue;
 		return YepStatusOk;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V6_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V6_INSTRUCTIONS)
 			Yep32u status, oldValue;
 			asm volatile(
 			"1:\n"
@@ -168,7 +168,7 @@ YepStatus YEPABI yepAtomic_Swap_Acquire_S32uS32u_S32u(volatile Yep32u *valuePoin
 		*oldValuePointer = oldValue;
 		return YepStatusOk;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V7_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V7_INSTRUCTIONS)
 			Yep32u status, oldValue;
 			asm volatile(
 			"1:\n"
@@ -293,7 +293,7 @@ YepStatus YEPABI yepAtomic_Swap_Release_S32uS32u_S32u(volatile Yep32u *valuePoin
 		*oldValuePointer = oldValue;
 		return YepStatusOk;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V7_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V7_INSTRUCTIONS)
 			Yep32u status, oldValue;
 			asm volatile(
 				"DMB ish;"
@@ -417,7 +417,7 @@ YepStatus YEPABI yepAtomic_Swap_Ordered_S32uS32u_S32u(volatile Yep32u *valuePoin
 		*oldValuePointer = oldValue;
 		return YepStatusOk;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V7_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V7_INSTRUCTIONS)
 			Yep32u status, oldValue;
 			asm volatile(
 				"DMB ish;"

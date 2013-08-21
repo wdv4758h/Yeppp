@@ -66,7 +66,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Relaxed_S32uS32uS32u(volatile Yep32u *
 		);
 		return (currentValue == oldValue) ? YepStatusOk : YepStatusInvalidState;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V6_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V6_INSTRUCTIONS)
 			Yep32u currentValue, status;
 			asm volatile(
 			"1:\n"
@@ -186,7 +186,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Acquire_S32uS32uS32u(volatile Yep32u *
 		);
 		return (currentValue == oldValue) ? YepStatusOk : YepStatusInvalidState;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V7_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V7_INSTRUCTIONS)
 			Yep32u currentValue, status;
 			asm volatile(
 			"1:\n"
@@ -333,7 +333,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Release_S32uS32uS32u(volatile Yep32u *
 		);
 		return (currentValue == oldValue) ? YepStatusOk : YepStatusInvalidState;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V7_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V7_INSTRUCTIONS)
 			Yep32u currentValue, status;
 			asm volatile(
 				"DMB ish;"
@@ -481,7 +481,7 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Ordered_S32uS32uS32u(volatile Yep32u *
 		);
 		return (currentValue == oldValue) ? YepStatusOk : YepStatusInvalidState;
 	#elif defined(YEP_ARM_CPU)
-		#if defined(YEP_CPU_SUPPORTS_ARM_V7_INSTRUCTIONS)
+		#if defined(YEP_PROCESSOR_SUPPORTS_ARM_V7_INSTRUCTIONS)
 			Yep32u currentValue, status;
 			asm volatile(
 				"DMB ish;"
