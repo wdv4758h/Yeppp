@@ -666,6 +666,54 @@ extern "C" {
 	 * @brief	Returns a string representation of an integer value in a enumeration.
 	 * @param[in]	enumerationType	Indicates the type of integer value passed to the function in @a enumerationValue parameter.
 	 * @param[in]	enumerationValue	The enumeration value of type specified in @a enumerationType which must be converted to string.
+	 *          	The interpretation of @a enumerationValue parameter depends on @a enumerationType as follows:
+	 *          	<table>
+	 *          		<tr>
+	 *          			<th>enumerationType</th>
+	 *          			<th>enumerationValue</th>
+	 *          			<th>Valid stringType</th>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>#YepEnumerationStatus</td>
+	 *          			<td>Numerical value in #YepStatus enumeration</td>
+	 *          			<td>@ref YepStringTypeDescription "Description", @ref YepStringTypeID "ID"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>#YepEnumerationCpuArchitecture</td>
+	 *          			<td>Numerical value in #YepCpuArchitecture enumeration</td>
+	 *          			<td>@ref YepStringTypeDescription "Description", @ref YepStringTypeID "ID"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>#YepEnumerationCpuVendor</td>
+	 *          			<td>Numerical value in #YepCpuVendor enumeration</td>
+	 *          			<td>@ref YepStringTypeDescription "Description", @ref YepStringTypeID "ID"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>#YepEnumerationCpuBriefName</td>
+	 *          			<td>Processor package id (must be 0)</td>
+	 *          			<td>@ref YepStringTypeDescription "Description"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>#YepEnumerationCpuFullName</td>
+	 *          			<td>Processor package id (must be 0)</td>
+	 *          			<td>@ref YepStringTypeDescription "Description"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>@ref YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE "YepEnumeration*IsaFeature"</td>
+	 *          			<td>Position of non-zero bit in ISA feature flag</td>
+	 *          			<td>@ref YepStringTypeDescription "Description", @ref YepStringTypeID "ID"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>@ref YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE "YepEnumeration*SimdFeature"</td>
+	 *          			<td>Position of non-zero bit in SIMD feature flag</td>
+	 *          			<td>@ref YepStringTypeDescription "Description", @ref YepStringTypeID "ID"</td>
+	 *          		</tr>
+	 *          		<tr>
+	 *          			<td>@ref YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE "YepEnumeration*SystemFeature"</td>
+	 *          			<td>Position of non-zero bit in system feature flag</td>
+	 *          			<td>@ref YepStringTypeDescription "Description", @ref YepStringTypeID "ID"</td>
+	 *          		</tr>
+	 *          	</table>
 	 * @param[in]	stringType	Indicates the type of requiested string.
 	 * @param[out]	buffer	An output buffer of size specified by the @a length parameter. If this pointer is null, required buffer size will be stored in length variable. On successfull return the buffer will contain the string representation of @a enumerationValue. The string representation does not include the terminating zero. If the function fails, the content of the buffer is not changed.
 	 * @param[in,out]	length	On function call this variable must contain the length (in bytes) of the buffer. On successfull return this variable will contain the length (in bytes) of the string written to the buffer. If the function fails with YepStatusInsufficientBuffer error, on return the @a length variable will contain the required size of the buffer. In the function fails with any other error, this variable is unchanged.
