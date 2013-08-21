@@ -1574,7 +1574,7 @@
 		if (briefNameOffset == 0) {
 			/* Could not determine the SoC vendor. Use the microarchitecture vendor instead. */
 			if (vendor != YepCpuVendorUnknown) {
-				const ConstantString vendorString = _yepLibrary_GetCpuVendorString(vendor);
+				const ConstantString vendorString = _yepLibrary_GetCpuVendorDescription(vendor);
 				if (!vendorString.isEmpty()) {
 					/* Check for buffer overflow */
 					if (vendorString.length <= cpuNameBufferSpace) {
@@ -1589,7 +1589,7 @@
 		}
 
 		/* At this stage we did everything possible to get some vendor name, and have no SoC name. */
-		const ConstantString microarchitectureString = _yepLibrary_GetCpuMicroarchitectureString(microarchitecture);
+		const ConstantString microarchitectureString = _yepLibrary_GetCpuMicroarchitectureDescription(microarchitecture);
 		if (microarchitectureString.length <= cpuNameBufferSpace) {
 			memcpy(cpuNameBuffer + briefNameOffset, microarchitectureString.pointer, microarchitectureString.length);
 			cpuNameBufferSpace -= microarchitectureString.length;

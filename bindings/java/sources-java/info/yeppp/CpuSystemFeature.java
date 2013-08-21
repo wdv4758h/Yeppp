@@ -54,6 +54,7 @@ public class CpuSystemFeature {
 
 	protected static native boolean isDefined(int id, int architectureId);
 	private static native String toString(int id, int architectureId);
+	private static native String getDescription(int id, int architectureId);
 
 	public final boolean equals(CpuSystemFeature other) {
 		if (other == null) {
@@ -77,8 +78,22 @@ public class CpuSystemFeature {
 		return this.id ^ this.architectureId;
 	}
 
+	/**
+	 * @brief	Provides a string ID for this non-ISA processor or system feature.
+	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
+	 * @see	getDescription()
+	 */
 	@Override
 	public final String toString() {
 		return CpuSystemFeature.toString(this.id, this.architectureId);
+	}
+
+	/**
+	 * @brief	Provides a text description for this non-ISA processor or system feature.
+	 * @return	A string description which can contain spaces and non-ASCII characters.
+	 * @see	toString()
+	 */
+	public final String getDescription() {
+		return CpuSystemFeature.getDescription(this.id, this.architectureId);
 	}
 };

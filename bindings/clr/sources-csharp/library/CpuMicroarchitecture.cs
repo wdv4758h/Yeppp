@@ -168,11 +168,24 @@ namespace Yeppp
 			return unchecked((int)this.id);
 		}
 
-		/// <summary>Provides a string representation for the object.</summary>
-		/// <remarks>The string representation is provided by the Yeppp! library (not Yeppp! .Net bindings).</remarks>
+
+		/// <summary>Provides a string ID for the object.</summary>
+		/// <remarks>The string ID starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.</remarks>
+		/// <seealso cref="Description" />
 		public override string ToString()
 		{
-			return Library.GetString(Enumeration.CpuMicroarchitecture, this.id);
+			return Library.GetString(Enumeration.CpuMicroarchitecture, this.id, StringType.ID);
+		}
+
+		/// <summary>Provides a description for the object.</summary>
+		/// <remarks>The description can contain spaces and non-ASCII characters.</remarks>
+		/// <seealso cref="ToString()" />
+		public string Description
+		{
+			get
+			{
+				return Library.GetString(Enumeration.CpuMicroarchitecture, this.id, StringType.Description);
+			}
 		}
 
 	}

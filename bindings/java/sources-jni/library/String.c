@@ -45,7 +45,7 @@ YEP_PRIVATE_SYMBOL void yepJNI_ThrowSpecificException(JNIEnv *env, enum YepStatu
 	enum YepStatus status;
 	YepSize bufferLength = BUFFER_SIZE - 1;
 	char onStackBuffer[BUFFER_SIZE];
-	status = yepLibrary_GetString(YepEnumerationStatus, errorStatus, onStackBuffer, &bufferLength);
+	status = yepLibrary_GetString(YepEnumerationStatus, errorStatus, YepStringTypeDescription, onStackBuffer, &bufferLength);
 	if (status == YepStatusOk) {
 		onStackBuffer[bufferLength] = '\0';
 		(*env)->ThrowNew(env, exceptionClass, onStackBuffer);
@@ -56,7 +56,7 @@ YEP_PRIVATE_SYMBOL void yepJNI_ThrowSpecificException(JNIEnv *env, enum YepStatu
 		HANDLE heap = GetProcessHeap();
 		char *heapBuffer = HeapAlloc(heap, 0, bufferLength + 1);
 		if (heapBuffer != NULL) {
-			status = yepLibrary_GetString(YepEnumerationStatus, errorStatus, heapBuffer, &bufferLength);
+			status = yepLibrary_GetString(YepEnumerationStatus, errorStatus, YepStringTypeDescription, heapBuffer, &bufferLength);
 			if (status == YepStatusOk) {
 				heapBuffer[bufferLength] = '\0';
 				(*env)->ThrowNew(env, exceptionClass, heapBuffer);
@@ -123,12 +123,12 @@ YEP_PRIVATE_SYMBOL void yepJNI_ThrowSuitableException(JNIEnv *env, enum YepStatu
 	}
 }
 
-static jstring getString(JNIEnv *env, const enum YepEnumeration enumeration, const Yep32u value) {
+static jstring getString(JNIEnv *env, const enum YepEnumeration enumeration, const Yep32u value, const enum YepStringType stringType) {
 	enum YepStatus status;
 	jstring string = NULL;
 	YepSize bufferLength = BUFFER_SIZE - 1;
 	char onStackBuffer[BUFFER_SIZE];
-	status = yepLibrary_GetString(enumeration, value, onStackBuffer, &bufferLength);
+	status = yepLibrary_GetString(enumeration, value, stringType, onStackBuffer, &bufferLength);
 	if (status == YepStatusOk) {
 		onStackBuffer[bufferLength] = '\0';
 		/* If not enough memory, will throw OutOfMemoryError and return NULL. Bypass it to JVM without any handling. */
@@ -139,7 +139,7 @@ static jstring getString(JNIEnv *env, const enum YepEnumeration enumeration, con
 		HANDLE heap = GetProcessHeap();
 		char *heapBuffer = HeapAlloc(heap, 0, bufferLength + 1);
 		if (heapBuffer != NULL) {
-			status = yepLibrary_GetString(enumeration, value, heapBuffer, &bufferLength);
+			status = yepLibrary_GetString(enumeration, value, stringType, heapBuffer, &bufferLength);
 			if (status == YepStatusOk) {
 				heapBuffer[bufferLength] = '\0';
 				/* If not enough memory, will throw OutOfMemoryError and return NULL. Pass it back to JVM without any handling. */
@@ -157,54 +157,75 @@ static jstring getString(JNIEnv *env, const enum YepEnumeration enumeration, con
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_CpuArchitecture_toString(JNIEnv *env, jclass class, jint id) {
-	return getString(env, YepEnumerationCpuArchitecture, id);
+	return getString(env, YepEnumerationCpuArchitecture, id, YepStringTypeID);
+}
+
+JNIEXPORT jstring JNICALL Java_info_yeppp_CpuArchitecture_getDescription(JNIEnv *env, jclass class, jint id) {
+	return getString(env, YepEnumerationCpuArchitecture, id, YepStringTypeDescription);
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_CpuVendor_toString(JNIEnv *env, jclass class, jint id) {
-	return getString(env, YepEnumerationCpuVendor, id);
+	return getString(env, YepEnumerationCpuVendor, id, YepStringTypeID);
+}
+
+JNIEXPORT jstring JNICALL Java_info_yeppp_CpuVendor_getDescription(JNIEnv *env, jclass class, jint id) {
+	return getString(env, YepEnumerationCpuVendor, id, YepStringTypeDescription);
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_CpuMicroarchitecture_toString(JNIEnv *env, jclass class, jint id) {
-	return getString(env, YepEnumerationCpuMicroarchitecture, id);
+	return getString(env, YepEnumerationCpuMicroarchitecture, id, YepStringTypeID);
+}
+
+JNIEXPORT jstring JNICALL Java_info_yeppp_CpuMicroarchitecture_getDescription(JNIEnv *env, jclass class, jint id) {
+	return getString(env, YepEnumerationCpuMicroarchitecture, id, YepStringTypeDescription);
 }
 
 JNIEXPORT jboolean JNICALL Java_info_yeppp_CpuIsaFeature_isDefined(JNIEnv *env, jclass class, jint id, jint architectureId) {
-	YepSize dummySize = 1;
-	char dummyBuffer[1];
+	YepSize dummySize = 0;
 	enum YepStatus status;
 
-	status = yepLibrary_GetString(YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id, dummyBuffer, &dummySize);
-	return ((status == YepStatusInsufficientBuffer) || (status == YepStatusOk)) ? JNI_TRUE: JNI_FALSE;
+	status = yepLibrary_GetString(YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, YEP_NULL_POINTER, &dummySize);
+	return (status == YepStatusInsufficientBuffer) ? JNI_TRUE: JNI_FALSE;
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_CpuIsaFeature_toString(JNIEnv *env, jclass class, jint id, jint architectureId) {
-	return getString(env, YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id);
+	return getString(env, YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeID);
+}
+
+JNIEXPORT jstring JNICALL Java_info_yeppp_CpuIsaFeature_getDescription(JNIEnv *env, jclass class, jint id, jint architectureId) {
+	return getString(env, YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription);
 }
 
 JNIEXPORT jboolean JNICALL Java_info_yeppp_CpuSimdFeature_isDefined(JNIEnv *env, jclass class, jint id, jint architectureId) {
-	YepSize dummySize = 1;
-	char dummyBuffer[1];
+	YepSize dummySize = 0;
 	enum YepStatus status;
 
-	status = yepLibrary_GetString(YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id, dummyBuffer, &dummySize);
-	return ((status == YepStatusInsufficientBuffer) || (status == YepStatusOk)) ? JNI_TRUE: JNI_FALSE;
+	status = yepLibrary_GetString(YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, YEP_NULL_POINTER, &dummySize);
+	return (status == YepStatusInsufficientBuffer) ? JNI_TRUE: JNI_FALSE;
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_CpuSimdFeature_toString(JNIEnv *env, jclass class, jint id, jint architectureId) {
-	return getString(env, YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id);
+	return getString(env, YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeID);
+}
+
+JNIEXPORT jstring JNICALL Java_info_yeppp_CpuSimdFeature_getDescription(JNIEnv *env, jclass class, jint id, jint architectureId) {
+	return getString(env, YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription);
 }
 
 JNIEXPORT jboolean JNICALL Java_info_yeppp_CpuSystemFeature_isDefined(JNIEnv *env, jclass class, jint id, jint architectureId) {
-	YepSize dummySize = 1;
-	char dummyBuffer[1];
+	YepSize dummySize = 0;
 	enum YepStatus status;
 
-	status = yepLibrary_GetString(YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id, dummyBuffer, &dummySize);
-	return ((status == YepStatusInsufficientBuffer) || (status == YepStatusOk)) ? JNI_TRUE: JNI_FALSE;
+	status = yepLibrary_GetString(YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, YEP_NULL_POINTER, &dummySize);
+	return (status == YepStatusInsufficientBuffer) ? JNI_TRUE: JNI_FALSE;
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_CpuSystemFeature_toString(JNIEnv *env, jclass class, jint id, jint architectureId) {
-	return getString(env, YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id);
+	return getString(env, YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeID);
+}
+
+JNIEXPORT jstring JNICALL Java_info_yeppp_CpuSystemFeature_getDescription(JNIEnv *env, jclass class, jint id, jint architectureId) {
+	return getString(env, YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription);
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_Library_getVersionInfo(JNIEnv *env, jclass class, jintArray versionNumberArray) {
@@ -224,5 +245,5 @@ JNIEXPORT jstring JNICALL Java_info_yeppp_Library_getVersionInfo(JNIEnv *env, jc
 }
 
 JNIEXPORT jstring JNICALL Java_info_yeppp_Library_getCpuName(JNIEnv *env, jclass class) {
-	return getString(env, YepEnumerationCpuFullName, 0);
+	return getString(env, YepEnumerationCpuFullName, 0, YepStringTypeDescription);
 }

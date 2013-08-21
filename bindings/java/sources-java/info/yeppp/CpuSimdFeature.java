@@ -41,6 +41,7 @@ public class CpuSimdFeature {
 
 	protected static native boolean isDefined(int id, int architectureId);
 	private static native String toString(int id, int architectureId);
+	private static native String getDescription(int id, int architectureId);
 
 	public final boolean equals(CpuSimdFeature other) {
 		if (other == null) {
@@ -64,8 +65,22 @@ public class CpuSimdFeature {
 		return this.id ^ this.architectureId;
 	}
 
+	/**
+	 * @brief	Provides a string ID for this SIMD extension.
+	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
+	 * @see	getDescription()
+	 */
 	@Override
 	public final String toString() {
 		return CpuSimdFeature.toString(this.id, this.architectureId);
+	}
+
+	/**
+	 * @brief	Provides a text description for this ISA extension.
+	 * @return	A string description which can contain spaces and non-ASCII characters.
+	 * @see	toString()
+	 */
+	public final String getDescription() {
+		return CpuSimdFeature.getDescription(this.id, this.architectureId);
 	}
 };
