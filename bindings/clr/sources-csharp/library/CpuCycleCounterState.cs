@@ -20,6 +20,7 @@ namespace Yeppp
 			this.state = state;
 		}
 
+		/// <summary>Destroys the state object and releases the allocated system resources if they were not released by a call to <see cref="Library.ReleaseCycleCounter" />.</summary>
 		~CpuCycleCounterState()
 		{
 			if (this.IsValid)
@@ -28,6 +29,7 @@ namespace Yeppp
 			}
 		}
 
+		/// <summary>Indicates whether this is a valid state of a processor cycle counter (i.e. it was not yet released via a call to <see cref="Library.ReleaseCycleCounter" />).</summary>
 		public bool IsValid
 		{
 			get
