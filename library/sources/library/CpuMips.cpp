@@ -157,6 +157,7 @@
 				dsp2(false),
 				mt(false),
 				mxu(false),
+				vz(false),
 				isValid(false)
 			{
 			}
@@ -169,7 +170,8 @@
 			YepBoolean dsp2;
 			YepBoolean mt;
 			YepBoolean mxu;
-			
+			YepBoolean vz;
+
 			YepBoolean isValid;
 		};
 		
@@ -232,12 +234,15 @@
 					break;
 			}
 			const YepSize aseLength = aseEnd - aseStart;
-			
+
 			switch (aseLength) {
 				case 2:
 					if (memcmp(aseStart, "mt", aseLength) == 0) {
 						cpuInfo.ase.mt = true;
+					} else if (memcmp(aseStart, "vz", aseLength) == 0) {
+						cpuInfo.ase.vz = true;
 					}
+					break;
 				case 3:
 					if (memcmp(aseStart, "dsp", aseLength) == 0) {
 						cpuInfo.ase.dsp = true;
@@ -288,7 +293,7 @@
 
 	static void parseSystemType(const char* valueStart, const char* valueEnd, ProcCpuInfo& cpuInfo) {
 		const YepSize valueLength = valueEnd - valueStart;
-		
+
 		if (valueLength == 6) {
 			if (memcmp(valueStart, "JZ4720", valueLength) == 0) {
 				cpuInfo.systemType = ProcCpuInfo::SystemTypeJZ4720;
@@ -328,7 +333,7 @@
 	
 	static void parseCpuModel(const char* valueStart, const char* valueEnd, ProcCpuInfo& cpuInfo) {
 		const YepSize valueLength = valueEnd - valueStart;
-		
+
 		if (valueLength >= 14) {
 			if (memcmp(valueStart, "Ingenic JZRISC", 14) == 0) {
 				if ((valueLength == 14) || (isSpace(valueStart[14]))) {
@@ -469,7 +474,7 @@
 				break;
 		}
 	}
-	
+
 	static void decodeMicroarchitecture(const ProcCpuInfo& cpuInfo, YepCpuVendor& vendor, YepCpuMicroarchitecture& microarchitecture) {
 		switch (cpuInfo.systemType) {
 			case ProcCpuInfo::SystemTypeJZ4720:
@@ -507,8 +512,11 @@
 	}
 
 	static void decodeIsaFeatures(const ProcCpuInfo& cpuInfo, Yep64u& isaFeatures, Yep64u& simdFeatures, Yep64u& systemFeatures) {
-		#ifdef __ANDROID__
+		#if defined(YEP_ANDROID_LINUX_OS)
 			isaFeatures |= YepMIPSIsaFeatureFPU;
+			isaFeatures |= YepMIPSIsaFeatureMIPS_I;
+			isaFeatures |= YepMIPSIsaFeatureMIPS_II;
+			isaFeatures |= YepMIPSIsaFeatureR1;
 		#endif
 		if (cpuInfo.ase.mt) {
 			isaFeatures |= YepMIPSIsaFeatureMT;
@@ -524,37 +532,48 @@
 		}
 		if (cpuInfo.ase.mips3d) {
 			simdFeatures |= YepMIPSSimdFeatureMIPS3D;
+			simdFeatures |= YepMIPSSimdFeaturePairedSingle;
 		}
 		if (cpuInfo.ase.dsp) {
 			simdFeatures |= YepMIPSSimdFeatureDSP;
 		}
 		if (cpuInfo.ase.dsp2) {
+			simdFeatures |= YepMIPSSimdFeatureDSP;
 			simdFeatures |= YepMIPSSimdFeatureDSP2;
 		}
 		if (cpuInfo.ase.mxu) {
-			simdFeatures |= YepMIPSSimdFeatureIMX;
-		} else {
-			switch (cpuInfo.systemType) {
-				/* All known XBurst CPUs except JZ4730 support SIMD */
-				SystemTypeJZ4720:
-				SystemTypeJZ4725B:
-				SystemTypeJZ4740:
-				SystemTypeJZ4750:
-				SystemTypeJZ4755:
-				SystemTypeJZ4760:
-				SystemTypeJZ4770:
-				SystemTypeJZ4780:
-					simdFeatures |= YepMIPSSimdFeatureIMX;
-
+			simdFeatures |= YepMIPSSimdFeatureMXU;
+		}
+		switch (cpuInfo.systemType) {
+			/* All known XBurst CPUs except JZ4730 support SIMD */
+			case ProcCpuInfo::SystemTypeJZ4720:
+			case ProcCpuInfo::SystemTypeJZ4725B:
+			case ProcCpuInfo::SystemTypeJZ4740:
+				simdFeatures |= YepMIPSSimdFeatureMXU;
+				break;
+			case ProcCpuInfo::SystemTypeJZ4750:
+			case ProcCpuInfo::SystemTypeJZ4755:
+			case ProcCpuInfo::SystemTypeJZ4760:
+			case ProcCpuInfo::SystemTypeJZ4770:
+			case ProcCpuInfo::SystemTypeJZ4780:
+				simdFeatures |= YepMIPSSimdFeatureMXU;
+				simdFeatures |= YepMIPSSimdFeatureMXU2;
+				break;
+		}
+		if (cpuInfo.ase.vz) {
+			isaFeatures |= YepMIPSIsaFeatureVZ;
+		}
+		if YEP_LIKELY(!(isaFeatures & YepMIPSIsaFeatureR2)) {
+			const Yep32u probeR2Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeR2);
+			if (probeR2Result == 0) {
+				isaFeatures |= YepMIPSIsaFeatureR2;
 			}
 		}
-		const Yep32u probeR2Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeR2);
-		if (probeR2Result == 0) {
-			isaFeatures |= YepMIPSIsaFeatureR2;
-		}
-		const Yep32u probePairedSingleResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbePairedSingle);
-		if (probePairedSingleResult == 0) {
-			simdFeatures |= YepMIPSSimdFeaturePairedSingle;
+		if YEP_LIKELY(!(simdFeatures & YepMIPSSimdFeaturePairedSingle)) {
+			const Yep32u probePairedSingleResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbePairedSingle);
+			if (probePairedSingleResult == 0) {
+				simdFeatures |= YepMIPSSimdFeaturePairedSingle;
+			}
 		}
 	}
 
