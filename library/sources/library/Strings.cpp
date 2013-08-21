@@ -1055,18 +1055,32 @@ static ConstantString getARMSystemFeatureID(Yep32u ctzSystemFeature) {
 
 static ConstantString getMIPSIsaFeatureDescription(Yep32u ctzIsaFeature) {
 	switch (ctzIsaFeature) {
+		case CTZ<YepMIPSIsaFeatureMIPS_I>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS I instructions");
+		case CTZ<YepMIPSIsaFeatureMIPS_II>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS II instructions");
+		case CTZ<YepMIPSIsaFeatureMIPS_III>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS III instructions");
+		case CTZ<YepMIPSIsaFeatureMIPS_IV>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS IV instructions");
+		case CTZ<YepMIPSIsaFeatureMIPS_V>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS V instructions");
+		case CTZ<YepMIPSIsaFeatureR1>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS32/MIPS64 Release 1 instructions");
 		case CTZ<YepMIPSIsaFeatureR2>::result:
-			YEP_RETURN_CONSTANT_STRING("MIPS32/MIPS64 Release 2 architecture");
-		case CTZ<YepMIPSIsaFeatureMicroMIPS>::result:
-			YEP_RETURN_CONSTANT_STRING("MicroMIPS extension");
+			YEP_RETURN_CONSTANT_STRING("MIPS32/MIPS64 Release 2 instructions");
 		case CTZ<YepMIPSIsaFeatureFPU>::result:
 			YEP_RETURN_CONSTANT_STRING("FPU with S, D, and W formats");
-		case CTZ<YepMIPSIsaFeatureMT>::result:
-			YEP_RETURN_CONSTANT_STRING("Multi-threading extension");
 		case CTZ<YepMIPSIsaFeatureMIPS16>::result:
 			YEP_RETURN_CONSTANT_STRING("MIPS16 extension");
 		case CTZ<YepMIPSIsaFeatureSmartMIPS>::result:
 			YEP_RETURN_CONSTANT_STRING("SmartMIPS extension");
+		case CTZ<YepMIPSIsaFeatureMT>::result:
+			YEP_RETURN_CONSTANT_STRING("Multi-threading extension");
+		case CTZ<YepMIPSIsaFeatureMicroMIPS>::result:
+			YEP_RETURN_CONSTANT_STRING("MicroMIPS extension");
+		case CTZ<YepMIPSIsaFeatureVZ>::result:
+			YEP_RETURN_CONSTANT_STRING("Virtualization extension");
 		default:
 			return getGenericIsaFeatureDescription(ctzIsaFeature);
 	}
@@ -1074,18 +1088,32 @@ static ConstantString getMIPSIsaFeatureDescription(Yep32u ctzIsaFeature) {
 
 static ConstantString getMIPSIsaFeatureID(Yep32u ctzIsaFeature) {
 	switch (ctzIsaFeature) {
+		case CTZ<YepMIPSIsaFeatureMIPS_I>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS_I");
+		case CTZ<YepMIPSIsaFeatureMIPS_II>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS_II");
+		case CTZ<YepMIPSIsaFeatureMIPS_III>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS_III");
+		case CTZ<YepMIPSIsaFeatureMIPS_IV>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS_IV");
+		case CTZ<YepMIPSIsaFeatureMIPS_V>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS_V");
+		case CTZ<YepMIPSIsaFeatureR1>::result:
+			YEP_RETURN_CONSTANT_STRING("R1");
 		case CTZ<YepMIPSIsaFeatureR2>::result:
 			YEP_RETURN_CONSTANT_STRING("R2");
-		case CTZ<YepMIPSIsaFeatureMicroMIPS>::result:
-			YEP_RETURN_CONSTANT_STRING("MicroMIPS");
 		case CTZ<YepMIPSIsaFeatureFPU>::result:
 			YEP_RETURN_CONSTANT_STRING("FPU");
-		case CTZ<YepMIPSIsaFeatureMT>::result:
-			YEP_RETURN_CONSTANT_STRING("MT");
 		case CTZ<YepMIPSIsaFeatureMIPS16>::result:
 			YEP_RETURN_CONSTANT_STRING("MIPS16");
 		case CTZ<YepMIPSIsaFeatureSmartMIPS>::result:
 			YEP_RETURN_CONSTANT_STRING("SmartMIPS");
+		case CTZ<YepMIPSIsaFeatureMT>::result:
+			YEP_RETURN_CONSTANT_STRING("MT");
+		case CTZ<YepMIPSIsaFeatureMicroMIPS>::result:
+			YEP_RETURN_CONSTANT_STRING("MicroMIPS");
+		case CTZ<YepMIPSIsaFeatureVZ>::result:
+			YEP_RETURN_CONSTANT_STRING("VZ");
 		default:
 			return getGenericIsaFeatureID(ctzIsaFeature);
 	}
@@ -1095,18 +1123,20 @@ static ConstantString getMIPSSimdFeatureDescription(Yep32u ctzSimdFeature) {
 	switch (ctzSimdFeature) {
 		case CTZ<YepMIPSSimdFeatureMDMX>::result:
 			YEP_RETURN_CONSTANT_STRING("MDMX instruction set");
-		case CTZ<YepMIPSSimdFeatureMIPS3D>::result:
-			YEP_RETURN_CONSTANT_STRING("MIPS3D instruction set");
 		case CTZ<YepMIPSSimdFeaturePairedSingle>::result:
 			YEP_RETURN_CONSTANT_STRING("Paired-single instructions");
+		case CTZ<YepMIPSSimdFeatureMIPS3D>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS3D instruction set");
 		case CTZ<YepMIPSSimdFeatureDSP>::result:
 			YEP_RETURN_CONSTANT_STRING("MIPS DSP extension");
 		case CTZ<YepMIPSSimdFeatureDSP2>::result:
 			YEP_RETURN_CONSTANT_STRING("MIPS DSP Release 2 extension");
 		case CTZ<YepMIPSSimdFeatureGodsonMMX>::result:
 			YEP_RETURN_CONSTANT_STRING("Loongson (Godson) MMX instruction set");
-		case CTZ<YepMIPSSimdFeatureIMX>::result:
+		case CTZ<YepMIPSSimdFeatureMXU>::result:
 			YEP_RETURN_CONSTANT_STRING("Ingenic Media Extension");
+		case CTZ<YepMIPSSimdFeatureMXU2>::result:
+			YEP_RETURN_CONSTANT_STRING("Ingenic Media Extension 2");
 		default:
 			return getGenericSimdFeatureDescription(ctzSimdFeature);
 	}
@@ -1116,18 +1146,20 @@ static ConstantString getMIPSSimdFeatureID(Yep32u ctzSimdFeature) {
 	switch (ctzSimdFeature) {
 		case CTZ<YepMIPSSimdFeatureMDMX>::result:
 			YEP_RETURN_CONSTANT_STRING("MDMX");
-		case CTZ<YepMIPSSimdFeatureMIPS3D>::result:
-			YEP_RETURN_CONSTANT_STRING("MIPS3D");
 		case CTZ<YepMIPSSimdFeaturePairedSingle>::result:
 			YEP_RETURN_CONSTANT_STRING("PairedSingle");
+		case CTZ<YepMIPSSimdFeatureMIPS3D>::result:
+			YEP_RETURN_CONSTANT_STRING("MIPS3D");
 		case CTZ<YepMIPSSimdFeatureDSP>::result:
 			YEP_RETURN_CONSTANT_STRING("DSP");
 		case CTZ<YepMIPSSimdFeatureDSP2>::result:
 			YEP_RETURN_CONSTANT_STRING("DSP2");
 		case CTZ<YepMIPSSimdFeatureGodsonMMX>::result:
 			YEP_RETURN_CONSTANT_STRING("GodsonMMX");
-		case CTZ<YepMIPSSimdFeatureIMX>::result:
-			YEP_RETURN_CONSTANT_STRING("IMX");
+		case CTZ<YepMIPSSimdFeatureMXU>::result:
+			YEP_RETURN_CONSTANT_STRING("MXU");
+		case CTZ<YepMIPSSimdFeatureMXU2>::result:
+			YEP_RETURN_CONSTANT_STRING("MXU2");
 		default:
 			return getGenericSimdFeatureID(ctzSimdFeature);
 	}

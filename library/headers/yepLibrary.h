@@ -1245,47 +1245,75 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-	const Yep64u YepMIPSIsaFeatureR2            = 0x0000000000000001ull;
-	const Yep64u YepMIPSIsaFeatureMicroMIPS     = 0x0000000000000002ull;
-	const Yep64u YepMIPSIsaFeatureFPU           = 0x0000000000000004ull;
-	const Yep64u YepMIPSIsaFeatureMT            = 0x0000000000000008ull;
-	const Yep64u YepMIPSIsaFeatureMIPS16        = 0x0000000000000010ull;
-	const Yep64u YepMIPSIsaFeatureSmartMIPS     = 0x0000000000000020ull;
+	const Yep64u YepMIPSIsaFeatureMIPS_I        = 0x0000000000000001ull;
+	const Yep64u YepMIPSIsaFeatureMIPS_II       = 0x0000000000000002ull;
+	const Yep64u YepMIPSIsaFeatureMIPS_III      = 0x0000000000000004ull;
+	const Yep64u YepMIPSIsaFeatureMIPS_IV       = 0x0000000000000008ull;
+	const Yep64u YepMIPSIsaFeatureMIPS_V        = 0x0000000000000010ull;
+	const Yep64u YepMIPSIsaFeatureR1            = 0x0000000000000020ull;
+	const Yep64u YepMIPSIsaFeatureR2            = 0x0000000000000040ull;
+	const Yep64u YepMIPSIsaFeatureFPU           = 0x0000000001000000ull;
+	const Yep64u YepMIPSIsaFeatureMIPS16        = 0x0000000002000000ull;
+	const Yep64u YepMIPSIsaFeatureSmartMIPS     = 0x0000000004000000ull;
+	const Yep64u YepMIPSIsaFeatureMT            = 0x0000000008000000ull;
+	const Yep64u YepMIPSIsaFeatureMicroMIPS     = 0x0000000010000000ull;
+	const Yep64u YepMIPSIsaFeatureVZ            = 0x0000000020000000ull;
 #else
 	/** @anchor	MIPS_ISA_Extensions
 	 *  @name	MIPS ISA Extensions
 	 *  @see	yepLibrary_GetCpuIsaFeatures */
 	/**@{*/
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief MIPS32/MIPS64 Release 2 architecture. */
-	#define YepMIPSIsaFeatureR2                   0x0000000000000001ull
+	/** @brief MIPS I instructions. */
+	#define YepMIPSIsaFeatureMIPS_I               0x0000000000000001ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief MicroMIPS extension. */
-	/** @bug Not detected in this @Yeppp release. */
-	#define YepMIPSIsaFeatureMicroMIPS            0x0000000000000002ull
+	/** @brief MIPS II instructions. */
+	#define YepMIPSIsaFeatureMIPS_II              0x0000000000000002ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS III instructions. */
+	#define YepMIPSIsaFeatureMIPS_III             0x0000000000000004ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS IV instructions. */
+	#define YepMIPSIsaFeatureMIPS_IV              0x0000000000000008ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS V instructions. */
+	#define YepMIPSIsaFeatureMIPS_V               0x0000000000000010ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS32/MIPS64 Release 1 instructions. */
+	#define YepMIPSIsaFeatureR1                   0x0000000000000020ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS32/MIPS64 Release 2 instructions. */
+	#define YepMIPSIsaFeatureR2                   0x0000000000000040ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief FPU with S, D, and W formats and instructions. */
-	#define YepMIPSIsaFeatureFPU                  0x0000000000000004ull
-	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief Multi-threading extension. */
-	#define YepMIPSIsaFeatureMT                   0x0000000000000008ull
+	#define YepMIPSIsaFeatureFPU                  0x0000000001000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief MIPS16 extension. */
-	#define YepMIPSIsaFeatureMIPS16               0x0000000000000010ull
+	#define YepMIPSIsaFeatureMIPS16               0x0000000002000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief SmartMIPS extension. */
-	#define YepMIPSIsaFeatureSmartMIPS            0x0000000000000020ull
+	#define YepMIPSIsaFeatureSmartMIPS            0x0000000004000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Multi-threading extension. */
+	#define YepMIPSIsaFeatureMT                   0x0000000008000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MicroMIPS extension. */
+	#define YepMIPSIsaFeatureMicroMIPS            0x0000000010000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS virtualization extension. */
+	#define YepMIPSIsaFeatureVZ                   0x0000000020000000ull
 	/**@}*/
 #endif
 
 #ifdef __cplusplus
 	const Yep64u YepMIPSSimdFeatureMDMX         = 0x0000000000000001ull;
-	const Yep64u YepMIPSSimdFeatureMIPS3D       = 0x0000000000000002ull;
-	const Yep64u YepMIPSSimdFeaturePairedSingle = 0x0000000000000004ull;
+	const Yep64u YepMIPSSimdFeaturePairedSingle = 0x0000000000000002ull;
+	const Yep64u YepMIPSSimdFeatureMIPS3D       = 0x0000000000000004ull;
 	const Yep64u YepMIPSSimdFeatureDSP          = 0x0000000000000008ull;
 	const Yep64u YepMIPSSimdFeatureDSP2         = 0x0000000000000010ull;
 	const Yep64u YepMIPSSimdFeatureGodsonMMX    = 0x0000000000000020ull;
-	const Yep64u YepMIPSSimdFeatureIMX          = 0x0000000000000040ull;
+	const Yep64u YepMIPSSimdFeatureMXU          = 0x0000000000000040ull;
+	const Yep64u YepMIPSSimdFeatureMXU2         = 0x0000000000000080ull;
 #else
 	/** @anchor	MIPS_SIMD_Extensions
 	 *  @name	MIPS SIMD Extensions
@@ -1295,11 +1323,11 @@ extern "C" {
 	/** @brief MDMX instruction set. */
 	#define YepMIPSSimdFeatureMDMX                0x0000000000000001ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief MIPS3D instruction set. */
-	#define YepMIPSSimdFeatureMIPS3D              0x0000000000000002ull
-	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Paired-single instructions. */
-	#define YepMIPSSimdFeaturePairedSingle        0x0000000000000004ull
+	#define YepMIPSSimdFeaturePairedSingle        0x0000000000000002ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MIPS3D instruction set. */
+	#define YepMIPSSimdFeatureMIPS3D              0x0000000000000004ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief MIPS DSP extension. */
 	#define YepMIPSSimdFeatureDSP                 0x0000000000000008ull
@@ -1312,7 +1340,10 @@ extern "C" {
 	#define YepMIPSSimdFeatureGodsonMMX           0x0000000000000020ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Ingenic Media Extension. */
-	#define YepMIPSSimdFeatureIMX                 0x0000000000000040ull
+	#define YepMIPSSimdFeatureMXU                 0x0000000000000040ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Ingenic Media Extension 2. */
+	#define YepMIPSSimdFeatureMXU2                0x0000000000000080ull
 	/**@}*/
 #endif
 	
