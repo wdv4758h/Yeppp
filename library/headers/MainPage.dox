@@ -151,4 +151,7 @@ This example shows how to use @Yeppp library to do cross-platform measurements o
 @example CpuCycles.c
 This example shows how to use @Yeppp library to measure the execution time in CPU cycles:
 
+@example CompileTimeInfo.c
+This example shows how to use predefined macros from @Yeppp headers to get compile-time information about the system:
+
 */
