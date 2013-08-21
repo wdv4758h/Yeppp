@@ -184,7 +184,7 @@ JNIEXPORT jboolean JNICALL Java_info_yeppp_CpuIsaFeature_isDefined(JNIEnv *env, 
 	YepSize dummySize = 0;
 	enum YepStatus status;
 
-	status = yepLibrary_GetString(YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, YEP_NULL_POINTER, &dummySize);
+	status = yepLibrary_GetString(YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, NULL, &dummySize);
 	return (status == YepStatusInsufficientBuffer) ? JNI_TRUE: JNI_FALSE;
 }
 
@@ -200,7 +200,7 @@ JNIEXPORT jboolean JNICALL Java_info_yeppp_CpuSimdFeature_isDefined(JNIEnv *env,
 	YepSize dummySize = 0;
 	enum YepStatus status;
 
-	status = yepLibrary_GetString(YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, YEP_NULL_POINTER, &dummySize);
+	status = yepLibrary_GetString(YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, NULL, &dummySize);
 	return (status == YepStatusInsufficientBuffer) ? JNI_TRUE: JNI_FALSE;
 }
 
@@ -216,7 +216,7 @@ JNIEXPORT jboolean JNICALL Java_info_yeppp_CpuSystemFeature_isDefined(JNIEnv *en
 	YepSize dummySize = 0;
 	enum YepStatus status;
 
-	status = yepLibrary_GetString(YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, YEP_NULL_POINTER, &dummySize);
+	status = yepLibrary_GetString(YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architectureId), id, YepStringTypeDescription, NULL, &dummySize);
 	return (status == YepStatusInsufficientBuffer) ? JNI_TRUE: JNI_FALSE;
 }
 
