@@ -14,7 +14,7 @@
 #include <yepPrivate.hpp>
 #include <yepLibrary.h>
 #include <library/functions.h>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 #include <string.h>
 
 #ifndef YEP_ARM_CPU

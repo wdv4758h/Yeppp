@@ -8,7 +8,7 @@
 #include <yepPredefines.h>
 #include <yepTypes.h>
 #include <yepPrivate.hpp>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 #include <yepLibrary.h>
 #include <library/functions.h>
 #if defined(YEP_WINDOWS_OS)

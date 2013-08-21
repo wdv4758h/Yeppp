@@ -10,7 +10,7 @@
 #include <yepPrivate.hpp>
 #include <library/functions.h>
 #include <yepAtomic.h>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 
 YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *valuePointer, Yep32u newValue, Yep32u *oldValuePointer) {
 	if YEP_UNLIKELY(valuePointer == YEP_NULL_POINTER) {

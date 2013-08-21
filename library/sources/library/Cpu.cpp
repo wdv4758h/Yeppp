@@ -10,7 +10,7 @@
 #include <yepPrivate.hpp>
 #include <yepLibrary.h>
 #include <library/functions.h>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 
 Yep64u _isaFeatures = YepIsaFeaturesDefault;
 Yep64u _simdFeatures = YepSimdFeaturesDefault;
