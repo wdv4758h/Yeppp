@@ -10,17 +10,17 @@ package info.yeppp;
 /** @brief	Contains information about @Yeppp library version. */
 /** @see	Library#getVersion() */
 public class Version {
-	protected Version(int major, int minor, int patchLevel, int build, String releaseName) {
+	protected Version(int major, int minor, int patch, int build, String releaseName) {
 		this.major = major;
 		this.minor = minor;
-		this.patchLevel = patchLevel;
+		this.patch = patch;
 		this.build = build;
 		this.releaseName = releaseName;
 	}
 
 	final private int major;
 	final private int minor;
-	final private int patchLevel;
+	final private int patch;
 	final private int build;
 	final private String releaseName;
 
@@ -43,12 +43,12 @@ public class Version {
 	}
 
 	/**
-	 * @brief	Provides the patch level number of @Yeppp library.
+	 * @brief	Provides the patch level of @Yeppp library.
 	 * @details	A version with a higher patch level indicates minor bug-fixes.
 	 * @return	The patch level of @Yeppp library.
 	 */
-	public int getPatchLevel() {
-		return this.patchLevel;
+	public int getPatch() {
+		return this.patch;
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class Version {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%d.%d.%d.%d (%s)", this.major, this.minor, this.patchLevel, this.build, this.releaseName);
+		return String.format("%d.%d.%d.%d (%s)", this.major, this.minor, this.patch, this.build, this.releaseName);
 	}
 
 }

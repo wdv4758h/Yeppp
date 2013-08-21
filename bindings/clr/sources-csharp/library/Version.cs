@@ -13,17 +13,17 @@ namespace Yeppp
 	public struct Version
 	{
 
-		internal Version(uint major, uint minor, uint patchLevel, uint build, string releaseName) {
+		internal Version(uint major, uint minor, uint patch, uint build, string releaseName) {
 			this.major = major;
 			this.minor = minor;
-			this.patchLevel = patchLevel;
+			this.patch = patch;
 			this.build = build;
 			this.releaseName = releaseName;
 		}
 
 		private readonly uint major;
 		private readonly uint minor;
-		private readonly uint patchLevel;
+		private readonly uint patch;
 		private readonly uint build;
 		private readonly string releaseName;
 
@@ -47,13 +47,13 @@ namespace Yeppp
 			}
 		}
 
-		/// <summary>The patch level number of Yeppp! library.</summary>
+		/// <summary>The patch level of Yeppp! library.</summary>
 		/// <remarks>A version with a higher patch level indicates minor bug-fixes.</remarks>
-		public uint PatchLevel
+		public uint Patch
 		{
 			get
 			{
-				return this.patchLevel;
+				return this.patch;
 			}
 		}
 
@@ -80,7 +80,7 @@ namespace Yeppp
 		/// <summary>Provides a string representation for all parts of the version.</summary>
 		/// <returns>The full version string in the format "major.minor.patch.build (release name)".</returns>
 		public override string ToString() {
-			return this.major.ToString() + "." + this.minor.ToString() + "." + this.patchLevel.ToString() + "." + this.build.ToString() + " (" + this.releaseName + ")";
+			return this.major.ToString() + "." + this.minor.ToString() + "." + this.patch.ToString() + "." + this.build.ToString() + " (" + this.releaseName + ")";
 		}
 
 	}
