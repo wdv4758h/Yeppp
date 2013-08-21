@@ -73,7 +73,7 @@ extern "C" {
 		/** @brief The minor version. A change in minor versions indicates addition of new features, and major bug-fixes. */
 		Yep32u minor;
 		/** @brief The patch level. A version with a higher patch level indicates minor bug-fixes. */
-		Yep32u patchLevel;
+		Yep32u patch;
 		/** @brief The build number. The build number is unique for the fixed combination of major, minor, and patch-level versions. */
 		Yep32u build;
 		/** @brief A UTF-8 string with a human-readable name of this release. May contain non-ASCII characters. */

@@ -234,7 +234,7 @@ JNIEXPORT jstring JNICALL Java_info_yeppp_Library_getVersionInfo(JNIEnv *env, jc
 
 	versionNumbers[0] = version->major;
 	versionNumbers[1] = version->minor;
-	versionNumbers[2] = version->patchLevel;
+	versionNumbers[2] = version->patch;
 	versionNumbers[3] = version->build;
 	(*env)->SetIntArrayRegion(env, versionNumberArray, 0, 4, versionNumbers);
 	if ((*env)->ExceptionCheck(env) != JNI_FALSE) {
