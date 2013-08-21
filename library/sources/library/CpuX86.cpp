@@ -1983,7 +1983,7 @@
 		if YEP_UNLIKELY(vendor == YepCpuVendorUnknown) {
 			fullCpuName = briefCpuName;
 		} else {
-			const ConstantString vendorString = _yepLibrary_GetCpuVendorString(vendor);
+			const ConstantString vendorString = _yepLibrary_GetCpuVendorDescription(vendor);
 			memcpy(fullCpuNameBuffer, vendorString.pointer, vendorString.length);
 			fullCpuNameBuffer[vendorString.length] = ' ';
 			memcpy(fullCpuNameBuffer + vendorString.length + 1, briefCpuName.pointer, briefCpuName.length);

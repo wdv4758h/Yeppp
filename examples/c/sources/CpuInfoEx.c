@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	assert(status == YepStatusOk);
 
 	bufferLength = BUFFER_SIZE - 1; /* Reserve one symbol for terminating null */
-	status = yepLibrary_GetString(YepEnumerationCpuFullName, 0, buffer, &bufferLength);
+	status = yepLibrary_GetString(YepEnumerationCpuFullName, 0, YepStringTypeDescription, buffer, &bufferLength);
 	assert(status == YepStatusOk);
 	buffer[bufferLength] = '\0'; /* Append terminating null */
 	printf("Processor: %s\n", buffer);

@@ -20,13 +20,13 @@ int main(int argc, char **argv) {
 	assert(status == YepStatusOk);
 
 	printf("Basic CPU information:\n");
-	
+
 	/* Retrieve information about processor architecture */
 	status = yepLibrary_GetCpuArchitecture(&architecture);
 	assert(status == YepStatusOk);
 	/* Convert processor architecture into string */
 	bufferLength = BUFFER_SIZE - 1; /* Reserve one symbol for terminating null */
-	status = yepLibrary_GetString(YepEnumerationCpuArchitecture, architecture, buffer, &bufferLength);
+	status = yepLibrary_GetString(YepEnumerationCpuArchitecture, architecture, YepStringTypeDescription, buffer, &bufferLength);
 	assert(status == YepStatusOk);
 	buffer[bufferLength] = '\0'; /* Append terminating null */
 	printf("\tArchitecture: %s\n", buffer);
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 	assert(status == YepStatusOk);
 	/* Convert processor vendor into string */
 	bufferLength = BUFFER_SIZE - 1; /* Reserve one symbol for terminating null */
-	status = yepLibrary_GetString(YepEnumerationCpuVendor, vendor, buffer, &bufferLength);
+	status = yepLibrary_GetString(YepEnumerationCpuVendor, vendor, YepStringTypeDescription, buffer, &bufferLength);
 	assert(status == YepStatusOk);
 	buffer[bufferLength] = '\0'; /* Append terminating null */
 	printf("\tVendor: %s\n", buffer);
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 	assert(status == YepStatusOk);
 	/* Convert processor vendor into string */
 	bufferLength = BUFFER_SIZE - 1; /* Reserve one symbol for terminating null */
-	status = yepLibrary_GetString(YepEnumerationCpuMicroarchitecture, microarchitecture, buffer, &bufferLength);
+	status = yepLibrary_GetString(YepEnumerationCpuMicroarchitecture, microarchitecture, YepStringTypeDescription, buffer, &bufferLength);
 	assert(status == YepStatusOk);
 	buffer[bufferLength] = '\0'; /* Append terminating null */
 	printf("\tMicroarchitecture: %s\n", buffer);
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 	/* Iterate through bits in ISA features mask */
 	for (enumerationValue = 0; enumerationValue < 64; enumerationValue++) {
 		bufferLength = BUFFER_SIZE - 2; /* Reserve one symbol for semicolon, and one symbol for terminating null */
-		status = yepLibrary_GetString(YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architecture), enumerationValue, buffer, &bufferLength);
+		status = yepLibrary_GetString(YEP_ENUMERATION_ISA_FEATURE_FOR_ARCHITECTURE(architecture), enumerationValue, YepStringTypeDescription, buffer, &bufferLength);
 		/* YepStatusInvalidArgument indicates that either enumerationType or enumerationValue are incorrect
 		 * Since we know that enumerationType is valid, the only possibility is specifying
 		 * enumerationValue corresponding to a bit which was not assigned any ISA extension.
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 	/* Iterate through bits in SIMD features mask */
 	for (enumerationValue = 0; enumerationValue < 64; enumerationValue++) {
 		bufferLength = BUFFER_SIZE - 2; /* Reserve one symbol for semicolon, and one symbol for terminating null */
-		status = yepLibrary_GetString(YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architecture), enumerationValue, buffer, &bufferLength);
+		status = yepLibrary_GetString(YEP_ENUMERATION_SIMD_FEATURE_FOR_ARCHITECTURE(architecture), enumerationValue, YepStringTypeDescription, buffer, &bufferLength);
 		/* YepStatusInvalidArgument indicates that either enumerationType or enumerationValue are incorrect
 		 * Since we know that enumerationType is valid, the only possibility is specifying
 		 * enumerationValue corresponding to a bit which was not assigned any SIMD extension.
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 	/* Iterate through bits in non-ISA CPU and system features mask */
 	for (enumerationValue = 0; enumerationValue < 64; enumerationValue++) {
 		bufferLength = BUFFER_SIZE - 2;
-		status = yepLibrary_GetString(YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architecture), enumerationValue, buffer, &bufferLength);
+		status = yepLibrary_GetString(YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(architecture), enumerationValue, YepStringTypeDescription, buffer, &bufferLength);
 		/* YepStatusInvalidArgument indicates that either enumerationType or enumerationValue are incorrect
 		 * Since we know that enumerationType is valid, the only possibility is specifying
 		 * enumerationValue corresponding to a bit which was not assigned any non-ISA CPU or system extension.

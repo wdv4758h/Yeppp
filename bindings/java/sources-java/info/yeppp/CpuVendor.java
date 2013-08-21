@@ -118,6 +118,7 @@ public final class CpuVendor {
 	}
 
 	private static native String toString(int id);
+	private static native String getDescription(int id);
 
 	public final boolean equals(CpuVendor other) {
 		if (other == null) {
@@ -141,9 +142,22 @@ public final class CpuVendor {
 		return this.id;
 	}
 
+	/**
+	 * @brief	Provides a string ID for this CPU vendor.
+	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
+	 * @see	getDescription()
+	 */
 	@Override
 	public final String toString() {
 		return CpuVendor.toString(this.id);
 	}
 
+	/**
+	 * @brief	Provides a text description for this CPU vendor.
+	 * @return	A string description which can contain spaces and non-ASCII characters.
+	 * @see	toString()
+	 */
+	public final String getDescription() {
+		return CpuVendor.getDescription(this.id);
+	}
 };

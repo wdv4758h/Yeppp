@@ -60,7 +60,13 @@ namespace Yeppp
 		SPARCIsaFeature      = 0x100 + 6,
 		SPARCSimdFeature     = 0x200 + 6,
 		SPARCSystemFeature   = 0x300 + 6
-	};
+	}
+
+	internal enum StringType : uint
+	{
+		Description = 0,
+		ID = 1
+	}
 
 	/// <summary>Non-computational functions for checking library version, quering information about processor, and benchmarking.</summary>
 	public class Library
@@ -274,16 +280,16 @@ namespace Yeppp
 			return accuracy;
 		}
 
-		internal static string GetString(Enumeration enumeration, uint value) {
+		internal static string GetString(Enumeration enumeration, uint value, StringType stringType) {
 			System.UIntPtr length = System.UIntPtr.Zero;
-			Status status = Library.yepLibrary_GetString(enumeration, value, System.IntPtr.Zero, ref length);
+			Status status = Library.yepLibrary_GetString(enumeration, value, stringType, System.IntPtr.Zero, ref length);
 			if (status != Status.InsufficientBuffer)
 				throw new System.SystemException();
 
 			int smallLength = checked((int)length);
 			System.IntPtr unmanagedBuffer = Marshal.AllocHGlobal(smallLength);
 			try {
-				status = yepLibrary_GetString(enumeration, value, unmanagedBuffer, ref length);
+				status = yepLibrary_GetString(enumeration, value, stringType, unmanagedBuffer, ref length);
 				if (status != Status.Ok)
 					throw new System.SystemException();
 
@@ -297,7 +303,7 @@ namespace Yeppp
 
 		internal static bool IsDefined(Enumeration enumeration, uint value) {
 			System.UIntPtr length = System.UIntPtr.Zero;
-			Status status = Library.yepLibrary_GetString(enumeration, value, System.IntPtr.Zero, ref length);
+			Status status = Library.yepLibrary_GetString(enumeration, value, StringType.Description, System.IntPtr.Zero, ref length);
 			return status == Status.InsufficientBuffer;
 		}
 
@@ -306,26 +312,26 @@ namespace Yeppp
 				case Status.Ok:
 					return null;
 				case Status.NullPointer:
-					return new System.NullReferenceException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.NullReferenceException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.MisalignedPointer:
-					return new System.DataMisalignedException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.DataMisalignedException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.InvalidArgument:
-					return new System.ArgumentException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.ArgumentException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.InvalidData:
-					return new System.IO.InvalidDataException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.IO.InvalidDataException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.InvalidState:
-					return new System.InvalidOperationException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.InvalidOperationException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.UnsupportedHardware:
 				case Status.UnsupportedSoftware:
-					return new System.PlatformNotSupportedException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.PlatformNotSupportedException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.InsufficientBuffer:
-					return new System.IO.InternalBufferOverflowException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.IO.InternalBufferOverflowException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.OutOfMemory:
-					return new System.OutOfMemoryException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.OutOfMemoryException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				case Status.SystemError:
-					return new System.SystemException(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.SystemException(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 				default:
-					return new System.Exception(GetString(Enumeration.Status, unchecked((uint)status)));
+					return new System.Exception(GetString(Enumeration.Status, unchecked((uint)status), StringType.Description));
 			}
 		}
 
@@ -373,7 +379,7 @@ namespace Yeppp
 		private static extern Status yepLibrary_GetTimerAccuracy(out ulong accuracy);
 
 		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetString")]
-		private static extern Status yepLibrary_GetString(Enumeration enumeration, uint value, System.IntPtr buffer, ref System.UIntPtr length);
+		private static extern Status yepLibrary_GetString(Enumeration enumeration, uint value, StringType stringType, System.IntPtr buffer, ref System.UIntPtr length);
 
 	}
 

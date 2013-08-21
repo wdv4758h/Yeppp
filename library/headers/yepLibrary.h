@@ -652,19 +652,29 @@ extern "C" {
 		/** @brief The enumeration type is one of the SPARC non-ISA or system features constants */
 		YepEnumerationSPARCSystemFeature = YEP_ENUMERATION_SYSTEM_FEATURE_FOR_ARCHITECTURE(YepCpuArchitectureSPARC)
 	};
+	/** @ingroup	yepLibrary_ToString */
+	/** @brief	Indicates the type of requested string representation. */
+	/** @see	yepLibrary_GetString */
+	enum YepStringType {
+		/** @brief Description string. Description can contain spaces, typography symbols, and non-ASCII characters */
+		YepStringTypeDescription = 0,
+		/** @brief ID string. ID must start with a Latin letter, and can contain only Latin letter (uppercase or lowercase), digits, and underscore symbol */
+		YepStringTypeID = 1
+	};
 	/**
 	 * @ingroup yepLibrary_ToString
 	 * @brief	Returns a string representation of an integer value in a enumeration.
 	 * @param[in]	enumerationType	Indicates the type of integer value passed to the function in @a enumerationValue parameter.
 	 * @param[in]	enumerationValue	The enumeration value of type specified in @a enumerationType which must be converted to string.
+	 * @param[in]	stringType	Indicates the type of requiested string.
 	 * @param[out]	buffer	An output buffer of size specified by the @a length parameter. If this pointer is null, required buffer size will be stored in length variable. On successfull return the buffer will contain the string representation of @a enumerationValue. The string representation does not include the terminating zero. If the function fails, the content of the buffer is not changed.
 	 * @param[in,out]	length	On function call this variable must contain the length (in bytes) of the buffer. On successfull return this variable will contain the length (in bytes) of the string written to the buffer. If the function fails with YepStatusInsufficientBuffer error, on return the @a length variable will contain the required size of the buffer. In the function fails with any other error, this variable is unchanged.
 	 * @retval	#YepStatusOk	The string is successfully stored in the @a buffer.
 	 * @retval	#YepStatusNullPointer	Length pointer is null.
-	 * @retval	#YepStatusInvalidArgument	Either @a enumerationType or @a enumerationValue contain values unknown to the library.
+	 * @retval	#YepStatusInvalidArgument	The values of @a enumerationType, @a enumerationValue or @a stringType are unknown to the library, or they are provided in invalid combination.
 	 * @retval	#YepStatusInsufficientBuffer	The buffer pointer is null or the output buffer is too small for the string. The content of the output buffer is unchanged, and the required size of the buffer is returned in the length variable.
 	 */
-	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepLibrary_GetString(enum YepEnumeration enumerationType, Yep32u enumerationValue, void *buffer, YepSize *length);
+	YEP_PUBLIC_SYMBOL enum YepStatus YEPABI yepLibrary_GetString(enum YepEnumeration enumerationType, Yep32u enumerationValue, enum YepStringType stringType, void *buffer, YepSize *length);
 
 #ifdef __cplusplus
 	const Yep64u YepIsaFeaturesDefault        = 0x0000000000000000ull;

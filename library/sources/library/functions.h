@@ -119,8 +119,8 @@ extern YEP_PRIVATE_SYMBOL const YepCpuMicroarchitecture* _dispatchList;
 extern YEP_PRIVATE_SYMBOL ConstantString _briefCpuName;
 extern YEP_PRIVATE_SYMBOL ConstantString _fullCpuName;
 
-YEP_PRIVATE_SYMBOL ConstantString _yepLibrary_GetCpuVendorString(YepCpuVendor vendor);
-YEP_PRIVATE_SYMBOL ConstantString _yepLibrary_GetCpuMicroarchitectureString(YepCpuMicroarchitecture microarchitecture);
+YEP_PRIVATE_SYMBOL ConstantString _yepLibrary_GetCpuVendorDescription(YepCpuVendor vendor);
+YEP_PRIVATE_SYMBOL ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchitecture microarchitecture);
 
 typedef void (*LineParser)(const char* lineStart, const char* lineEnd, void* state);
 
