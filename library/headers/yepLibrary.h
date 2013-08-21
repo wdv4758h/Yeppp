@@ -1016,55 +1016,55 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-	const Yep64u YepX86SystemFeatureFPU                = 0x0000000100000000ull;
-	const Yep64u YepX86SystemFeatureXMM                = 0x0000000200000000ull;
-	const Yep64u YepX86SystemFeatureYMM                = 0x0000000400000000ull;
-	const Yep64u YepX86SystemFeatureMisalignedSSE      = 0x0000000800000000ull;
-	const Yep64u YepX86SystemFeatureACE                = 0x0000001000000000ull;
-	const Yep64u YepX86SystemFeatureACE2               = 0x0000002000000000ull;
-	const Yep64u YepX86SystemFeatureRNG                = 0x0000004000000000ull;
-	const Yep64u YepX86SystemFeaturePHE                = 0x0000008000000000ull;
-	const Yep64u YepX86SystemFeaturePMM                = 0x0000010000000000ull;
-	const Yep64u YepX86SystemFeatureZMM                = 0x0000020000000000ull;
-	const Yep64u YepX86SystemFeatureBND                = 0x0000040000000000ull;
+	const Yep64u YepX86SystemFeatureACE                = 0x0000000100000000ull;
+	const Yep64u YepX86SystemFeatureACE2               = 0x0000000200000000ull;
+	const Yep64u YepX86SystemFeatureRNG                = 0x0000000400000000ull;
+	const Yep64u YepX86SystemFeaturePHE                = 0x0000000800000000ull;
+	const Yep64u YepX86SystemFeaturePMM                = 0x0000001000000000ull;
+	const Yep64u YepX86SystemFeatureMisalignedSSE      = 0x0000002000000000ull;
+	const Yep64u YepX86SystemFeatureFPU                = 0x0010000000000000ull;
+	const Yep64u YepX86SystemFeatureXMM                = 0x0020000000000000ull;
+	const Yep64u YepX86SystemFeatureYMM                = 0x0040000000000000ull;
+	const Yep64u YepX86SystemFeatureZMM                = 0x0080000000000000ull;
+	const Yep64u YepX86SystemFeatureBND                = 0x0100000000000000ull;
 #else
 	/** @anchor	x86_CPU_and_System_Features
 	 *  @name	x86 and x86-64 CPU and System Features
 	 *  @see	yepLibrary_GetCpuSystemFeatures */
 	/**@{*/
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief The CPU has x87 FPU registers, and the operating systems preserves them during context switch. */
-	#define YepX86SystemFeatureFPU                0x0000000100000000ull
-	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief The CPU has xmm (SSE) registers, and the operating systems preserves them during context switch. */
-	#define YepX86SystemFeatureSSE                0x0000000200000000ull
-	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief The CPU has ymm (AVX) registers, and the operating systems preserves them during context switch. */
-	#define YepX86SystemFeatureAVX                0x0000000400000000ull
-	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief Processor allows to use misaligned memory operands in SSE instructions other than loads and stores. */
-	#define YepX86SystemFeatureMisalignedSSE      0x0000000800000000ull
-	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine. */
-	#define YepX86SystemFeatureACE                0x0000001000000000ull
+	#define YepX86SystemFeatureACE                0x0000000100000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Processor and the operating system support the Padlock Advanced Cryptography Engine 2. */
-	#define YepX86SystemFeatureACE2               0x0000002000000000ull
+	#define YepX86SystemFeatureACE2               0x0000000200000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Processor and the operating system support the Padlock Random Number Generator. */
-	#define YepX86SystemFeatureRNG                0x0000004000000000ull
+	#define YepX86SystemFeatureRNG                0x0000000400000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Processor and the operating system support the Padlock Hash Engine. */
-	#define YepX86SystemFeaturePHE                0x0000008000000000ull
+	#define YepX86SystemFeaturePHE                0x0000000800000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief Processor and the operating system support the Padlock Montgomery Multiplier. */
-	#define YepX86SystemFeaturePMM                0x0000010000000000ull
+	#define YepX86SystemFeaturePMM                0x0000001000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Processor allows to use misaligned memory operands in SSE instructions other than loads and stores. */
+	#define YepX86SystemFeatureMisalignedSSE      0x0000002000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has x87 FPU registers, and the operating system preserves them during context switch. */
+	#define YepX86SystemFeatureFPU                0x0010000000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has xmm (SSE) registers, and the operating system preserves them during context switch. */
+	#define YepX86SystemFeatureSSE                0x0020000000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has ymm (AVX) registers, and the operating system preserves them during context switch. */
+	#define YepX86SystemFeatureAVX                0x0040000000000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief The CPU has zmm (MIC or AVX-512) registers, and the operating system preserves them during context switch. */
-	#define YepX86SystemFeatureZMM                0x0000020000000000ull
+	#define YepX86SystemFeatureZMM                0x0080000000000000ull
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief The CPU has bnd (MPX) registers, and the operating system preserves them during context switch. */
-	#define YepX86SystemFeatureBND                0x0000040000000000ull
+	#define YepX86SystemFeatureBND                0x0100000000000000ull
 	/**@}*/
 #endif
 
@@ -1217,6 +1217,10 @@ extern "C" {
 
 #ifdef __cplusplus
 	const Yep64u YepARMSystemFeatureVFPVectorMode      = 0x0000000100000000ull;
+	const Yep64u YepARMSystemFeatureFPA                = 0x0100000000000000ull;
+	const Yep64u YepARMSystemFeatureWMMX               = 0x0200000000000000ull;
+	const Yep64u YepARMSystemFeatureS32                = 0x0400000000000000ull;
+	const Yep64u YepARMSystemFeatureD32                = 0x0800000000000000ull;
 #else
 	/** @anchor	ARM_CPU_and_System_Features
 	 *  @name	ARM CPU and System Features
@@ -1225,6 +1229,18 @@ extern "C" {
 	/** @ingroup yepLibrary_CpuFeatures */
 	/** @brief VFP vector mode is supported in hardware. */
 	#define YepARMSystemFeatureVFPVectorMode      0x0000000100000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has FPA registers (f0-f7), and the operating system preserves them during context switch. */
+	#define YepARMSystemFeatureFPA                0x0100000000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has WMMX registers (wr0-wr15), and the operating system preserves them during context switch. */
+	#define YepARMSystemFeatureWMMX               0x0200000000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has s0-s31 VFP registers, and the operating system preserves them during context switch. */
+	#define YepARMSystemFeatureS32                0x0400000000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief The CPU has d0-d31 VFP registers, and the operating system preserves them during context switch. */
+	#define YepARMSystemFeatureD32                0x0800000000000000ull
 	/**@}*/
 #endif
 
