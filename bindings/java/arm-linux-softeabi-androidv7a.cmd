@@ -49,4 +49,4 @@ mkdir "binaries/arm-linux-softeabi-androidv7a/math" >NUL 2>NUL
 %STRIP% binaries/arm-linux-softeabi-androidv7a/libyeppp-jni.so
 %STRIP% -R .comment binaries/arm-linux-softeabi-androidv7a/libyeppp-jni.so
 
-%CP% %CPFLAGS% "binaries\arm-linux-softeabi-androidv7a\libyeppp-jni.so" "..\..\binaries\android\armeabiv7a\libyeppp-jni.so" >NUL 2>NUL
+%CP% %CPFLAGS% "binaries\arm-linux-softeabi-androidv7a\libyeppp-jni.so" "..\..\binaries\android\armeabi-v7a\libyeppp-jni.so" >NUL 2>NUL
