@@ -14,7 +14,7 @@
 #include <yepPrivate.hpp>
 #include <yepLibrary.h>
 #include <library/functions.h>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 
 #if defined(YEP_LINUX_OS)
 	#include <yepSyscalls.hpp>

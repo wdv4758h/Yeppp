@@ -10,7 +10,7 @@
 #include <yepPrivate.hpp>
 #include <library/functions.h>
 #include <yepRandom.h>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 
 static const Yep32u defaultSeed[32] = {
 	0xB82D98AE, 0x0E383D9B, 0xB029FC23, 0x17EF0277,

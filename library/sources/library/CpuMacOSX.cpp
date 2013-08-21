@@ -10,7 +10,7 @@
 #include <yepPrivate.hpp>
 #include <yepLibrary.h>
 #include <library/functions.h>
-#include <yepIntrinsics.h>
+#include <yepBuiltin.h>
 
 #if defined(YEP_MACOSX_OS)
 	#include <sys/types.h>
