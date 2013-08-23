@@ -1700,7 +1700,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 			}
 		#endif
 
-		#if !defined(YEP_INTEL_COMPILER)
+		#if !defined(YEP_INTEL_COMPILER) && !defined(YEP_K1OM_X64_ABI)
 			static YEP_INLINE Yep64u _xgetbv(Yep32u ext_ctrl_reg) {
 				Yep32u lo, hi;
 				asm volatile (
