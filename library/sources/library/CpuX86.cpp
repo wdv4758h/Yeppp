@@ -549,48 +549,50 @@
 				xcr0ValidBits = yepBuiltin_CombineParts_32u32u_64u(extendedStateEnumerationMainParameters[3], extendedStateEnumerationMainParameters[0]);
 			}
 
-			Yep64u xfeatureEnabledMask = _xgetbv(0);
-			// Intel, AMD: XFEATURE_ENABLED_MASK[bit 0] for FPU XSAVE
-			if YEP_LIKELY(isaFeatures & YepX86IsaFeatureFPU) {
-				if YEP_LIKELY(xcr0ValidBits & 0x0000000000000001ull) {
-					if YEP_LIKELY(xfeatureEnabledMask & 0x0000000000000001ull) {
+			#if !defined(YEP_K1OM_X64_ABI)
+				Yep64u xfeatureEnabledMask = _xgetbv(0);
+				// Intel, AMD: XFEATURE_ENABLED_MASK[bit 0] for FPU XSAVE
+				if YEP_LIKELY(isaFeatures & YepX86IsaFeatureFPU) {
+					if YEP_LIKELY(xcr0ValidBits & 0x0000000000000001ull) {
+						if YEP_LIKELY(xfeatureEnabledMask & 0x0000000000000001ull) {
+							systemFeatures |= YepX86SystemFeatureFPU;
+						}
+					} else {
 						systemFeatures |= YepX86SystemFeatureFPU;
 					}
-				} else {
-					systemFeatures |= YepX86SystemFeatureFPU;
 				}
-			}
-			// Intel, AMD: XFEATURE_ENABLED_MASK[bit 1] for SSE XSAVE
-			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureSSE) {
-				if YEP_LIKELY(xcr0ValidBits & 0x0000000000000002ull) {
-					if YEP_LIKELY(xfeatureEnabledMask & 0x0000000000000002ull) {
+				// Intel, AMD: XFEATURE_ENABLED_MASK[bit 1] for SSE XSAVE
+				if YEP_LIKELY(simdFeatures & YepX86SimdFeatureSSE) {
+					if YEP_LIKELY(xcr0ValidBits & 0x0000000000000002ull) {
+						if YEP_LIKELY(xfeatureEnabledMask & 0x0000000000000002ull) {
+							systemFeatures |= YepX86SystemFeatureXMM;
+						}
+					} else {
 						systemFeatures |= YepX86SystemFeatureXMM;
 					}
-				} else {
-					systemFeatures |= YepX86SystemFeatureXMM;
 				}
-			}
-			// Intel, AMD: XFEATURE_ENABLED_MASK[bit 2] for AVX XSAVE
-			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureAVX) {
-				if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000006ull) == 0x0000000000000006ull) {
-					systemFeatures |= YepX86SystemFeatureYMM;
+				// Intel, AMD: XFEATURE_ENABLED_MASK[bit 2] for AVX XSAVE
+				if YEP_LIKELY(simdFeatures & YepX86SimdFeatureAVX) {
+					if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000006ull) == 0x0000000000000006ull) {
+						systemFeatures |= YepX86SystemFeatureYMM;
+					}
 				}
-			}
-			// Intel: XFEATURE_ENABLED_MASK[bit 5] for 8 64-bit OpMask registers (k0-k7)
-			// Intel: XFEATURE_ENABLED_MASK[bit 6] for the high 256 bits of the zmm registers zmm0-zmm15
-			// Intel: XFEATURE_ENABLED_MASK[bit 7] for the 512-bit wide zmm registers zmm16-zmm31
-			if YEP_LIKELY(simdFeatures & YepX86SimdFeatureAVX512F) {
-				if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x00000000000000E6ull) == 0x00000000000000E6ull) {
-					systemFeatures |= YepX86SystemFeatureZMM;
+				// Intel: XFEATURE_ENABLED_MASK[bit 5] for 8 64-bit OpMask registers (k0-k7)
+				// Intel: XFEATURE_ENABLED_MASK[bit 6] for the high 256 bits of the zmm registers zmm0-zmm15
+				// Intel: XFEATURE_ENABLED_MASK[bit 7] for the 512-bit wide zmm registers zmm16-zmm31
+				if YEP_LIKELY(simdFeatures & YepX86SimdFeatureAVX512F) {
+					if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x00000000000000E6ull) == 0x00000000000000E6ull) {
+						systemFeatures |= YepX86SystemFeatureZMM;
+					}
 				}
-			}
-			// Intel: XFEATURE_ENABLED_MASK[bit 3] for BNDREGS
-			// Intel: XFEATURE_ENABLED_MASK[bit 4] for BNDCSR
-			if YEP_LIKELY(isaFeatures & YepX86IsaFeatureMPX) {
-				if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000018ull) == 0x0000000000000018ull) {
-					systemFeatures |= YepX86SystemFeatureBND;
+				// Intel: XFEATURE_ENABLED_MASK[bit 3] for BNDREGS
+				// Intel: XFEATURE_ENABLED_MASK[bit 4] for BNDCSR
+				if YEP_LIKELY(isaFeatures & YepX86IsaFeatureMPX) {
+					if YEP_LIKELY(((xcr0ValidBits & xfeatureEnabledMask) & 0x0000000000000018ull) == 0x0000000000000018ull) {
+						systemFeatures |= YepX86SystemFeatureBND;
+					}
 				}
-			}
+			#endif
 		} else {
 			// If the OSXSAVE feature is not supported, speculate that OS supports FPU & SSE if the CPU does.
 			if YEP_LIKELY(isaFeatures & YepX86IsaFeatureFPU) {
