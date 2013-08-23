@@ -192,7 +192,7 @@ ConstantString _yepLibrary_GetCpuVendorDescription(YepCpuVendor vendor) {
 	}
 }
 
-ConstantString _yepLibrary_GetCpuVendorID(YepCpuVendor vendor) {
+static ConstantString _yepLibrary_GetCpuVendorID(YepCpuVendor vendor) {
 	switch (vendor) {
 		case YepCpuVendorUnknown:
 			YEP_RETURN_CONSTANT_STRING("Unknown");
@@ -366,7 +366,7 @@ ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchite
 	}
 }
 
-ConstantString _yepLibrary_GetCpuMicroarchitectureID(YepCpuMicroarchitecture microarchitecture) {
+static ConstantString _yepLibrary_GetCpuMicroarchitectureID(YepCpuMicroarchitecture microarchitecture) {
 	switch (microarchitecture) {
 		case YepCpuMicroarchitectureUnknown:
 			YEP_RETURN_CONSTANT_STRING("Unknown");
@@ -1380,6 +1380,10 @@ YepStatus YEPABI yepLibrary_GetString(YepEnumeration enumerationType, Yep32u enu
 					constantString = _yepLibrary_GetCpuVendorID(static_cast<YepCpuVendor>(enumerationValue)); break;
 				case YepEnumerationCpuMicroarchitecture:
 					constantString = _yepLibrary_GetCpuMicroarchitectureID(static_cast<YepCpuMicroarchitecture>(enumerationValue)); break;
+				case YepEnumerationCpuBriefName:
+					break;
+				case YepEnumerationCpuFullName:
+					break;
 				case YepEnumerationGenericIsaFeature:
 					constantString = getGenericIsaFeatureID(enumerationValue); break;
 				case YepEnumerationGenericSimdFeature:
