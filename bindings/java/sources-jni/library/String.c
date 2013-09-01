@@ -7,6 +7,7 @@
  */
 
 #include <jni.h>
+#include <yepPrivate.hpp>
 #include <yepLibrary.h>
 #include <yepJavaPrivate.h>
 #if defined(YEP_WINDOWS_OS)

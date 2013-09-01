@@ -14,9 +14,7 @@ import java.util.NoSuchElementException;
 /** @see	Library#getCpuArchitecture */
 public final class CpuArchitecture {
 	static {
-		/* Workaround for Android which ignores rpath */
 		System.loadLibrary("yeppp");
-		System.loadLibrary("yeppp-jni");
 	}
 
 	/** @brief	Instruction set architecture is not known to the library. */

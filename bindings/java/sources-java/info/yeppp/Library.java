@@ -12,9 +12,7 @@ package info.yeppp;
  */
 public class Library {
 	static {
-		/* Workaround for Android which ignores rpath */
 		System.loadLibrary("yeppp");
-		System.loadLibrary("yeppp-jni");
 
 		final int[] versionNumbers = new int[4];
 		final String releaseName = Library.getVersionInfo(versionNumbers);

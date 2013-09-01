@@ -7,37 +7,10 @@
  */
 
 #include <jni.h>
+#include <yepPrivate.hpp>
 #include <yepLibrary.h>
 #include <yepVersion.h>
 #include <yepJavaPrivate.h>
-
-#if defined(YEP_WINDOWS_OS)
-	#include <windows.h>
-
-	#if defined(YEP_CUSTOM_RUNTIME)
-		BOOL WINAPI _DllMainCRTStartup(HINSTANCE instance, DWORD reason, LPVOID reserved) {
-			return TRUE;
-		}
-	#else
-		BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
-			return TRUE;
-		}
-	#endif
-#endif
-
-#if defined(YEP_LINUX_OS)
-	#if defined(YEP_ARM_CPU)
-		asm (
-			".section .version, \"S\",%progbits\n"
-			".string \"" YEP_FULL_VERSION_STR "\"\n"
-		);
-	#else
-		asm (
-			".section .version, \"S\",@progbits\n"
-			".string \"" YEP_FULL_VERSION_STR "\"\n"
-		);
-	#endif
-#endif
 
 YEP_PRIVATE_SYMBOL jclass RuntimeException = NULL;
 YEP_PRIVATE_SYMBOL jclass SystemException = NULL;
