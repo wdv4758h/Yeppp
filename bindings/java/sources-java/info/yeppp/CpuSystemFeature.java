@@ -13,7 +13,7 @@ package info.yeppp;
  */
 public class CpuSystemFeature {
 	static {
-		System.loadLibrary("yeppp");
+		Library.load();
 	}
 
 	/** @brief The processor has a built-in cycle counter, and the operating system provides a way to access it. */

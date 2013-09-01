@@ -12,7 +12,7 @@ package info.yeppp;
  */
 public class Library {
 	static {
-		System.loadLibrary("yeppp");
+		Library.loadOnce();
 
 		final int[] versionNumbers = new int[4];
 		final String releaseName = Library.getVersionInfo(versionNumbers);
@@ -190,6 +190,296 @@ public class Library {
 	private static native int getCpuMicroarchitectureId();
 	private static native long getCpuCyclesAcquire();
 	private static native long getCpuCyclesRelease(long state);
+
+	/* Constants for ELF headers */
+	private static final int EI_MAG0 = 0;
+	private static final int EI_MAG1 = 1;
+	private static final int EI_MAG2 = 2;
+	private static final int EI_MAG3 = 3;
+	private static final int EI_CLASS = 4;
+	private static final int EI_DATA = 5;
+
+	private static final int ELFCLASS32 = 1;
+	private static final int ELFCLASS64 = 2;
+
+	private static final int ELFDATA2LSB = 1;
+	private static final int ELFDATA2MSB = 2;
+
+	private static final int EM_386    = 3;
+	private static final int EM_X86_64 = 62;
+	private static final int EM_K1OM   = 181;
+	private static final int EM_ARM    = 40;
+	private static final int EM_ARM64  = 183;
+
+	private static final int EF_ARM_ABIMASK        = 0xFF000000;
+	private static final int EF_ARM_ABI_FLOAT_SOFT = 0x00000200;
+	private static final int EF_ARM_ABI_FLOAT_HARD = 0x00000400;
+
+	private static final int SHT_ARM_ATTRIBUTES = 0x70000003;
+
+	/* ARM EABI build attributes */
+	private static final int Tag_File = 1;
+	private static final int Tag_CPU_raw_name = 4;
+	private static final int Tag_CPU_name = 5;
+	private static final int Tag_ABI_VFP_args = 28;
+	private static final int Tag_compatibility = 32;
+
+	private static boolean isTabNTBS(int tag) {
+		switch (tag) {
+			case Tag_CPU_raw_name:
+			case Tag_CPU_name:
+			case Tag_compatibility:
+				return true;
+			default:
+				if (tag < 32) {
+					return false;
+				} else {
+					return (tag % 2) == 1;
+				}
+		}
+	}
+
+	public static byte[] readBytes(java.io.RandomAccessFile file, int bytesToRead) {
+		try {
+			byte[] buffer = new byte[bytesToRead];
+			int offset = 0;
+			int bytesRead;
+			while ((bytesRead = file.read(buffer, offset, bytesToRead - offset)) != -1) {
+				offset += bytesRead;
+				if (offset == bytesToRead)
+					return buffer;
+			}
+			return null;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static String getLibraryResource() {
+		final String osArch = System.getProperty("os.arch");
+		final String osName = System.getProperty("os.name");
+		if ((osName != null) && (osArch != null)) {
+			if (osName.startsWith("Windows")) {
+				if (osArch.equals("x86")) {
+					final String sunDataModel = System.getProperty("sun.arch.data.model");
+					if ((sunDataModel != null) && (sunDataModel.equals("64"))) {
+						return "/windows/amd64/yeppp.dll";
+					} else {
+						return "/windows/i586/yeppp.dll";
+					}
+				} else if (osArch.equals("amd64")) {
+					final String sunDataModel = System.getProperty("sun.arch.data.model");
+					if ((sunDataModel != null) && (sunDataModel.equals("32"))) {
+						return "/windows/i586/yeppp.dll";
+					} else {
+						return "/windows/amd64/yeppp.dll";
+					}
+				}
+			} else if (osName.equals("Linux")) {
+				try {
+					final java.io.RandomAccessFile file = new java.io.RandomAccessFile("/proc/self/exe", "r");
+					byte[] identification = readBytes(file, 16);
+					if ((identification[EI_MAG0] == 0x7F) && (identification[EI_MAG1] == 'E') && (identification[EI_MAG2] == 'L') && (identification[EI_MAG3] == 'F')) {
+						/* Detected ELF signature  */
+						final int elfEndianess = identification[EI_DATA];
+						if (elfEndianess == ELFDATA2LSB) {
+							/* Little endian headers and ABI */
+							final int elfClass = identification[EI_CLASS];
+							if (elfClass == ELFCLASS32) {
+								/* ELF-32 file format */
+								final byte[] header = readBytes(file, 36);
+								final int machine = header[2] | (header[3] << 8);
+								if (machine == EM_386) {
+									return "/linux/x86/libyeppp.so";
+								} else if (machine == EM_ARM) {
+									final int flags = header[20] | (header[21] << 8) | (header[22] << 16) | (header[23] << 24);
+									if ((flags & EF_ARM_ABIMASK) != 0) {
+										/* ARM EABI header */
+										final int fpFlags = flags & (EF_ARM_ABI_FLOAT_SOFT | EF_ARM_ABI_FLOAT_HARD);
+										if (fpFlags == EF_ARM_ABI_FLOAT_SOFT) {
+											/* Soft-float ARM EABI (armel) */
+											return "/linux/armel/libyeppp.so";
+										} else if (fpFlags == EF_ARM_ABI_FLOAT_HARD) {
+											/* Hard-float ARM EABI (armhf) */
+											return "/linux/armhf/libyeppp.so";
+										} else {
+											/* ARM EABI version (armel or armhf) is not specified here: need to parse sections */
+											final int sectionHeadersOffset = header[16] | (header[17] << 8) | (header[18] << 16) | (header[19] << 24);
+											final int sectionHeaderSize = header[30] | (header[31] << 8);
+											final int sectionCount = header[32] | (header[33] << 8);
+
+											/* Check the header size */
+											if (sectionHeaderSize == 40) {
+												/* Skip the null section */
+												file.seek(sectionHeadersOffset + sectionHeaderSize);
+												for (int sectionIndex = 1; sectionIndex < sectionCount; sectionIndex++) {
+													/* Read section header */
+													final byte[] sectionHeader = readBytes(file, sectionHeaderSize);
+													if (sectionHeader != null) {
+														final int sectionType = sectionHeader[4] | (sectionHeader[5] << 8) | (sectionHeader[6] << 16) | (sectionHeader[7] << 24);
+														if (sectionType == SHT_ARM_ATTRIBUTES) {
+															/* Found .ARM.attributes section. Now read it into memory. */
+															final int sectionOffset = sectionHeader[16] | (sectionHeader[17] << 8) |
+																(sectionHeader[18] << 16) | (sectionHeader[19] << 24);
+															file.seek(sectionOffset);
+															final int sectionSize = sectionHeader[20] | (sectionHeader[21] << 8) |
+																(sectionHeader[22] << 16) | (sectionHeader[23] << 24);
+															final byte[] section = readBytes(file, sectionSize);
+															if (section != null) {
+																/* Verify that it has known format version */
+																final int formatVersion = section[0];
+																if (formatVersion == 'A') {
+																	/* Iterate build attribute sections. We look for "aeabi" attributes section. */
+																	int attributesSectionOffset = 1;
+																	while (attributesSectionOffset < sectionSize) {
+																		final int attributesSectionLength = section[attributesSectionOffset] |
+																			(section[attributesSectionOffset+1] << 8) |
+																			(section[attributesSectionOffset+2] << 16) |
+																			(section[attributesSectionOffset+3] << 24);
+																		if (attributesSectionLength > 10) {
+																			/* Check if attributes section name if "aeabi" */
+																			if ((section[attributesSectionOffset+4] == 'a') &&
+																				(section[attributesSectionOffset+5] == 'e') &&
+																				(section[attributesSectionOffset+6] == 'a') &&
+																				(section[attributesSectionOffset+7] == 'b') &&
+																				(section[attributesSectionOffset+8] == 'i') &&
+																				(section[attributesSectionOffset+9] == 0))
+																			{
+
+																				/* Iterate build attribute subsections. */
+																				int attributesSubsectionOffset = attributesSectionOffset + 10;
+																				while (attributesSubsectionOffset < attributesSectionOffset + attributesSectionLength) {
+																					final int attributesSubsectionLength = section[attributesSubsectionOffset+1] |
+																						(section[attributesSubsectionOffset+2] << 8) |
+																						(section[attributesSubsectionOffset+3] << 16) |
+																						(section[attributesSubsectionOffset+4] << 24);
+																					/* We look for subsection of attributes for the whole file. */
+																					final int attributesSubsectionTag = section[attributesSubsectionOffset];
+																					if (attributesSubsectionTag == Tag_File) {
+																						/* Now read tag: value pairs */
+																						int tagOffset = attributesSubsectionOffset + 5;
+																						while (tagOffset < attributesSubsectionOffset + attributesSubsectionLength) {
+																							/* Read ULEB128-encoded integer */
+																							int tagByte = section[tagOffset++];
+																							int tag = (tagByte & 0x7F);
+																							while (tagByte < 0) {
+																								tagByte = section[tagOffset++];
+																								tag = (tag << 7) | (tagByte & 0x7F);
+																							}
+																							if (isTabNTBS(tag)) {
+																								/* Null-terminated string. Skip. */
+																								while (section[tagOffset++] != 0);
+																							} else {
+																								/* ULEB128-encoded integer. Parse. */
+																								int valueByte = section[tagOffset++];
+																								int value = (valueByte & 0x7F);
+																								while (tagByte < 0) {
+																									valueByte = section[tagOffset++];
+																									value = (value << 7) | (valueByte & 0x7F);
+																								}
+																								if (tag == Tag_ABI_VFP_args) {
+																									switch (value) {
+																										case 0:
+																											/* The user intended FP parameter/result passing to conform to AAPCS, base variant. */
+																											return "/linux/armel/libyeppp.so";
+																										case 1:
+																											/* The user intended FP parameter/result passing to conform to AAPCS, VFP variant. */
+																											return "/linux/armhf/libyeppp.so";
+																										case 2:
+																											/* The user intended FP parameter/result passing to conform to tool chain-specific conventions. */
+																											return null;
+																										case 3:
+																											/* Code is compatible with both the base and VFP variants; the user did not permit non-variadic functions to pass FP parameters/result. */
+																											return "/linux/armel/libyeppp.so";
+																										default:
+																											return null;
+																									}
+																								}
+																							}
+																						}
+																					}
+																					attributesSubsectionOffset += attributesSubsectionLength;
+																				}
+																			}
+																		}
+																		attributesSectionOffset += attributesSectionLength;
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+											/* If no Tag_ABI_VFP_args is present, assume default value (soft-float). */
+											return "/linux/armel/libyeppp.so";
+										}
+									}
+								}
+							} else if (elfClass == ELFCLASS64) {
+								/* ELF-64 file format */
+								final byte[] header = readBytes(file, 48);
+								final int machine = header[2] | (header[3] << 8);
+								if (machine == EM_X86_64) {
+									return "/linux/x86_64/libyeppp.so";
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+				}
+			} else if (osName.equals("Darwin") || osName.equals("Mac OS X")) {
+				if (osArch.equals("i386")) {
+					return "/macosx/x86/libyeppp.dylib";
+				} else  if (osArch.equals("x86_64")) {
+					return "/macosx/x86_64/libyeppp.dylib";
+				}
+			}
+		}
+		return null;
+	}
+
+	private static void loadOnce() {
+		final String javaVendorUrl = System.getProperty("java.vendor.url");
+		if (javaVendorUrl != null) {
+			if (!javaVendorUrl.contains("android")) {
+				final String libraryResourceName = Library.getLibraryResource();
+				if (libraryResourceName != null) {
+					final String libraryName = libraryResourceName.substring(libraryResourceName.lastIndexOf('/') + 1);
+					final int libraryNameExtensionPosition = libraryName.lastIndexOf('.');
+					if (libraryNameExtensionPosition != -1) {
+						final String libraryPrefix = libraryName.substring(0, libraryNameExtensionPosition);
+						final String librarySuffix = libraryName.substring(libraryNameExtensionPosition);
+						final java.io.InputStream libraryResourceStream = Library.class.getResourceAsStream(libraryResourceName);
+						if (libraryResourceStream != null) {
+							java.io.File libraryFile = null;
+							java.io.FileOutputStream libraryFileStream = null;
+							try {
+								libraryFile = java.io.File.createTempFile(libraryPrefix, librarySuffix);
+								libraryFileStream = new java.io.FileOutputStream(libraryFile);
+								byte[] buffer = new byte[131072];
+								int bytesRead;
+								while ((bytesRead = libraryResourceStream.read(buffer)) != -1) {
+									libraryFileStream.write(buffer, 0, bytesRead);
+								}
+								libraryFileStream.close();
+								libraryFile.deleteOnExit();
+								System.load(libraryFile.getAbsolutePath());
+								return;
+							} catch (Exception e) {
+								if (libraryFile != null) {
+									libraryFile.delete();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		System.loadLibrary("yeppp");
+	}
+
+	static void load() {
+	}
 
 	private static long isaFeatures = Library.getCpuIsaFeatures();
 	private static long simdFeatures = Library.getCpuSimdFeatures();

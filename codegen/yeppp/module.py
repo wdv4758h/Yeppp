@@ -52,8 +52,7 @@ class Module:
 		self.java_class_generator.indent()
 		self.java_class_generator.add_line("static {")
 		self.java_class_generator.indent()
-		self.java_class_generator.add_line("System.loadLibrary(\"yeppp\");")
-		self.java_class_generator.add_line("System.loadLibrary(\"yeppp-jni\");")
+		self.java_class_generator.add_line("Library.load();")
 		self.java_class_generator.dedent()
 		self.java_class_generator.add_line("}")
 		
@@ -135,8 +134,8 @@ class Function:
 
 	def generate(self, declaration):
 		self.function_generator.assembly_implementations = self.assembly_implementations
-		self.function_generator.default_documentation = self.c_documentation
+		self.function_generator.c_documentation = self.c_documentation
 		self.function_generator.java_documentation = self.java_documentation
-		self.function_generator.default_implementation = self.c_implementation
+		self.function_generator.default_cpp_implementation = self.c_implementation
 		self.function_generator.unit_test = self.unit_test
 		self.function_generator.generate(declaration)

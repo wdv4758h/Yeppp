@@ -13,7 +13,7 @@ package info.yeppp;
  */
 public class CpuIsaFeature {
 	static {
-		System.loadLibrary("yeppp");
+		Library.load();
 	}
 
 	private final int architectureId;
