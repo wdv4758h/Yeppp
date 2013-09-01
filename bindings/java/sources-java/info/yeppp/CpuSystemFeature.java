@@ -13,9 +13,7 @@ package info.yeppp;
  */
 public class CpuSystemFeature {
 	static {
-		/* Workaround for Android which ignores rpath */
 		System.loadLibrary("yeppp");
-		System.loadLibrary("yeppp-jni");
 	}
 
 	/** @brief The processor has a built-in cycle counter, and the operating system provides a way to access it. */

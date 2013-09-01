@@ -7,12 +7,17 @@
 
 import info.yeppp.ebuilda.*;
 import info.yeppp.ebuilda.filesystem.*;
-import info.yeppp.ebuilda.sdk.AndroidNDK;
-import info.yeppp.ebuilda.sdk.AndroidToolchain;
-import info.yeppp.ebuilda.sdk.WindowsSDK;
+import info.yeppp.ebuilda.AndroidNDK;
+import info.yeppp.ebuilda.AndroidToolchain;
+import info.yeppp.ebuilda.WindowsSDK;
+import info.yeppp.ebuilda.generic.Assembler;
+import info.yeppp.ebuilda.generic.CCompiler;
+import info.yeppp.ebuilda.generic.CppCompiler;
+import info.yeppp.ebuilda.generic.Linker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -24,82 +29,133 @@ public class CLIBuild {
 		for (final String abiName : args) {
 			final ABI abi = ABI.parse(abiName);
 			final Toolchain toolchain = getToolchain(abi);
-			setup(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, toolchain.gnuStrip, toolchain.gnuObjCopy, yepppRoot);
-			build(toolchain.cppCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, toolchain.gnuStrip, toolchain.gnuObjCopy, yepppRoot);
+			setup(toolchain.cppCompiler, toolchain.cCompiler, toolchain.assembler, toolchain.linker, toolchain.javaSDK, toolchain.microsoftResourceCompiler, toolchain.gnuStrip, toolchain.gnuObjCopy, toolchain.appleStrip, toolchain.appleDSymUtil, yepppRoot);
+			build(toolchain.cppCompiler, toolchain.cCompiler, toolchain.assembler, toolchain.linker, toolchain.microsoftResourceCompiler, toolchain.gnuStrip, toolchain.gnuObjCopy, toolchain.appleStrip, toolchain.appleDSymUtil, yepppRoot);
 		}
 	}
 
 	static class Toolchain {
-		public Toolchain(CppCompiler cppCompiler, Assembler assembler, Linker linker) {
+		public Toolchain(CppCompiler cppCompiler, CCompiler cCompiler, Assembler assembler, Linker linker, JavaSDK javaSDK) {
 			this.cppCompiler = cppCompiler;
+			this.cCompiler = cCompiler;
 			this.assembler = assembler;
 			this.linker = linker;
+			this.javaSDK = javaSDK;
 			this.microsoftResourceCompiler = null;
 			this.gnuStrip = null;
 			this.gnuObjCopy = null;
+			this.appleStrip = null;
+			this.appleDSymUtil = null;
 		}
 
-		public Toolchain(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler) {
+		public Toolchain(CppCompiler cppCompiler, CCompiler cCompiler, Assembler assembler, Linker linker, JavaSDK javaSDK, MicrosoftResourceCompiler microsoftResourceCompiler) {
 			this.cppCompiler = cppCompiler;
+			this.cCompiler = cCompiler;
 			this.assembler = assembler;
 			this.linker = linker;
+			this.javaSDK = javaSDK;
 			this.microsoftResourceCompiler = microsoftResourceCompiler;
 			this.gnuStrip = null;
 			this.gnuObjCopy = null;
+			this.appleStrip = null;
+			this.appleDSymUtil = null;
 		}
 
-		public Toolchain(CppCompiler cppCompiler, Assembler assembler, Linker linker, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy) {
+		public Toolchain(CppCompiler cppCompiler, CCompiler cCompiler, Assembler assembler, Linker linker, JavaSDK javaSDK, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy) {
 			this.cppCompiler = cppCompiler;
+			this.cCompiler = cCompiler;
 			this.assembler = assembler;
 			this.linker = linker;
+			this.javaSDK = javaSDK;
 			this.microsoftResourceCompiler = null;
 			this.gnuStrip = gnuStrip;
 			this.gnuObjCopy = gnuObjCopy;
+			this.appleStrip = null;
+			this.appleDSymUtil = null;
+		}
+
+		public Toolchain(CppCompiler cppCompiler, CCompiler cCompiler, Assembler assembler, Linker linker, JavaSDK javaSDK, AppleStrip appleStrip, AppleDSymUtil appleDSymUtil) {
+			this.cppCompiler = cppCompiler;
+			this.cCompiler = cCompiler;
+			this.assembler = assembler;
+			this.linker = linker;
+			this.javaSDK = javaSDK;
+			this.microsoftResourceCompiler = null;
+			this.gnuStrip = null;
+			this.gnuObjCopy = null;
+			this.appleStrip = appleStrip;
+			this.appleDSymUtil = appleDSymUtil;
 		}
 
 		final CppCompiler cppCompiler;
+		final CCompiler cCompiler;
 		final Assembler assembler;
 		final Linker linker;
 		final MicrosoftResourceCompiler microsoftResourceCompiler;
 		final GnuStrip gnuStrip;
 		final GnuObjCopy gnuObjCopy;
+		final AppleStrip appleStrip;
+		final AppleDSymUtil appleDSymUtil;
+		final JavaSDK javaSDK;
 	}
 
-	public static void setup(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AbsoluteDirectoryPath yepppRoot) {
+	public static void setup(CppCompiler cppCompiler, CCompiler cCompiler, Assembler assembler, Linker linker, JavaSDK javaSDK, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AppleStrip appleStrip, AppleDSymUtil appleDSymUtil, AbsoluteDirectoryPath yepppRoot) {
 		final ABI abi = cppCompiler.getABI();
 
-		final AbsoluteDirectoryPath sourceDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/sources"));
-		final AbsoluteDirectoryPath objectDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/binaries/" + abi.toString()));
+		final AbsoluteDirectoryPath librarySourceDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/sources"));
+		final AbsoluteDirectoryPath libraryHeaderDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/headers"));
+		final AbsoluteDirectoryPath libraryObjectDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/binaries/" + abi.toString()));
+		final AbsoluteDirectoryPath jniSourceDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("bindings/java/sources-jni"));
+		final AbsoluteDirectoryPath jniObjectDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("bindings/java/binaries/" + abi.toString()));
 		final AbsoluteDirectoryPath runtimeBinariesDirectory = new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("runtime/binaries/" + abi.toString()));
 
-		cppCompiler.setSourceDirectory(sourceDirectory);
-		cppCompiler.setObjectDirectory(objectDirectory);
+		cppCompiler.setSourceDirectory(librarySourceDirectory);
+		cppCompiler.setObjectDirectory(libraryObjectDirectory);
 		cppCompiler.addDefaultGlobalIncludeDirectories();
 		cppCompiler.setVerboseBuild(true);
 		cppCompiler.addMacro("YEP_BUILD_LIBRARY");
-		if (!abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
-			GnuCppCompiler gnuCppCompiler = (GnuCppCompiler)cppCompiler;
-			gnuCppCompiler.setPositionIndependentCodeGeneration(GnuCppCompiler.PositionIndependentCodeGeneration.UnlimitedLibraryPIC);
-		}
+		cppCompiler.setPositionIndependentCodeGeneration(PositionIndependentCodeGeneration.UnlimitedLibraryPIC);
 		cppCompiler.setRttiEnabled(false);
 		cppCompiler.setExceptionsSupport(CppCompiler.Exceptions.NoExceptions);
-		cppCompiler.setRuntimeLibrary(CppCompiler.RuntimeLibrary.NoRuntimeLibrary);
-		cppCompiler.setOptimization(CppCompiler.Optimization.MaxSpeedOptimization);
-		cppCompiler.addIncludeDirectory(cppCompiler.getSourceDirectory());
-		cppCompiler.addIncludeDirectory(new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/headers")));
+		if (abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
+			cppCompiler.setRuntimeLibrary(CCompiler.RuntimeLibrary.DynamicRuntimeLibrary);
+		} else {
+			cppCompiler.setRuntimeLibrary(CCompiler.RuntimeLibrary.NoRuntimeLibrary);
+		}
+		cppCompiler.setOptimization(CCompiler.Optimization.MaxSpeedOptimization);
+		cppCompiler.addIncludeDirectory(librarySourceDirectory);
+		cppCompiler.addIncludeDirectory(libraryHeaderDirectory);
+
+		cCompiler.setSourceDirectory(jniSourceDirectory);
+		cCompiler.setObjectDirectory(jniObjectDirectory);
+		cCompiler.addDefaultGlobalIncludeDirectories();
+		cCompiler.setVerboseBuild(true);
+		cCompiler.addMacro("YEP_BUILD_LIBRARY");
+		cCompiler.setPositionIndependentCodeGeneration(PositionIndependentCodeGeneration.UnlimitedLibraryPIC);
+		if (abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
+			cCompiler.setRuntimeLibrary(CCompiler.RuntimeLibrary.DynamicRuntimeLibrary);
+		} else {
+			cCompiler.setRuntimeLibrary(CCompiler.RuntimeLibrary.NoRuntimeLibrary);
+		}
+		cCompiler.setOptimization(CCompiler.Optimization.MinSizeOptimization);
+		cCompiler.addIncludeDirectory(jniSourceDirectory);
+		cCompiler.addIncludeDirectory(libraryHeaderDirectory);
+		if (javaSDK != null) {
+			cCompiler.addGlobalIncludeDirectories(javaSDK.getIncludeDirectories());
+		}
 
 		if (microsoftResourceCompiler != null) {
-			microsoftResourceCompiler.setSourceDirectory(sourceDirectory);
-			microsoftResourceCompiler.setObjectDirectory(objectDirectory);
+			microsoftResourceCompiler.setSourceDirectory(librarySourceDirectory);
+			microsoftResourceCompiler.setObjectDirectory(libraryObjectDirectory);
 			microsoftResourceCompiler.addDefaultGlobalIncludeDirectories();
 			microsoftResourceCompiler.setVerboseBuild(true);
-			microsoftResourceCompiler.addIncludeDirectory(sourceDirectory);
+			microsoftResourceCompiler.addIncludeDirectory(librarySourceDirectory);
 			microsoftResourceCompiler.addIncludeDirectory(new AbsoluteDirectoryPath(yepppRoot, new RelativeDirectoryPath("library/headers")));
 		}
 
 		if (assembler != null) {
-			assembler.setSourceDirectory(sourceDirectory);
-			assembler.setObjectDirectory(objectDirectory);
+			assembler.setSourceDirectory(librarySourceDirectory);
+			assembler.setObjectDirectory(libraryObjectDirectory);
 			assembler.setVerboseBuild(true);
 			if (assembler instanceof NASM) {
 				final NASM nasm = (NASM)assembler;
@@ -115,50 +171,71 @@ public class CLIBuild {
 			gnuStrip.setVerboseBuild(true);
 		}
 
-		linker.setObjectDirectory(objectDirectory);
-		linker.setBinariesDirectory(objectDirectory);
+		if (appleDSymUtil != null) {
+			appleDSymUtil.setVerboseBuild(true);
+		}
+
+		if (appleStrip != null) {
+			appleStrip.setVerboseBuild(true);
+		}
+
+		linker.setObjectDirectory(libraryObjectDirectory);
+		linker.setBinariesDirectory(libraryObjectDirectory);
 		linker.addDefaultGlobalLibraryDirectories();
 		if (!abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
-			GnuCppCompilerLinker gnuLinker = (GnuCppCompilerLinker)linker;
-			gnuLinker.setPIC(GnuCppCompilerLinker.PositionIndependentCode.Unlimited);
+			linker.setPIC(PositionIndependentCodeGeneration.UnlimitedLibraryPIC);
 		}
 		linker.setVerboseBuild(true);
 		linker.setRuntimeLibraryUse(false);
-		linker.addLibraryDirectory(runtimeBinariesDirectory);
-		linker.addStaticLibraryDependence("yeprt");
+		if (!abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
+			linker.addLibraryDirectory(runtimeBinariesDirectory);
+		}
+		if (abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
+			linker.addDynamicLibraryDependence("c");
+		} else {
+			linker.addStaticLibraryDependence("yeprt");
+		}
 		if (abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
 			linker.addDynamicLibraryDependence("kernel32");
 		}
 	}
 
 	public static Pattern getAssemblyPattern(ABI abi) {
-		switch (abi.getLowLevelABI()) {
-			case X86_Pic:
+		switch (abi) {
+			case X86_Linux_Pic_Android:
+			case X86_Linux_Pic_i586:
+			case X86_MacOSX_Pic_Default:
 				return Pattern.compile(".+\\.x86\\-pic\\.asm");
-			case X86_NonPic:
+			case X86_Windows_Default_i586:
 				return Pattern.compile(".+\\.x86\\-nonpic\\.asm");
-			case X64_Microsoft:
+			case X64_Windows_Microsoft_Default:
 				return Pattern.compile(".+\\.x64\\-ms\\.asm");
-			case X64_SystemV:
+			case X64_Linux_SystemV_Default:
+			case X64_MacOSX_SystemV_Default:
 				return Pattern.compile(".+\\.x64\\-sysv\\.asm");
-			case ARM_SoftEABI:
+			case X64_Linux_KNC_Default:
+				return Pattern.compile(".+\\.x64\\-k1om\\.asm");
+			case ARM_Linux_SoftEABI_V5T:
+			case ARM_Linux_SoftEABI_Android:
+			case ARM_Linux_SoftEABI_AndroidV7A:
 				return Pattern.compile(".+\\.arm(?:\\-softeabi)?\\.asm");
-			case ARM_HardEABI:
+			case ARM_Linux_HardEABI_V7A:
 				return Pattern.compile(".+\\.arm(?:\\-hardeabi)?\\.asm");
-			case MIPS_O32:
+			case MIPS_Linux_O32_Android:
 				return Pattern.compile(".+\\.mips\\.asm");
 			default:
-				throw new Error(String.format("Unknown low-level ABI %s", abi.getLowLevelABI().toString()));
+				throw new Error(String.format("Unknown ABI %s", abi.toString()));
 		}
 	}
 
-	public static void build(CppCompiler cppCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AbsoluteDirectoryPath yepppRoot) throws IOException {
+	public static void build(CppCompiler cppCompiler, CCompiler cCompiler, Assembler assembler, Linker linker, MicrosoftResourceCompiler microsoftResourceCompiler, GnuStrip gnuStrip, GnuObjCopy gnuObjCopy, AppleStrip appleStrip, AppleDSymUtil appleDSymUtil, AbsoluteDirectoryPath yepppRoot) throws IOException {
 		final ABI abi = cppCompiler.getABI();
 		final Architecture architecture = abi.getArchitecture();
 		final OperatingSystem operatingSystem = abi.getOperatingSystem();
 		final AbsoluteFilePath libraryBinaryPath = new AbsoluteFilePath(linker.getBinariesDirectory(), new RelativeFilePath("yeppp"));
 		final BuildMessages buildMessages = new BuildMessages();
 		final List<AbsoluteFilePath> cppSources = cppCompiler.getSourceDirectory().getFiles(Pattern.compile(".+\\.cpp"), true);
+		final List<AbsoluteFilePath> cSources = cCompiler.getSourceDirectory().getFiles(Pattern.compile(".+\\.c"), true);
 		final List<AbsoluteFilePath> rcSources = cppCompiler.getSourceDirectory().getFiles(Pattern.compile(".+\\.rc"), true);
 		final List<AbsoluteFilePath> asmSources = assembler.getSourceDirectory().getFiles(getAssemblyPattern(abi), true);
 		final List<AbsoluteFilePath> objects = new ArrayList<AbsoluteFilePath>(cppSources.size());
@@ -199,19 +276,27 @@ public class CLIBuild {
 			buildMessages.add(assembler.assemble(source));
 			objects.add(assembler.getObjectPath(source));
 		}
+		if (!abi.equals(ABI.X64_Linux_KNC_Default)) {
+			for (final AbsoluteFilePath source : cSources) {
+				buildMessages.add(cCompiler.compile(source));
+				objects.add(cCompiler.getObjectPath(source));
+			}
+		}
 		buildMessages.add(linker.linkDynamicLibrary(libraryBinaryPath, objects));
-		if ((gnuStrip != null) && (gnuObjCopy != null)) {
-			final AbsoluteFilePath libraryBinary = new AbsoluteFilePath(linker.getBinariesDirectory(), new RelativeFilePath("libyeppp.so"));
-			final AbsoluteFilePath debugBinary = new AbsoluteFilePath(linker.getBinariesDirectory(), new RelativeFilePath("libyeppp.dbg"));
-			buildMessages.add(gnuStrip.extractDebugInformation(libraryBinary, debugBinary));
-			buildMessages.add(gnuStrip.strip(libraryBinary));
-			buildMessages.add(gnuObjCopy.addGnuDebugLink(libraryBinary, debugBinary));
-			final AbsoluteFilePath finalLibraryBinary = new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), new RelativeFilePath("libyeppp.so"));
-			final AbsoluteFilePath finalDebugBinary = new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), new RelativeFilePath("libyeppp.dbg"));
+		if (abi.getOperatingSystem().equals(OperatingSystem.Linux)) {
+			final RelativeFilePath libraryBinary = new RelativeFilePath("libyeppp.so");
+			final RelativeFilePath debugBinary = new RelativeFilePath("libyeppp.dbg");
 			try {
 				getBinariesDirectory(yepppRoot, abi).create();
-				FileSystem.copyFile(finalLibraryBinary, libraryBinary);
-				FileSystem.copyFile(finalDebugBinary, debugBinary);
+				buildMessages.add(gnuStrip.extractDebugInformation(
+						new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary),
+						new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary)));
+				buildMessages.add(gnuStrip.strip(new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary)));
+				buildMessages.add(gnuObjCopy.addGnuDebugLink(
+						new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary),
+						new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary)));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), debugBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary));
 			} catch (IOException e) {
 			}
 		} else if (abi.getOperatingSystem().equals(OperatingSystem.Windows)) {
@@ -227,9 +312,15 @@ public class CLIBuild {
 			}
 		} else if (abi.getOperatingSystem().equals(OperatingSystem.MacOSX)) {
 			final RelativeFilePath libraryBinary = new RelativeFilePath("libyeppp.dylib");
+			final RelativeFilePath debugBinary = new RelativeFilePath("libyeppp.dylib.dSYM");
 			try {
 				getBinariesDirectory(yepppRoot, abi).create();
+				buildMessages.add(appleDSymUtil.extractDebugInformation(
+						new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary),
+						new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary)));
+				buildMessages.add(appleStrip.stripLocalSymbols(new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary)));
 				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), libraryBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), libraryBinary));
+				FileSystem.copyFile(new AbsoluteFilePath(getBinariesDirectory(yepppRoot, abi), debugBinary), new AbsoluteFilePath(linker.getBinariesDirectory(), debugBinary));
 			} catch (IOException e) {
 			}
 		}
@@ -289,7 +380,8 @@ public class CLIBuild {
 				final VisualStudio visualStudio = VisualStudio.enumerate(Machine.getLocal(), abi).getNewest();
 				final NASM nasm = NASM.enumerate(Machine.getLocal(), abi).getNewest();
 				final MicrosoftResourceCompiler resourceCompiler = visualStudio.getWindowsSDK().getResourceCompiler();
-				return new Toolchain(visualStudio.getCppCompiler(), nasm, visualStudio.getLinker(), resourceCompiler);
+				final JavaSDK javaSDK = JavaSDK.enumerate(Machine.getLocal()).getNewest();
+				return new Toolchain(visualStudio.getCppCompiler(), visualStudio.getCCompiler(), nasm, visualStudio.getLinker(), javaSDK, resourceCompiler);
 			}
 			case ARM_Linux_SoftEABI_Android:
 			case ARM_Linux_SoftEABI_AndroidV7A:
@@ -298,21 +390,48 @@ public class CLIBuild {
 			{
 				final AndroidNDK androidNDK = AndroidNDK.enumerate(Machine.getLocal()).getNewest();
 				final AndroidToolchain androidToolchain = androidNDK.enumerateToolchains(abi, AndroidToolchain.Type.GNU).getNewest();
-				return new Toolchain(androidToolchain.getCppCompiler(), androidToolchain.getAssembler(), androidToolchain.getLinker(), androidToolchain.getStrip(), androidToolchain.getObjCopy());
+				return new Toolchain(androidToolchain.getCppCompiler(), androidToolchain.getCCompiler(), androidToolchain.getAssembler(), androidToolchain.getLinker(), null, androidToolchain.getStrip(), androidToolchain.getObjCopy());
 			}
 			case X64_Linux_SystemV_Default:
 			case X86_Linux_Pic_i586:
 			{
-				final GnuToolchain gnuToolchain = GnuToolchain.enumerate(Machine.getLocal(), abi).getNewest();
+				final GccToolchain gccToolchain = GccToolchain.enumerate(Machine.getLocal(), abi).getNewest();
+				final GnuBinutils gnuBinutils = GnuBinutils.enumerate(Machine.getLocal(), abi).getNewest();
 				final NASM nasm = NASM.enumerate(Machine.getLocal(), abi).getNewest();
-				return new Toolchain(gnuToolchain.getCppCompiler(), nasm, gnuToolchain.getLinker(), gnuToolchain.getStrip(), gnuToolchain.getObjCopy());
+				final JavaSDK javaSDK = JavaSDK.enumerate(Machine.getLocal()).getNewest();
+				return new Toolchain(gccToolchain.getCppCompiler(), gccToolchain.getCCompiler(), nasm,
+						gccToolchain.getCppCompiler().asLinker(new LinkedList<AbsoluteDirectoryPath>()), javaSDK,
+						gnuBinutils.getStrip(), gnuBinutils.getObjCopy());
 			}
-			case X64_Linux_KNC_Default:
 			case ARM_Linux_HardEABI_V7A:
 			case ARM_Linux_SoftEABI_V5T:
 			{
-				final GnuToolchain gnuToolchain = GnuToolchain.enumerate(Machine.getLocal(), abi).getNewest();
-				return new Toolchain(gnuToolchain.getCppCompiler(), gnuToolchain.getAssembler(), gnuToolchain.getLinker(), gnuToolchain.getStrip(), gnuToolchain.getObjCopy());
+				final GccToolchain gccToolchain = GccToolchain.enumerate(Machine.getLocal(), abi).getNewest();
+				final GnuBinutils gnuBinutils = GnuBinutils.enumerate(Machine.getLocal(), abi).getNewest();
+				final JavaSDK javaSDK = JavaSDK.enumerate(Machine.getLocal()).getNewest();
+				return new Toolchain(gccToolchain.getCppCompiler(), gccToolchain.getCCompiler(), gnuBinutils.getAssembler(),
+						gccToolchain.getCppCompiler().asLinker(new LinkedList<AbsoluteDirectoryPath>()), javaSDK,
+						gnuBinutils.getStrip(), gnuBinutils.getObjCopy());
+			}
+			case X64_Linux_KNC_Default:
+			{
+				final GnuBinutils gnuBinutils = GnuBinutils.enumerate(Machine.getLocal(), abi).getNewest();
+				final IntelCppToolchain intelCppToolchain = IntelCppToolchain.enumerate(Machine.getLocal(), abi).getNewest();
+				return new Toolchain(intelCppToolchain.getCppCompiler(), intelCppToolchain.getCCompiler(), gnuBinutils.getAssembler(),
+						intelCppToolchain.getCppCompiler().asLinker(new LinkedList<AbsoluteDirectoryPath>()), null,
+						gnuBinutils.getStrip(), gnuBinutils.getObjCopy());
+			}
+			case X64_MacOSX_SystemV_Default:
+			case X86_MacOSX_Pic_Default:
+			{
+				final ClangToolchain clangToolchain = ClangToolchain.enumerate(Machine.getLocal(), abi).getNewest();
+				final AppleStrip appleStrip = AppleStrip.enumerate(Machine.getLocal(), abi).getNewest();
+				final AppleDSymUtil appleDSymUtil = AppleDSymUtil.enumerate(Machine.getLocal(), abi).getNewest();
+				final NASM nasm = NASM.enumerate(Machine.getLocal(), abi).getNewest();
+				final JavaSDK javaSDK = JavaSDK.enumerate(Machine.getLocal()).getNewest();
+				return new Toolchain(clangToolchain.getCppCompiler(), clangToolchain.getCCompiler(), nasm,
+						clangToolchain.getCppCompiler().asLinker(new LinkedList<AbsoluteDirectoryPath>()), javaSDK,
+						appleStrip, appleDSymUtil);
 			}
 			default:
 				return null;

@@ -13,9 +13,7 @@ package info.yeppp;
  */
 public class CpuSimdFeature {
 	static {
-		/* Workaround for Android which ignores rpath */
 		System.loadLibrary("yeppp");
-		System.loadLibrary("yeppp-jni");
 	}
 
 	private final int architectureId;

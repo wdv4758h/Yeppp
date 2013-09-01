@@ -125,31 +125,34 @@
 	#endif
 #endif
 
-typedef YepStatus (*FunctionPointer)();
 
-template <typename Function>
-struct FunctionDescriptor {
-	Function function;
-	Yep64u isaFeatures;
-	Yep64u simdFeatures;
-	Yep64u systemFeatures;
-	YepCpuMicroarchitecture microarchitecture;
-#if defined(YEP_DEBUG_LIBRARY)
-	const char language[4];
-	const char* algorithm;
-	const char* optimizations;
-#endif
-};
+#if defined(__cplusplus)
+	typedef YepStatus (*FunctionPointer)();
 
-template<class DescriptorType>
-static YEP_INLINE const DescriptorType* findDefaultDescriptor(const DescriptorType* descriptors) {
-	const DescriptorType* defaultDescriptor = &descriptors[0];
-	while ((defaultDescriptor ->isaFeatures != YepIsaFeaturesDefault) ||
-		(defaultDescriptor ->simdFeatures != YepSimdFeaturesDefault) ||
-		(defaultDescriptor ->systemFeatures != YepSystemFeaturesDefault) ||
-		(defaultDescriptor ->microarchitecture != YepCpuMicroarchitectureUnknown))
-	{
-		defaultDescriptor++;
+	template <typename Function>
+	struct FunctionDescriptor {
+		Function function;
+		Yep64u isaFeatures;
+		Yep64u simdFeatures;
+		Yep64u systemFeatures;
+		YepCpuMicroarchitecture microarchitecture;
+	#if defined(YEP_DEBUG_LIBRARY)
+		const char language[4];
+		const char* algorithm;
+		const char* optimizations;
+	#endif
+	};
+
+	template<class DescriptorType>
+	static YEP_INLINE const DescriptorType* findDefaultDescriptor(const DescriptorType* descriptors) {
+		const DescriptorType* defaultDescriptor = &descriptors[0];
+		while ((defaultDescriptor ->isaFeatures != YepIsaFeaturesDefault) ||
+			(defaultDescriptor ->simdFeatures != YepSimdFeaturesDefault) ||
+			(defaultDescriptor ->systemFeatures != YepSystemFeaturesDefault) ||
+			(defaultDescriptor ->microarchitecture != YepCpuMicroarchitectureUnknown))
+		{
+			defaultDescriptor++;
+		}
+		return defaultDescriptor;
 	}
-	return defaultDescriptor;
-}
+#endif

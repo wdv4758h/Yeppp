@@ -15,9 +15,7 @@ package info.yeppp;
  */
 public final class CpuMicroarchitecture {
 	static {
-		/* Workaround for Android which ignores rpath */
 		System.loadLibrary("yeppp");
-		System.loadLibrary("yeppp-jni");
 	}
 
 	/** @brief Microarchitecture is unknown, or the library failed to get information about the microarchitecture from OS */
