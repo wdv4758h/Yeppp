@@ -15,7 +15,7 @@ package info.yeppp;
  */
 public final class CpuMicroarchitecture {
 	static {
-		System.loadLibrary("yeppp");
+		Library.load();
 	}
 
 	/** @brief Microarchitecture is unknown, or the library failed to get information about the microarchitecture from OS */

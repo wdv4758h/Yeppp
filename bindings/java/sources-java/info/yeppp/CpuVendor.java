@@ -11,7 +11,7 @@ package info.yeppp;
 /** @see	Library.getCpuVendor */
 public final class CpuVendor {
 	static {
-		System.loadLibrary("yeppp");
+		Library.load();
 	}
 
 	/** @brief	Processor vendor is not known to the library, or the library failed to get vendor information from the OS. */

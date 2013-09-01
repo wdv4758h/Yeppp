@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
 /** @see	Library#getCpuArchitecture */
 public final class CpuArchitecture {
 	static {
-		System.loadLibrary("yeppp");
+		Library.load();
 	}
 
 	/** @brief	Instruction set architecture is not known to the library. */
