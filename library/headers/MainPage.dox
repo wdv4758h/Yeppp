@@ -100,7 +100,7 @@ If your shell does not support \c source command, use the equivalent command
 </ul>
 You can also omit the &lt;arch&gt; parameter. This case the setup script will auto-detect the host architecture and set the environment variable accordingly.
 
-The set-vars.sh script modifies environment variables CPATH and LIBRARY_PATH which tell the compilers where to search for @Yeppp headers and binaries. It also sets environment variables to let the dynamic linker find @Yeppp when you execute a program which makes use of this library.
+The set-vars.sh script modifies environment variables CPATH and LIBRARY_PATH which tell the compilers where to search for @Yeppp headers and binaries. However, when doing cross-compilation the linker ignores LIBRARY_PATH variable, so you will need to manually specify the search directory for Yeppp! binaries by adding -L$(YEPBINARIES) to LDFLAGS. It also sets environment variables to let the dynamic linker find @Yeppp when you execute a program which makes use of this library.
 
 Now just add <tt>-lyeppp</tt> option when linking your program, e.g.
 	\code{.bash}
@@ -112,7 +112,7 @@ and you can use @Yeppp in your codes!
 
 Download and unpack the recent release of @Yeppp from <a href="http://www.yeppp.info/downloads.html">the official website</a>.
 
-@Yeppp integrates with Android NDK as an import module. To enable @Yeppp in your Android NDK project, first open the Android.mk in a text editor. Add \c yeppp to the list of required shared libraries:
+@Yeppp integrates with Android NDK as an import module. To enable @Yeppp in your Android NDK project, open the Android.mk in a text editor and add \c yeppp to the list of required shared libraries:
 \code{.makefile}
 LOCAL_SHARED_LIBRARIES += yeppp
 \endcode
