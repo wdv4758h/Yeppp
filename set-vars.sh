@@ -62,7 +62,7 @@ guess_platform()
 {
 	OS_KERNEL=$(uname -s)
 	ARCHITECTURE=$(uname -m)
-	if [ "${OS_KERNEL}"=="Linux" ]
+	if [ "${OS_KERNEL}" = "Linux" ]
 	then
 		case "${ARCHITECTURE}" in
 			"i386"|"i486"|"i586"|"i686")
@@ -82,16 +82,16 @@ guess_platform()
 				if [ "$?" -eq 0 ]
 				then
 					ABI=$(dpkg --print-architecture)
-					if [ "${ABI}"=="armhf" ]
+					if [ "${ABI}" = "armhf" ]
 					then
 						echo "linux-armhf"
 						return 0
-					elif [ "${ABI}"=="armel" ]
+					elif [ "${ABI}" = "armel" ]
 					then
 						echo "linux-armel"
 						return 0
 					else
-						if [ "$1"!="silent" ]
+						if [ "$1" != "silent" ]
 						then
 							error_os_arch_abi "${OS_KERNEL}" "${ARCHITECTURE}" "${ABI}"
 						fi
@@ -99,7 +99,7 @@ guess_platform()
 						return 1
 					fi
 				else
-					if [ "$1"!="silent" ]
+					if [ "$1" != "silent" ]
 					then
 						echo "Warning: could not reliably detect ABI. Assume soft-float ARM EABI" >&2
 					fi
@@ -112,16 +112,16 @@ guess_platform()
 				if [ "$?" -eq 0 ]
 				then
 					ABI=$(dpkg --print-architecture)
-					if [ "${ABI}"=="armhf" ]
+					if [ "${ABI}" = "armhf" ]
 					then
 						echo "linux-armhf"
 						return 0
-					elif [ "${ABI}"=="armel" ]
+					elif [ "${ABI}" = "armel" ]
 					then
 						echo "linux-armel"
 						return 0
 					else
-						if [ "$1"!="silent" ]
+						if [ "$1" != "silent" ]
 						then
 							error_os_arch_abi "${OS_KERNEL}" "${ARCHITECTURE}" "${ABI}"
 						fi
@@ -129,7 +129,7 @@ guess_platform()
 						return 1
 					fi
 				else
-					if [ "$1"!="silent" ]
+					if [ "$1" != "silent" ]
 					then
 						echo "Warning: could not reliably detect ABI. Assume hard-float ARM EABI" >&2
 					fi
@@ -138,7 +138,7 @@ guess_platform()
 				fi
 			;;
 			*)
-				if [ "$1"!="silent" ]
+				if [ "$1" != "silent" ]
 				then
 					error_os_arch "${OS_KERNEL}" "${ARCHITECTURE}"
 				fi
@@ -146,7 +146,7 @@ guess_platform()
 				return 1
 			;;
 		esac
-	elif [ "${OS_KERNEL}"=="Darwin" ]
+	elif [ "${OS_KERNEL}" = "Darwin" ]
 	then
 		case "${ARCHITECTURE}" in
 			"x86")
@@ -158,7 +158,7 @@ guess_platform()
 				return 0
 			;;
 			*)
-				if [ "$1"!="silent" ]
+				if [ "$1" != "silent" ]
 				then
 					error_os_arch "${OS_KERNEL}" "${ARCHITECTURE}"
 				fi
@@ -167,7 +167,7 @@ guess_platform()
 			;;
 		esac
 	else
-		if [ "$1"!="silent" ]
+		if [ "$1" != "silent" ]
 		then
 			error_os "${OS_KERNEL}"
 		fi
@@ -588,7 +588,7 @@ then
 elif [ -n "${KSH_VERSION}" ]
 then
 	YEP_ROOT=$( cd $(dirname ${.sh.file}) ; pwd )
-elif [ "$0"=="dash" ]
+elif [ "$0" = "dash" ]
 then
 	echo "Warning: dash is only partially supported: architecture is always auto-detected" >&2
 	YEP_SCRIPT_FD=`ls /proc/$$/fd/ | sort -nr | head -n 1`
