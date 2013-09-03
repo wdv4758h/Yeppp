@@ -28,7 +28,6 @@
 									<File Id="WindowsX86Binaries.DynamicLibrary" Name="yeppp.dll" DiskId="1" Source="binaries\windows\x86\yeppp.dll" KeyPath="yes" />
 									<File Id="WindowsX86Binaries.ImportLibrary" Name="yeppp.lib" DiskId="1" Source="binaries\windows\x86\yeppp.lib" />
 									<File Id="WindowsX86Binaries.DebugDatabase" Name="yeppp.pdb" DiskId="1" Source="binaries\windows\x86\yeppp.pdb" />
-									<File Id="WindowsX86Binaries.JNIDynamicLibrary" Name="yeppp-jni.dll" DiskId="1" Source="binaries\windows\x86\yeppp-jni.dll" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Windows.AMD64" Name="x64">
@@ -36,7 +35,6 @@
 									<File Id="WindowsAMD64Binaries.DynamicLibrary" Name="yeppp.dll" DiskId="1" Source="binaries\windows\amd64\yeppp.dll" KeyPath="yes" />
 									<File Id="WindowsAMD64Binaries.ImportLibrary" Name="yeppp.lib" DiskId="1" Source="binaries\windows\amd64\yeppp.lib" />
 									<File Id="WindowsAMD64Binaries.DebugDatabase" Name="yeppp.pdb" DiskId="1" Source="binaries\windows\amd64\yeppp.pdb" />
-									<File Id="WindowsAMD64Binaries.JNIDynamicLibrary" Name="yeppp-jni.dll" DiskId="1" Source="binaries\windows\amd64\yeppp-jni.dll" />
 								</Component>
 							</Directory>
 						</Directory>
@@ -45,14 +43,12 @@
 								<Component Id="LinuxX86Binaries" Guid="FB967E8A-2DBC-4F3A-B2BC-47D0750FE5F3">
 									<File Id="LinuxX86Binaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\linux\i586\libyeppp.so" KeyPath="yes" />
 									<File Id="LinuxX86Binaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\i586\libyeppp.dbg" />
-									<File Id="LinuxX86Binaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\linux\i586\libyeppp-jni.so" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Linux.X64" Name="x86_64">
 								<Component Id="LinuxX64Binaries" Guid="7E4ABBBF-483F-4EEB-BF17-491C8888525A">
 									<File Id="LinuxX64Binaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\linux\x86_64\libyeppp.so" KeyPath="yes" />
 									<File Id="LinuxX64Binaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\x86_64\libyeppp.dbg" />
-									<File Id="LinuxX64Binaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\linux\x86_64\libyeppp-jni.so" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Linux.K1OM" Name="k1om">
@@ -64,15 +60,13 @@
 							<Directory Id="Binaries.Linux.ARMEL" Name="armel">
 								<Component Id="LinuxARMELBinaries" Guid="B90CE78B-C1F2-4606-A7E1-BC64F443DF48">
 									<File Id="LinuxARMELBinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\linux\armel\libyeppp.so" KeyPath="yes" />
-									<!--<File Id="LinuxARMELBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\armel\libyeppp.dbg" />-->
-									<File Id="LinuxARMELBinaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\linux\armel\libyeppp-jni.so" />
+									<File Id="LinuxARMELBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\armel\libyeppp.dbg" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Linux.ARMHF" Name="armhf">
 								<Component Id="LinuxARMHFBinaries" Guid="C9163564-2EF6-4E42-BB24-56342BE3D28E">
 									<File Id="LinuxARMHFBinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\linux\armhf\libyeppp.so" KeyPath="yes" />
-									<!--<File Id="LinuxARMHFBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\armhf\libyeppp.dbg" />-->
-									<File Id="LinuxARMHFBinaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\linux\armhf\libyeppp-jni.so" />
+									<File Id="LinuxARMHFBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\armhf\libyeppp.dbg" />
 								</Component>
 							</Directory>
 						</Directory>
@@ -80,11 +74,13 @@
 							<Directory Id="Binaries.MacOSX.X86" Name="x86">
 								<Component Id="MacOSXX86Binaries" Guid="C06147CC-90AF-4F7F-B01E-B7A0AB943580">
 									<File Id="MacOSXX86Binaries.DynamicLibrary" Name="libyeppp.dylib" DiskId="1" Source="binaries\macosx\x86\libyeppp.dylib" KeyPath="yes" />
+									<File Id="MacOSXX86Binaries.DebugSymbols" Name="libyeppp.dylib.dSYM" DiskId="1" Source="binaries\macosx\x86\libyeppp.dylib.dSYM" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.MacOSX.X64" Name="x86_64">
 								<Component Id="MacOSXX64Binaries" Guid="CB8D920A-0393-4859-8CDC-C85E25945072">
 									<File Id="MacOSXX64Binaries.DynamicLibrary" Name="libyeppp.dylib" DiskId="1" Source="binaries\macosx\x86_64\libyeppp.dylib" KeyPath="yes" />
+									<File Id="MacOSXX64Binaries.DebugSymbols" Name="libyeppp.dylib.dSYM" DiskId="1" Source="binaries\macosx\x86_64\libyeppp.dylib.dSYM" />
 								</Component>
 							</Directory>
 						</Directory>
@@ -93,28 +89,24 @@
 								<Component Id="AndroidARMEABIBinaries" Guid="3D23F1CA-12DF-4F58-AE41-55E1C633A974">
 									<File Id="AndroidARMEABIBinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\android\armeabi\libyeppp.so" KeyPath="yes" />
 									<File Id="AndroidARMEABIBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\android\armeabi\libyeppp.dbg" />
-									<File Id="AndroidARMEABIBinaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\android\armeabi\libyeppp-jni.so" />
 								</Component>
 							</Directory>
-							<Directory Id="Binaries.Android.ARMEABIv7A" Name="armeabiv7a">
+							<Directory Id="Binaries.Android.ARMEABIv7A" Name="armeabi-v7a">
 								<Component Id="AndroidARMEABIv7ABinaries" Guid="CC43CC2F-447B-4074-9FB0-31401B8AB30E">
-									<File Id="AndroidARMEABIv7ABinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\android\armeabiv7a\libyeppp.so" KeyPath="yes" />
-									<File Id="AndroidARMEABIv7ABinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\android\armeabiv7a\libyeppp.dbg" />
-									<File Id="AndroidARMEABIv7ABinaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\android\armeabiv7a\libyeppp-jni.so" />
+									<File Id="AndroidARMEABIv7ABinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\android\armeabi-v7a\libyeppp.so" KeyPath="yes" />
+									<File Id="AndroidARMEABIv7ABinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\android\armeabi-v7a\libyeppp.dbg" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Android.X86" Name="x86">
 								<Component Id="AndroidX86Binaries" Guid="0AA3F25A-D56B-4EB6-B24B-1A1EE52FC576">
 									<File Id="AndroidX86Binaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\android\x86\libyeppp.so" KeyPath="yes" />
 									<File Id="AndroidX86Binaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\android\x86\libyeppp.dbg" />
-									<File Id="AndroidX86Binaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\android\x86\libyeppp-jni.so" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Android.MIPS" Name="mips">
 								<Component Id="AndroidMIPSBinaries" Guid="918DCF52-799C-43C0-95AE-88BF604C3301">
 									<File Id="AndroidMIPSBinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\android\mips\libyeppp.so" KeyPath="yes" />
 									<File Id="AndroidMIPSBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\android\mips\libyeppp.dbg" />
-									<File Id="AndroidMIPSBinaries.JNIDynamicLibrary" Name="libyeppp-jni.so" DiskId="1" Source="binaries\android\mips\libyeppp-jni.so" />
 								</Component>
 							</Directory>
 							<Directory Id="Binaries.Android.Yeppp" Name="yeppp">
@@ -132,6 +124,9 @@
 						<Directory Id="Binaries.JVM1.5" Name="java-1.5">
 							<Component Id="JVM1.5Binaries" Guid="408059CA-5F83-4B13-A207-3624CB5B4BAB">
 								<File Id="JVM1.5Binaries.JAR" Name="yeppp.jar" DiskId="1" Source="binaries\java-1.5\yeppp.jar" KeyPath="yes" />
+							</Component>
+							<Component Id="JVM1.5Bundle" Guid="DBE1FABC-3994-489E-ACD2-F234E346E895">
+								<File Id="JVM1.5Bundle.jAR" Name="yeppp-bundle.jar" DiskId="1" Source="binaries\java-1.5\yeppp-bundle.jar" KeyPath="yes" />
 							</Component>
 						</Directory>
 					</Directory>
@@ -265,8 +260,9 @@
 					</Feature>
 				</Feature>
 				<Feature Id="JVMSupport" Title="JVM Languages" Description="Yeppp! support files for Java Virtual Machine languages, such as Java and Scala" Level="1" AllowAdvertise="no" InstallDefault="local">
-					<Feature Id="JVMSupportBinaries" Title="JVM 1.5 Binaries" Description="Pre-built library bindings (.jar file) for Java Runtime Environment 1.5" Level="1" AllowAdvertise="no" InstallDefault="local">
+					<Feature Id="JVMSupportBinaries" Title="JVM 1.5 Binaries" Description="Pre-built library bindings (.jar files) for Java Runtime Environment 1.5" Level="1" AllowAdvertise="no" InstallDefault="local">
 						<ComponentRef Id="JVM1.5Binaries" />
+						<ComponentRef Id="JVM1.5Bundle" />
 					</Feature>
 					<Feature Id="JavaSupportExamples" Title="Java examples" Description="Examples of using Yeppp! with Java" Level="1" AllowAdvertise="no" InstallDefault="local">
 						<ComponentRef Id="JavaExamplesAntProject" />
