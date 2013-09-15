@@ -38,7 +38,7 @@ static void numberToString(char* string, Yep32u number) {
 				number /= 10;
 			#endif
 		}
-		while (*string++ = *cur++);
+		while ((*string++ = *cur++));
 	}
 }
 
