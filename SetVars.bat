@@ -2,7 +2,7 @@
 REM                      Yeppp! library implementation
 REM
 REM This file is part of Yeppp! library and licensed under the New BSD license.
-REM See library/LICENSE.txt for the full text of the license.
+REM See LICENSE.txt for the full text of the license.
 
 IF NOT "%2" == "" GOTO error
 
