@@ -161,6 +161,7 @@ public class CLIBuild {
 		toolchain.jniCompiler.setOptimization(CCompiler.Optimization.MinSizeOptimization);
 		toolchain.jniCompiler.addIncludeDirectory(jniSourceDirectory);
 		toolchain.jniCompiler.addIncludeDirectory(libraryHeaderDirectory);
+		toolchain.jniCompiler.addIncludeDirectory(librarySourceDirectory);
 		if (toolchain.javaSDK != null) {
 			toolchain.jniCompiler.addGlobalIncludeDirectories(toolchain.javaSDK.getIncludeDirectories());
 		}
