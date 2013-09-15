@@ -1,7 +1,7 @@
-How to build Peach-Py
+How to build Yeppp!
 =====================
 
-Do you need to build Peach-Py?
+Do you need to build Yeppp?
 ------------------------------
 
 **For 99% of cases, no!** Yeppp! releases include pre-built binaries for all supported platforms, and for most users we recommend using these pre-built binaries. Unlike most other Unix libraries, Yeppp! maintains binary compatibility with nearly all Linux distributions, so there is no need to rebuild it yourself. Moreover, **BUILDING YEPPP! WITH OUTDATED TOOLCHAIN CAN PRODUCE BINARIES WHICH CRASH ON SOME SYSTEMS, BUT NOT OTHERS** (and by Murphy's law it will crash on all systems but the ones you tested on). This guide is provided for those who want to participate in development of Yeppp! or otherwise modify the library, all others will be better off using pre-built binaries.
