@@ -7,7 +7,7 @@
 
 #include <yepPredefines.h>
 #include <yepTypes.h>
-#include <yepPrivate.hpp>
+#include <yepPrivate.h>
 #include <atomic/functions.h>
 #include <yepAtomic.h>
 #include <yepBuiltin.h>

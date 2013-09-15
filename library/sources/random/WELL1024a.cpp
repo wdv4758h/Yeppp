@@ -7,7 +7,7 @@
 
 #include <yepPredefines.h>
 #include <yepTypes.h>
-#include <yepPrivate.hpp>
+#include <yepPrivate.h>
 #include <yepRandom.h>
 #include <yepBuiltin.h>
 

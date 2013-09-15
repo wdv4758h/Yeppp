@@ -6,7 +6,7 @@
  */
 
 #include <jni.h>
-#include <yepPrivate.hpp>
+#include <yepPrivate.h>
 #include <yepLibrary.h>
 #include <yepVersion.h>
 #include <yepJavaPrivate.h>
