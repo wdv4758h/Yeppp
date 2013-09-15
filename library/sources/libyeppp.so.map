@@ -5,6 +5,9 @@
 		yepAtomic_*;
 		yepRandom_*;
 		yepLibrary_*;
+		JNI_OnLoad;
+		JNI_OnUnload;
+		Java_info_yeppp_*;
 	local:
 		*;
 };

@@ -2,7 +2,7 @@
  *                      Yeppp! library build framework
  *
  * This file is part of Yeppp! library infrastructure and licensed under the New BSD license.
- * See library/LICENSE.txt for the full text of the license.
+ * See LICENSE.txt for the full text of the license.
  */
 
 import info.yeppp.ebuilda.*;

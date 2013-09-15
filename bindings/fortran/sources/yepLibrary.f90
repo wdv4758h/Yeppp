@@ -2,9 +2,7 @@
 !                      Yeppp! library implementation
 !
 ! This file is part of Yeppp! library and licensed under 2-clause BSD license.
-! See library/LICENSE.txt for details.
-!
-!
+! See LICENSE.txt for details.
 
 !> @defgroup yepLibrary yepLibrary: library initialization, information, and support functions.
 MODULE yepLibrary
