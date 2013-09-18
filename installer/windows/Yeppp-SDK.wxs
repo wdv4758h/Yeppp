@@ -141,6 +141,12 @@
 							<Directory Id="Bindings.Fortran.Sources" Name="sources" />
 						</Directory>
 					</Directory>
+					<Directory Id="Documentation" Name="docs">
+						<Directory Id="Documentation.C" Name="c" />
+						<Directory Id="Documentation.CSharp" Name="cs" />
+						<Directory Id="Documentation.Fortran" Name="fortran" />
+						<Directory Id="Documentation.Java" Name="java" />
+					</Directory>
 					<Directory Id="Examples" Name="examples">
 						<Directory Id="Examples.C" Name="c" />
 						<Directory Id="Examples.CSharp" Name="csharp">
@@ -163,7 +169,7 @@
 						</Directory>
 					</Directory>
 					<Component Id="YepppLicense" Guid="B83FC2FD-0D9A-4344-8265-C7E2CABD981F">
-						<File Id="Library.License" Name="LICENSE.txt" Source="library\LICENSE.txt" KeyPath="yes" />
+						<File Id="Library.License" Name="LICENSE.txt" Source="LICENSE.txt" KeyPath="yes" />
 					</Component>
 					<Component Id="YepppWindowsEnvironment" Guid="20BEB0D4-BD4A-49FF-94B6-6378920A62BB">
 						<File Id="Library.SetVariables.Windows" Name="SetVars.bat" DiskId="1" Source="SetVars.bat" KeyPath="yes" />
@@ -239,6 +245,9 @@
 					<Feature Id="CSupportExamples" Title="C examples" Description="Examples of using Yeppp! with C" Level="1" AllowAdvertise="no" InstallDefault="local" Absent="disallow">
 						<ComponentGroupRef Id="CExamples" />
 					</Feature>
+					<Feature Id="CSupportDocumentation" Title="C documentation" Description="Documentation for using Yeppp! with C" Level="1" AllowAdvertise="no" InstallDefault="local" Absent="disallow">
+						<ComponentGroupRef Id="CDocumentation" />
+					</Feature>
 				</Feature>
 				<Feature Id="FortranSupport" Title="FORTRAN" Description="Yeppp! support files for FORTRAN" Level="2" AllowAdvertise="no" InstallDefault="local">
 					<Feature Id="FortranSupportModules" Title="FORTRAN modules" Description="FORTRAN modules with definitions of Yeppp! functions" Level="2" AllowAdvertise="no" InstallDefault="local">
@@ -249,6 +258,9 @@
 						<ComponentRef Id="FortranExamplesMakefile" />
 						<ComponentGroupRef Id="FortranExamples" />
 					</Feature>
+					<Feature Id="FortranSupportDocumentation" Title="FORTRAN documentation" Description="Documentation for using Yeppp! with FORTRAN" Level="2" AllowAdvertise="no" InstallDefault="local" Absent="disallow">
+						<ComponentGroupRef Id="FortranDocumentation" />
+					</Feature>
 				</Feature>
 				<Feature Id="CLRSupport" Title="CLR (.Net) Languages" Description="Yeppp! support files for Common Language Runtime (.Net) languages, such as C# and VB.Net" Level="1" AllowAdvertise="no" InstallDefault="local">
 					<Feature Id="CLRSupportBinaries" Title="CLR 2.0 Binaries" Description="Pre-built library bindings (managed DLL) for .Net framework 2.0" Level="1" AllowAdvertise="no" InstallDefault="local">
@@ -257,6 +269,9 @@
 					<Feature Id="CSharpSupportExamples" Title="C# examples" Description="Examples of using Yeppp! with C#" Level="1" AllowAdvertise="no" InstallDefault="local">
 						<ComponentRef Id="CSharpExamplesVSProject" />
 						<ComponentGroupRef Id="CSharpExamples" />
+					</Feature>
+					<Feature Id="CSharpSupportDocumentation" Title="C# documentation" Description="Documentation for using Yeppp! with C#" Level="1" AllowAdvertise="no" InstallDefault="local" Absent="disallow">
+						<ComponentGroupRef Id="CSharpDocumentation" />
 					</Feature>
 				</Feature>
 				<Feature Id="JVMSupport" Title="JVM Languages" Description="Yeppp! support files for Java Virtual Machine languages, such as Java and Scala" Level="1" AllowAdvertise="no" InstallDefault="local">
@@ -267,6 +282,9 @@
 					<Feature Id="JavaSupportExamples" Title="Java examples" Description="Examples of using Yeppp! with Java" Level="1" AllowAdvertise="no" InstallDefault="local">
 						<ComponentRef Id="JavaExamplesAntProject" />
 						<ComponentGroupRef Id="JavaExamples" />
+					</Feature>
+					<Feature Id="JavaSupportDocumentation" Title="Java documentation" Description="Documentation for using Yeppp! with Java" Level="1" AllowAdvertise="no" InstallDefault="local" Absent="disallow">
+						<ComponentGroupRef Id="JavaDocumentation" />
 					</Feature>
 				</Feature>
 			</Feature>

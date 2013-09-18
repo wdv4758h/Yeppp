@@ -24,6 +24,18 @@ JavaExamples.wxs:
 FortranExamples.wxs:
 	"$(WIX)\bin\heat" dir "$(YEPROOT)\examples\fortran\sources" -nologo -cg FortranExamples -gg -g1 -sfrag -srd -dr Examples.Fortran -var "var.SourceDirectory" -out $@
 
+CDocumentation.wxs:
+	"$(WIX)\bin\heat" dir "$(YEPROOT)\docs\c" -nologo -cg CDocumentation -gg -g1 -sfrag -srd -dr Documentation.C -var "var.SourceDirectory" -out $@
+
+FortranDocumentation.wxs:
+	"$(WIX)\bin\heat" dir "$(YEPROOT)\docs\fortran" -nologo -cg FortranDocumentation -gg -g1 -sfrag -srd -dr Documentation.Fortran -var "var.SourceDirectory" -out $@
+
+CSharpDocumentation.wxs:
+	"$(WIX)\bin\heat" dir "$(YEPROOT)\docs\cs" -nologo -cg CSharpDocumentation -gg -g1 -sfrag -srd -dr Documentation.CSharp -var "var.SourceDirectory" -out $@
+
+JavaDocumentation.wxs:
+	"$(WIX)\bin\heat" dir "$(YEPROOT)\docs\java" -nologo -cg JavaDocumentation -gg -g1 -sfrag -srd -dr Documentation.Java -var "var.SourceDirectory" -out $@
+
 Yeppp-SDK.wixobj: Yeppp-SDK.wxs Version.wxi
 	"$(WIX)\bin\candle" -nologo -out $@ Yeppp-SDK.wxs
 
@@ -45,5 +57,17 @@ JavaExamples.wixobj: JavaExamples.wxs
 FortranExamples.wixobj: FortranExamples.wxs
 	"$(WIX)\bin\candle" -nologo "-dSourceDirectory=$(YEPROOT)\examples\fortran\sources" -out $@ $**
 
-Yeppp-SDK.msi: Yeppp-SDK.wixobj CHeaders.wixobj FortranModules.wixobj CExamples.wixobj CSharpExamples.wixobj JavaExamples.wixobj FortranExamples.wixobj
+CDocumentation.wixobj: CDocumentation.wxs
+	"$(WIX)\bin\candle" -nologo "-dSourceDirectory=$(YEPROOT)\docs\c" -out $@ $**
+
+FortranDocumentation.wixobj: FortranDocumentation.wxs
+	"$(WIX)\bin\candle" -nologo "-dSourceDirectory=$(YEPROOT)\docs\fortran" -out $@ $**
+
+CSharpDocumentation.wixobj: CSharpDocumentation.wxs
+	"$(WIX)\bin\candle" -nologo "-dSourceDirectory=$(YEPROOT)\docs\cs" -out $@ $**
+
+JavaDocumentation.wixobj: JavaDocumentation.wxs
+	"$(WIX)\bin\candle" -nologo "-dSourceDirectory=$(YEPROOT)\docs\java" -out $@ $**
+
+Yeppp-SDK.msi: Yeppp-SDK.wixobj CHeaders.wixobj FortranModules.wixobj CExamples.wixobj CSharpExamples.wixobj JavaExamples.wixobj FortranExamples.wixobj CDocumentation.wixobj FortranDocumentation.wixobj CSharpDocumentation.wixobj JavaDocumentation.wixobj
 	"$(WIX)\bin\light" -b "$(YEPROOT)\." -nologo -ext WixUIExtension -out $@ $**
