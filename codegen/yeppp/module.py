@@ -1,5 +1,6 @@
 import peachpy.codegen
 import yeppp.codegen
+import marshal
 
 class Module:
 	def __init__(self, name, description):
@@ -10,6 +11,13 @@ class Module:
 		self.module_initialization_generator = None
 		self.java_class_generator = None
 		self.fortran_module_generator = None
+		self.csharp_namespace_generator = None
+		self.assembly_cache = {
+			peachpy.c.ABI('x64-ms')       : dict(),
+			peachpy.c.ABI('x64-sysv')     : dict(),
+			peachpy.c.ABI('arm-softeabi') : dict(),
+			peachpy.c.ABI('arm-hardeabi') : dict()
+		}
 	
 	def __str__(self):
 		return self.name
@@ -59,11 +67,21 @@ class Module:
 		self.fortran_module_generator = peachpy.codegen.CodeGenerator(use_tabs = False)
 		self.fortran_module_generator.add_fortran90_comment(yeppp.License.source_license)
 		self.fortran_module_generator.add_line()
+		self.fortran_module_generator.add_fortran90_comment("@defgroup yep{0} yep{0}: {1}.".format(self.name, self.description.lower()), doxygen = True)
 		self.fortran_module_generator.add_line("MODULE yep{0}".format(self.name))
 		self.fortran_module_generator.indent()
 		self.fortran_module_generator.add_line("INTERFACE")
 		self.fortran_module_generator.indent()
 		
+		import cPickle
+		for abi in self.assembly_cache.iterkeys():
+			try:
+				self.assembly_cache[abi] = cPickle.load(open("cache/" + self.name + "/" + str(abi) + ".pck", "rb"))
+			except:
+				import sys
+				print sys.exc_info()
+				pass
+
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
@@ -86,7 +104,7 @@ class Module:
 			self.fortran_module_generator.dedent()
 			self.fortran_module_generator.add_line("END MODULE yep{0}".format(self.name))
 			self.fortran_module_generator.add_line()
-		
+
 			with open("library/sources/{0}/functions.h".format(self.name.lower()), "w+") as module_header_file:
 				module_header_file.write(self.module_header_generator.get_code())
 				module_header_file.write(self.module_initialization_generator.get_code())
@@ -99,6 +117,13 @@ class Module:
 		
 			with open("bindings/fortran/sources/yep{0}.f90".format(self.name), "w+") as fortran_module_file:
 				fortran_module_file.write(self.fortran_module_generator.get_code())
+
+			import cPickle
+			for abi, assembly_cache in self.assembly_cache.iteritems():
+				try:
+					cPickle.dump(assembly_cache, open("cache/" + self.name + "/" + str(abi) + ".pck", "wb"))
+				except:
+					pass
 
 		return False
 
@@ -124,7 +149,7 @@ class Function:
 		self.function_generator.module_initialization_generator = self.module.module_initialization_generator
 		self.function_generator.java_class_generator = self.module.java_class_generator
 		self.function_generator.fortran_module_generator = self.module.fortran_module_generator
-		self.function_generator.generate_group_prolog(str(self.module), self.name, self.description, yeppp.License.header_license, yeppp.License.source_license)
+		self.function_generator.generate_group_prolog(str(self.module), self.module.description, self.name, self.description, yeppp.License.header_license, yeppp.License.source_license)
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
@@ -138,4 +163,5 @@ class Function:
 		self.function_generator.java_documentation = self.java_documentation
 		self.function_generator.default_cpp_implementation = self.c_implementation
 		self.function_generator.unit_test = self.unit_test
+		self.function_generator.assembly_cache = self.module.assembly_cache
 		self.function_generator.generate(declaration)

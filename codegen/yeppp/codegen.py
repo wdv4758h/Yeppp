@@ -2,7 +2,7 @@
 #                      Yeppp! library implementation
 #
 # This file is part of Yeppp! library and licensed under the New BSD license.
-# See library/LICENSE.txt for the full text of the license.
+# See LICENSE.txt for the full text of the license.
 #
 
 import peachpy
@@ -11,10 +11,19 @@ import peachpy.c
 import peachpy.java
 import peachpy.fortran
 import peachpy.csharp
+import peachpy.doxygen
 import string
 import copy
 import re
 import yeppp.test
+
+def format_or_list(elements, prefix = "", suffix = ""):
+	elements = [prefix + str(element) + suffix for element in elements]
+	if len(elements) <= 2:
+		return " or ".join(elements)
+	else:
+		return ", ".join(elements[:-1]) + " or " + elements[-1]
+	
 
 class FunctionArgument(object):
 	def __init__(self, name, type = None):
@@ -43,6 +52,9 @@ class FunctionArgument(object):
 		self.is_return_argument = False
 		# True if the argument specifies the length of an array argument
 		self.is_length_argument = False
+
+		# True if the argument is marked as != 0
+		self.is_nonzero = False
 
 	def is_automatic(self):
 		# True is the argument type is deduced from function signature
@@ -282,10 +294,7 @@ class ImplicitlyTypedFunctionArgument(FunctionArgument):
 		else:
 			csharp_unsafe_type = c_type.get_primitive_type().get_csharp_analog(use_unsafe_types = True)
 		if csharp_unsafe_type:
-			if self.is_vector:
-				self.csharp_unsafe_arguments = [peachpy.csharp.Parameter(name + "Pointer", csharp_unsafe_type, is_output = self.is_scalar and self.is_output and not self.is_input)]
-			else:
-				self.csharp_unsafe_arguments = [peachpy.csharp.Parameter(name, csharp_unsafe_type, is_output = self.is_scalar and self.is_output and not self.is_input)]
+			self.csharp_unsafe_arguments = [peachpy.csharp.Parameter(name, csharp_unsafe_type, is_output = self.is_scalar and self.is_output and not self.is_input)]
 		else:
 			self.csharp_unsafe_arguments = None
 
@@ -314,6 +323,7 @@ class FunctionSpecialization:
 			self.module_name = function_name_matcher.group(1)
 			self.function_name = function_name_matcher.group(2)
 			arguments_declaration = declaration[function_name_matcher.end():]
+			self.specialization_signature = declaration[function_name_matcher.end():declaration.index('(')]
 			type_abbreviation_regex = "[I]?[VS](?:8[us]|16[usf]|32[usf]|64[usf]|128[us]|16fc|32fc|64fc|32df|64df)"
 			inputs_abbreviations = list()
 			abbreviation_matcher = re.match(type_abbreviation_regex, arguments_declaration)
@@ -346,6 +356,11 @@ class FunctionSpecialization:
 						self.arguments = list()
 						while arguments_declaration:
 							argument_string = arguments_declaration.pop(0)
+							if argument_string.find(":") != -1:
+								restriction_string = argument_string[argument_string.index(":") + 1:].strip()
+								argument_string = argument_string[:argument_string.index(":")]
+							else:
+								restriction_string = None
 							name_matcher = re.search("([A-Za-z_][A-Za-z0-9_]*)(\[[A-Za-z_][A-Za-z0-9_]+\])?$", argument_string)
 							if not name_matcher:
 								raise ValueError("Invalid name for argument {0}".format(argument_string))
@@ -360,7 +375,21 @@ class FunctionSpecialization:
 									if length_argument_name:
 										raise ValueError("Length specification is allowed only for implicitly types arguments")
 									else:
-										self.arguments.append(ExplicitlyTypedFunctionArgument(name, type_string))
+										argument = ExplicitlyTypedFunctionArgument(name, type_string)
+										if restriction_string:
+											if restriction_string.startswith(name):
+												new_restriction_string = restriction_string[len(name):].lstrip()
+												if new_restriction_string.startswith("!="):
+													new_restriction_string = new_restriction_string[2:].lstrip()
+													if new_restriction_string == "0":
+														argument.is_nonzero = True
+													else:
+														raise ValueError("Invalid restriction {0} for argument {1}".format(restriction_string, name))
+												else:
+													raise ValueError("Invalid restriction {0} for argument {1}".format(restriction_string, name))
+											else:
+												raise ValueError("Invalid restriction {0} for argument {1}".format(restriction_string, name))
+										self.arguments.append(argument)
 								else:
 									# Consider input arguments if there are any, then output arguments
 									is_output_parameter = not inputs_abbreviations
@@ -406,7 +435,7 @@ class FunctionSpecialization:
 						self.documentation_macros = dict(
 							[("InputType" + str(i), description_map[input_abbreviation]) for (i, input_abbreviation) in enumerate(self.inputs_abbreviations)] +
 							[("OutputType" + str(i), description_map[output_abbreviation]) for (i, output_abbreviation) in enumerate(self.outputs_abbreviations)])
-						
+
 						self.assembly_functions = dict()
 
 						self.c_public_arguments = [c_public_argument for argument in self.arguments for c_public_argument in argument.c_public_arguments]
@@ -417,11 +446,11 @@ class FunctionSpecialization:
 						self.csharp_unsafe_arguments = [csharp_unsafe_argument for argument in self.arguments for csharp_unsafe_argument in argument.csharp_unsafe_arguments if not argument.is_return_argument]
 						self.csharp_safe_arguments = [csharp_safe_argument for argument in self.arguments for csharp_safe_argument in argument.csharp_safe_arguments if not argument.is_return_argument]
 
-	def generate_assembly_implementation(self, assembler, assembly_implementation):
+	def generate_assembly_implementation(self, assembler, assembly_implementation, assembly_cache):
 		try:
-			assembly_implementation(assembler, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments, error_diagnostics_mode = False)
+			assembly_implementation(assembler, self.specialization_signature, self.module_name, self.function_name, self.c_private_arguments, assembly_cache = assembly_cache, error_diagnostics_mode = False)
 		except peachpy.RegisterAllocationError:
-			assembly_implementation(assembler, self.c_function_signature, self.module_name, self.function_name, self.c_private_arguments, error_diagnostics_mode = True)
+			assembly_implementation(assembler, self.specialization_signature, self.module_name, self.function_name, self.c_private_arguments, error_diagnostics_mode = True)
 		self.assembly_functions[assembler.abi.name] = assembler.find_functions(self.c_function_signature)
 
 	def generate_public_header(self, public_header_generator, default_documentation):
@@ -429,50 +458,29 @@ class FunctionSpecialization:
 			for argument in self.c_public_arguments] 
 
 		if default_documentation:
-			documentation_lines = filter(bool, (default_documentation % self.documentation_macros).split("\n"))
-			# Find position to insert auto-generated return value descriptions
-			for i, line in enumerate(documentation_lines):
-				if line.startswith("@retval"):
-					retval_insert_position = i
-			else:
-				retval_insert_position = len(documentation_lines)
-			documentation_lines.insert(retval_insert_position, "@retval	#YepStatusOk	The computation finished successfully.")
+			documentation = peachpy.doxygen.Documentation(default_documentation % self.documentation_macros)
+			documentation.ingroup = "yep" + self.module_name + "_" + self.function_name
+			documentation.retval["#YepStatusOk"] = "The computation finished successfully."
 			pointer_names = [argument.get_name() for argument in self.c_public_arguments if argument.get_type().is_pointer()]
 			if pointer_names:
-				if len(pointer_names) == 1:
-					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	The @a %s argument is null." % pointer_names[0])
-					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	The @a %s argument is not naturally aligned." % pointer_names[0])
-				elif len(pointer_names) == 2:
-					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	@a %s or @a %s argument is null." % (pointer_names[0], pointer_names[1]))
-					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	@a %s or @a %s argument is not naturally aligned." % (pointer_names[0], pointer_names[1]))
-				else:
-					formatted_arguments = map(lambda name: "@a " + name, pointer_names)
-					formatted_arguments = ", ".join(formatted_arguments[:-1]) + " or " + formatted_arguments[-1]
-					documentation_lines.insert(retval_insert_position + 1, "@retval	#YepStatusNullPointer	%s argument is null." % formatted_arguments)
-					documentation_lines.insert(retval_insert_position + 2, "@retval	#YepStatusMisalignedPointer	%s argument is not naturally aligned." % formatted_arguments)
-			
-			documentation_lines.insert(0, "@ingroup\tyep{0}_{1}".format(self.module_name, self.function_name))
-			if any(map(bool, self.assembly_functions.itervalues())):
-				documentation_lines.append("@par\tOptimized implementations")
-				documentation_lines.append("\t\t<table>")
-				documentation_lines.append("\t\t\t<tr><th>Architecture</th><th>Target microarchitecture</th><th>Required instruction extensions</th></tr>")
-# 				for assembly_function in self.assembly_functions['x86']:
-# 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-# 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
-				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.target.microarchitecture.get_number()):
-					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
-					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
-				for assembly_function in sorted(self.assembly_functions['arm-softeabi'], key = lambda function: function.target.microarchitecture.get_number()):
-					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.arm.supported_isa_extensions.index(isa_extension))
-					documentation_lines.append("\t\t\t<tr><td>ARM</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
-				documentation_lines.append("\t\t</table>")
-			public_header_generator.add_c_comment(documentation_lines, doxygen = True)			
+				documentation.retval["#YepStatusNullPointer"] = "%s argument is null." % format_or_list(pointer_names, prefix = "@a ")
+				documentation.retval["#YepStatusMisalignedPointer"] = "%s argument is not naturally aligned." % format_or_list(pointer_names, prefix = "@a ")
+			nonzero_names = [argument.get_c_public_name() for argument in self.arguments if argument.is_nonzero]
+			if nonzero_names:
+				documentation.retval["#YepStatusInvalidArgument"] = "%s argument is zero." % format_or_list(nonzero_names, prefix = "@a ")
+
+			optimized_implementations = self.get_optimized_implementations()
+			if optimized_implementations:
+				documentation.par["Optimized implementations"] = optimized_implementations
+			else:
+				documentation.add_warning("This version of @Yeppp does not include optimized implementations for this function") 
+			public_header_generator.add_c_comment(str(documentation), doxygen = True)
+		else:
+			print "Warning: no documentation for function %s" % self.c_function_signature
 		public_header_generator.add_line("YEP_PUBLIC_SYMBOL enum YepStatus YEPABI {0}({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
 
 	def generate_dispatch_table_header(self, dispatch_table_header_generator): 
-		unnamed_arguments_list = [argument.get_type().format(restrict_qualifier = "YEP_RESTRICT") for argument in self.c_public_arguments] 
+		unnamed_arguments_list = [argument.get_type().format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") for argument in self.c_public_arguments] 
 		dispatch_table_header_generator.add_line("extern \"C\" YEP_PRIVATE_SYMBOL const FunctionDescriptor<YepStatus (YEPABI*)({0})> _dispatchTable_{1}[];".format(", ".join(unnamed_arguments_list), self.c_function_signature))
 
 	def generate_dispatch_pointer_header(self, dispatch_pointer_header_generator):
@@ -492,10 +500,10 @@ class FunctionSpecialization:
 		dispatch_table_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI _{0}_Default({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
 		for (abi_name, abi_test_macro) in yeppp_abi_list:
 			if abi_name in self.assembly_functions and self.assembly_functions[abi_name]:
-				dispatch_table_generator.add_line("#if defined(%s)" % abi_test_macro)
+				dispatch_table_generator.add_line("#if defined(%s)" % abi_test_macro).indent()
 				for assembly_function in self.assembly_functions[abi_name]:
 					dispatch_table_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI {0}({1});".format(assembly_function.symbol_name, ", ".join(named_arguments_list)))
-				dispatch_table_generator.add_line("#endif // %s" % abi_test_macro)
+				dispatch_table_generator.dedent().add_line("#endif // %s" % abi_test_macro)
 # 
 		dispatch_table_generator.add_line("YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)({0})> _dispatchTable_{1}[] = ".format(", ".join(unnamed_arguments_list), self.c_function_signature));
 		dispatch_table_generator.add_line("{")
@@ -504,15 +512,21 @@ class FunctionSpecialization:
 		# Descriptors for function implementations
 		for (abi_name, abi_test_macro) in yeppp_abi_list:
 			if abi_name in self.assembly_functions and self.assembly_functions[abi_name]:
-				dispatch_table_generator.add_line("#if defined(%s)" % abi_test_macro)
+				dispatch_table_generator.add_line("#if defined(%s)" % abi_test_macro).indent()
 				for assembly_function in self.assembly_functions[abi_name]:
+					isa_extensions = assembly_function.get_isa_extensions()
 					(isa_features, simd_features, system_features) = assembly_function.get_yeppp_isa_extensions()
 					isa_features = " | ".join(isa_features)
 					simd_features = " | ".join(simd_features)
 					system_features = " | ".join(system_features)
+					is_amd_specific = any(amd_specific_extension in isa_extensions for amd_specific_extension in ['3dnow!', '3dnow!+', 'SSE4A', 'FMA4', 'XOP', 'TBM'])
+					if is_amd_specific:
+						dispatch_table_generator.add_line("#ifndef YEP_MACOSX_OS").indent()
 					dispatch_table_generator.add_line("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION({0}, {1}, {2}, {3}, YepCpuMicroarchitecture{4}, \"asm\", YEP_NULL_POINTER, YEP_NULL_POINTER),".
 						format(assembly_function.symbol_name, isa_features, simd_features, system_features, assembly_function.target.microarchitecture.get_name()))
-				dispatch_table_generator.add_line("#endif // %s" % abi_test_macro)
+					if is_amd_specific:
+						dispatch_table_generator.dedent().add_line("#endif // YEP_MACOSX_OS")
+				dispatch_table_generator.dedent().add_line("#endif // %s" % abi_test_macro)
 		dispatch_table_generator.add_line("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{0}_Default, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(self.c_function_signature))
 
 		dispatch_table_generator.dedent()
@@ -535,31 +549,38 @@ class FunctionSpecialization:
 		dispatch_function_generator.add_line("}")
 		dispatch_function_generator.add_line()
 
-	def generate_default_implementation(self, default_implementation_generator, default_implementation):
+	def generate_default_cpp_implementation(self, default_cpp_implementation_generator, default_cpp_implementation):
 		named_arguments_list = [argument.format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") for argument in self.c_private_arguments] 
 
-		default_implementation_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus _{0}_Default({1}) {{".format(self.c_function_signature, ", ".join(named_arguments_list)))
-		default_implementation_generator.indent()
+		default_cpp_implementation_generator.add_line("extern \"C\" YEP_LOCAL_SYMBOL YepStatus _{0}_Default({1}) {{".format(self.c_function_signature, ", ".join(named_arguments_list)))
+		default_cpp_implementation_generator.indent()
 
 		# Generate parameter checks
-		for argument in self.c_private_arguments:
-			if argument.get_type().is_pointer():
-				default_implementation_generator.add_line("if YEP_UNLIKELY({0} == YEP_NULL_POINTER) {{".format(argument.get_name()))
-				default_implementation_generator.indent()
-				default_implementation_generator.add_line("return YepStatusNullPointer;")
-				default_implementation_generator.dedent()
-				default_implementation_generator.add_line("}")
-				default_implementation_generator.add_line("if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment({0}, sizeof({1})) != 0) {{".format(argument.get_name(), argument.get_type().get_primitive_type()))
-				default_implementation_generator.indent()
-				default_implementation_generator.add_line("return YepStatusMisalignedPointer;")
-				default_implementation_generator.dedent()
-				default_implementation_generator.add_line("}")
+		for argument in self.arguments:
+			if argument.get_c_private_type().is_pointer():
+				default_cpp_implementation_generator.add_line("if YEP_UNLIKELY({0} == YEP_NULL_POINTER) {{".format(argument.get_c_private_name()))
+				default_cpp_implementation_generator.indent()
+				default_cpp_implementation_generator.add_line("return YepStatusNullPointer;")
+				default_cpp_implementation_generator.dedent()
+				default_cpp_implementation_generator.add_line("}")
+				if argument.get_c_private_type().get_primitive_type().get_size() != 1:
+					default_cpp_implementation_generator.add_line("if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment({0}, sizeof({1})) != 0) {{".format(argument.get_c_private_name(), argument.get_c_private_type().get_primitive_type()))
+					default_cpp_implementation_generator.indent()
+					default_cpp_implementation_generator.add_line("return YepStatusMisalignedPointer;")
+					default_cpp_implementation_generator.dedent()
+					default_cpp_implementation_generator.add_line("}")
+			elif argument.is_nonzero:
+				default_cpp_implementation_generator.add_line("if YEP_UNLIKELY({0} == 0) {{".format(argument.get_c_private_name()))
+				default_cpp_implementation_generator.indent()
+				default_cpp_implementation_generator.add_line("return YepStatusInvalidArgument;")
+				default_cpp_implementation_generator.dedent()
+				default_cpp_implementation_generator.add_line("}")
 
-		default_implementation_generator.add_lines(filter(bool, (default_implementation % self.implementation_macros).split("\n")))
+		default_cpp_implementation_generator.add_lines(filter(bool, (default_cpp_implementation % self.implementation_macros).split("\n")))
 
-		default_implementation_generator.dedent()
-		default_implementation_generator.add_line("}")
-		default_implementation_generator.add_line()
+		default_cpp_implementation_generator.dedent()
+		default_cpp_implementation_generator.add_line("}")
+		default_cpp_implementation_generator.add_line()
 
 	def generate_jni_function(self, jni_implementation_generator):
 		jni_function_signature = "Java_info_yeppp_" + str(self.module_name) + "_" + self.short_function_signature.replace("_", "_1")
@@ -701,24 +722,64 @@ class FunctionSpecialization:
 		return_type = self.return_argument.get_java_type() if self.return_argument else "void" 
 
 		if java_documentation:
-			documentation_lines = filter(bool, (java_documentation % self.documentation_macros).split("\n"))
-			if any(map(bool, self.assembly_functions.itervalues())):
-				documentation_lines.append("@par\tOptimized implementations")
-				documentation_lines.append("\t\t<table>")
-				documentation_lines.append("\t\t\t<tr><th>Architecture</th><th>Target microarchitecture</th><th>Required instruction extensions</th></tr>")
-# 				for assembly_function in self.assembly_functions['x86']:
-# 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-# 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
-				for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.get_target().microarchitecture.get_number()):
-					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
-					isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
-					documentation_lines.append("\t\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.get_target().microarchitecture, ", ".join(isa_extensions)))
-				documentation_lines.append("\t\t</table>")
-			java_class_generator.add_c_comment(documentation_lines, doxygen = True)			
+			documentation = peachpy.doxygen.Documentation(java_documentation % self.documentation_macros)
+			array_names = [argument.get_name() for argument in self.java_arguments if argument.get_type().is_array()]
+			if array_names:
+				documentation.throws["NullPointerException"] = "If %s is null." % format_or_list(array_names, prefix = "@a ")
+				documentation.throws["MisalignedPointerError"] = "If %s is not naturally aligned." % format_or_list(array_names, prefix = "@a ")
+			offset_names = [argument.get_java_name(1) for argument in self.arguments if not argument.is_return_argument and argument.is_automatic() and (argument.is_vector or argument.is_scalar and argument.is_output)]
+			nonzero_names = [argument.get_java_name() for argument in self.arguments if argument.is_nonzero]
+			if offset_names and nonzero_names:
+				documentation.throws["InvalidArgumentException"] = "If %s is negative or %s is zero." % (format_or_list(offset_names, prefix = "@a "), format_or_list(nonzero_names, prefix = "@a "))
+			elif offset_names:
+				documentation.throws["InvalidArgumentException"] = "If %s is negative." % format_or_list(offset_names, prefix = "@a ")
+			elif nonzero_names:
+				documentation.throws["InvalidArgumentException"] = "If %s is zero." % format_or_list(nonzero_names, prefix = "@a ")
+			length_names = [argument.get_java_name() for argument in self.arguments if argument.is_length_argument]
+			if length_names:
+				documentation.throws["NegativeArraySizeException"] = "If %s is negative." % format_or_list(length_names, prefix = "@a ")
+			array_arguments = [argument for argument in self.arguments if not argument.is_return_argument and argument.is_automatic() and (argument.is_vector or argument.is_scalar and argument.is_output)]
+			array_bound_exceptions = list()
+			for array_argument in array_arguments:
+				if array_argument.is_vector:
+					array_bound_exceptions.append("@a {0} + @a {1} exceeds the length of @a {2}".format(array_argument.get_java_name(1), array_argument.length_argument_name, array_argument.get_java_name(0)))
+				else:
+					array_bound_exceptions.append("@a {0} is greater or equal to the length of @a {1}".format(array_argument.get_java_name(1), array_argument.get_java_name(0)))
+			if array_bound_exceptions:
+				documentation.throws["IndexOutOfBoundsException"] = "If %s." % format_or_list(array_bound_exceptions)
+
+			optimized_implementations = self.get_optimized_implementations()
+			if optimized_implementations:
+				documentation.par["Optimized implementations"] = optimized_implementations 
+			else:
+				documentation.add_warning("This version of @Yeppp does not include optimized implementations for this function") 
+			java_class_generator.add_c_comment(str(documentation), doxygen = True)
 		java_class_generator.add_line("public static native {0} {1}({2});".format(return_type, self.short_function_signature, ", ".join(named_arguments_list)))
 
-	def generate_fortran_interface(self, fortran_module_generator):
+	def generate_fortran_interface(self, fortran_module_generator, c_documentation):
 		argument_names = [fortran_argument.get_name() for fortran_argument in self.fortran_arguments]
+
+		if c_documentation:
+			documentation = peachpy.doxygen.Documentation(c_documentation % self.documentation_macros)
+			documentation.ingroup = "yep" + self.module_name + "_" + self.function_name
+			documentation.retval["0"] = "The computation finished successfully."
+			pointer_names = [argument.get_name() for argument in self.c_public_arguments if argument.get_type().is_pointer()]
+			if pointer_names:
+				documentation.retval["2"] = "%s argument is not naturally aligned." % format_or_list(pointer_names, prefix = "@a ")
+			for (name, (direction, description)) in documentation.parameters.items():
+				if description.startswith("Pointer to the"):
+					description = "The " + description[len("Pointer to the"):].lstrip()
+					documentation.parameters[name] = (direction, description)
+			nonzero_names = [argument.get_name() for argument in self.arguments if argument.is_nonzero]
+			if nonzero_names:
+				documentation.retval["3"] = "%s argument is zero." % format_or_list(nonzero_names, prefix = "@a ")
+
+			optimized_implementations = self.get_optimized_implementations()
+			if optimized_implementations:
+				documentation.par["Optimized implementations"] = optimized_implementations 
+			else:
+				documentation.add_warning("This version of @Yeppp does not include optimized implementations for this function") 
+			fortran_module_generator.add_fortran90_comment(str(documentation), doxygen = True)
 
 		fortran_module_generator.add_line("INTEGER(C_INT) FUNCTION {0} & ".format(self.c_function_signature))
 		fortran_module_generator.indent()
@@ -752,12 +813,47 @@ class FunctionSpecialization:
 		csharp_dllimport_method_generator.add_line("private static unsafe extern Status {0}({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
 		csharp_dllimport_method_generator.add_line()
 
-	def generate_csharp_unsafe_method(self, csharp_unsafe_method_generator):
+	def generate_csharp_unsafe_method(self, csharp_unsafe_method_generator, c_documentation, java_documentation):
 		named_arguments_list = map(str, self.csharp_unsafe_arguments)
 		return_type = self.return_argument.get_csharp_unsafe_type() if self.return_argument else "void"
 
+		if c_documentation:
+			documentation = peachpy.doxygen.Documentation(c_documentation.replace("@a ", "") % self.documentation_macros)
+			if self.return_argument:
+				for (name, (direction, description)) in documentation.parameters.items():
+					if name == self.return_argument.get_csharp_unsafe_name():
+						del documentation.parameters[name]
+						break
+			if java_documentation:
+				javadoc = peachpy.doxygen.Documentation(java_documentation.replace("@a ", "") % self.documentation_macros)
+				if javadoc.returns:
+					documentation.returns = javadoc.returns
+
+			pointer_names = [argument.get_name() for argument in self.csharp_unsafe_arguments if argument.get_type().is_pointer()]
+			if pointer_names:
+				documentation.throws["System.NullReferenceException"] = "If %s is null." % format_or_list(pointer_names)
+			pointer_names = [argument.get_name() for argument in self.csharp_unsafe_arguments if argument.get_type().is_pointer() and argument.get_type().get_primitive_type().get_size() != 1]
+			if pointer_names:
+				documentation.throws["System.DataMisalignedException"] = "If %s is not naturally aligned." % format_or_list(pointer_names)
+			length_names = [argument.get_csharp_unsafe_name() for argument in self.arguments if argument.is_length_argument]
+			nonzero_names = [argument.get_csharp_unsafe_name() for argument in self.arguments if argument.is_nonzero]
+			if length_names and nonzero_names:
+				documentation.throws["System.ArgumentException"] = "If %s is negative or %s is zero." % (format_or_list(length_names), format_or_list(nonzero_names))
+			elif length_names:
+				documentation.throws["System.ArgumentException"] = "If %s is negative." % format_or_list(length_names)
+			elif nonzero_names:
+				documentation.throws["System.ArgumentException"] = "If %s is zero." % format_or_list(nonzero_names)
+
+			csharp_unsafe_method_generator.add_csharp_comment(documentation.xml_comment(), doxygen = True)
+
 		csharp_unsafe_method_generator.add_line("public static unsafe {0} {1}({2})".format(return_type, self.short_function_signature, ", ".join(named_arguments_list)))
 		csharp_unsafe_method_generator.add_line("{").indent()
+
+		# Generate parameter checks
+		for argument in self.arguments:
+			if argument.is_length_argument:
+				csharp_unsafe_method_generator.add_line("if (%s < 0)" % argument.get_csharp_unsafe_name())
+				csharp_unsafe_method_generator.indent().add_line("throw new System.ArgumentException();").dedent().add_line()
 
 		# If needed, define a variable for return value
 		if self.return_argument is not None:
@@ -777,7 +873,9 @@ class FunctionSpecialization:
 						call_arguments.append("out " + csharp_unsafe_argument.get_name())
 					else:
 						call_arguments.append(csharp_unsafe_argument.get_name())
-		csharp_unsafe_method_generator.add_line("{0}({1});".format(self.c_function_signature, ", ".join(call_arguments)))
+		csharp_unsafe_method_generator.add_line("Status status = {0}({1});".format(self.c_function_signature, ", ".join(call_arguments)))
+		csharp_unsafe_method_generator.add_line("if (status != Status.Ok)")
+		csharp_unsafe_method_generator.indent().add_line("throw Library.GetException(status);").dedent()
 
 		# If function has non-void return value, emit return statement
 		if self.return_argument is not None:
@@ -786,12 +884,64 @@ class FunctionSpecialization:
 		csharp_unsafe_method_generator.dedent().add_line("}")
 		csharp_unsafe_method_generator.add_empty_lines(2)
 
-	def generate_csharp_safe_method(self, csharp_safe_method_generator):
+	def generate_csharp_safe_method(self, csharp_safe_method_generator, java_documentation):
 		named_arguments_list = map(str, self.csharp_safe_arguments)
 		return_type = self.return_argument.get_csharp_safe_type() if self.return_argument else "void"
 
+
+		if java_documentation:
+			documentation = peachpy.doxygen.Documentation(java_documentation.replace("@a ", "") % self.documentation_macros)
+			array_names = [argument.get_name() for argument in self.csharp_safe_arguments if argument.get_type().is_array()]
+			if array_names:
+				documentation.throws["System.NullReferenceException"] = "If %s is null." % format_or_list(array_names)
+			array_names = [argument.get_name() for argument in self.csharp_safe_arguments if argument.get_type().is_array() and argument.get_type().get_primitive_type().get_size() != 1]
+			if array_names:
+				documentation.throws["System.DataMisalignedException"] = "If %s is not naturally aligned." % format_or_list(array_names)
+			length_names = [argument.get_csharp_safe_name() for argument in self.arguments if argument.is_length_argument]
+			nonzero_names = [argument.get_csharp_safe_name() for argument in self.arguments if argument.is_nonzero]
+			if length_names and nonzero_names:
+				documentation.throws["System.ArgumentException"] = "If %s is negative or %s is zero." % (format_or_list(length_names), format_or_list(nonzero_names))
+			elif length_names:
+				documentation.throws["System.ArgumentException"] = "If %s is negative." % format_or_list(length_names)
+			elif nonzero_names:
+				documentation.throws["System.ArgumentException"] = "If %s is zero." % format_or_list(nonzero_names)
+			array_bound_exceptions = list()
+			for argument in self.arguments:
+				if argument.is_length_argument:
+					array_bound_exceptions.append("{0} is negative".format(argument.get_csharp_safe_name()))
+				elif argument.is_vector:
+					array_bound_exceptions.append("{0} is negative".format(argument.get_csharp_safe_name(1)))
+					array_bound_exceptions.append("{0} + {1} exceeds the length of {2}".format(argument.get_csharp_safe_name(1), argument.length_argument_name, argument.get_csharp_safe_name(0)))
+				elif argument.is_scalar and argument.is_output and not argument.is_return_argument:
+					array_bound_exceptions.append("{0} is negative".format(argument.get_csharp_safe_name(1)))
+					array_bound_exceptions.append("{0} is greater or equal to the length of {1}".format(argument.get_csharp_safe_name(1), argument.get_csharp_safe_name(0)))
+			if array_bound_exceptions:
+				if len(array_bound_exceptions) <= 2:
+					documentation.throws["System.IndexOutOfRangeException"] = "If " + " or ".join(array_bound_exceptions) + "."
+				else:
+					documentation.throws["System.IndexOutOfRangeException"] = "If " + ", ".join(array_bound_exceptions[:-1]) + ", or " + array_bound_exceptions[-1] + "."
+			csharp_safe_method_generator.add_csharp_comment(documentation.xml_comment(), doxygen = True)
+
 		csharp_safe_method_generator.add_line("public static unsafe {0} {1}({2})".format(return_type, self.short_function_signature, ", ".join(named_arguments_list)))
 		csharp_safe_method_generator.add_line("{").indent()
+
+		# Generate parameter checks
+		for argument in self.arguments:
+			if argument.is_length_argument:
+				csharp_safe_method_generator.add_line("if (%s < 0)" % argument.get_csharp_safe_name())
+				csharp_safe_method_generator.indent().add_line("throw new System.ArgumentException();").dedent().add_line()
+			elif argument.is_vector:
+				csharp_safe_method_generator.add_line("if ({0} > 0)".format(argument.get_csharp_safe_name(1)))
+				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
+
+				csharp_safe_method_generator.add_line("if ({0} + {1} > {2}.Length)".format(argument.get_csharp_safe_name(1), argument.length_argument_name, argument.get_csharp_safe_name(0)))
+				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
+			elif argument.is_scalar and argument.is_output and not argument.is_return_argument:
+				csharp_safe_method_generator.add_line("if ({0} > 0)".format(argument.get_csharp_safe_name(1)))
+				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
+
+				csharp_safe_method_generator.add_line("if ({0} >= {1}.Length)".format(argument.get_csharp_safe_name(1), argument.get_csharp_safe_name(0)))
+				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
 
 		# Emit pinning of arrays passed to function
 		for argument in self.arguments:
@@ -841,14 +991,18 @@ class FunctionSpecialization:
 						else:
 							raise KeyError("The length argument {0} is not specified in the unit test".format(argument.get_name()))
 
-			cpp_units_tests.append("Test_" + self.short_function_signature)
+			cpp_units_tests.append(self.short_function_signature)
 			cpp_unit_test_generator.add_line("static Yep32s Test_{0}(Yep64u supportedIsaFeatures, Yep64u supportedSimdFeatures, Yep64u supportedSystemFeatures) {{".format(self.short_function_signature)).indent()
 			cpp_unit_test_generator.add_line("YepRandom_WELL1024a rng;")
 			cpp_unit_test_generator.add_line("YepStatus status = yepRandom_WELL1024a_Init(&rng);")
 			cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
 			cpp_unit_test_generator.add_line()
-			cpp_unit_test_generator.add_line("auto defaultDescriptor = findDefaultDescriptor(_dispatchTable_{0});".format(self.c_function_signature))
-			cpp_unit_test_generator.add_line("auto defaultImplementation = defaultDescriptor->function;")
+
+			unnamed_arguments_list = [argument.get_type().format(compact_pointers = False, restrict_qualifier = "YEP_RESTRICT") for argument in self.c_public_arguments] 
+			cpp_unit_test_generator.add_line("typedef YepStatus (YEPABI* FunctionPointer)({0});".format(", ".join(unnamed_arguments_list)))
+			cpp_unit_test_generator.add_line("typedef const FunctionDescriptor<FunctionPointer>* DescriptorPointer;")
+			cpp_unit_test_generator.add_line("const DescriptorPointer defaultDescriptor = findDefaultDescriptor(_dispatchTable_{0});".format(self.c_function_signature))
+			cpp_unit_test_generator.add_line("const FunctionPointer defaultImplementation = defaultDescriptor->function;".format(", ".join(unnamed_arguments_list)))
 			cpp_unit_test_generator.add_line("Yep32s failedTests = 0;")
 			cpp_unit_test_generator.add_line()
 
@@ -911,7 +1065,7 @@ class FunctionSpecialization:
 						cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
 			cpp_unit_test_generator.add_line()
 
-			cpp_unit_test_generator.add_line("for (auto descriptor = &_dispatchTable_{0}[0]; descriptor != defaultDescriptor; descriptor++) {{".format(self.c_function_signature)).indent()
+			cpp_unit_test_generator.add_line("for (DescriptorPointer descriptor = &_dispatchTable_{0}[0]; descriptor != defaultDescriptor; descriptor++) {{".format(self.c_function_signature)).indent()
 			cpp_unit_test_generator.add_line("const Yep64u unsupportedRequiredFeatures = (descriptor->isaFeatures & ~supportedIsaFeatures) |")
 			cpp_unit_test_generator.add_line("\t(descriptor->simdFeatures & ~supportedSimdFeatures) |")
 			cpp_unit_test_generator.add_line("\t(descriptor->systemFeatures & ~supportedSystemFeatures);")
@@ -994,7 +1148,7 @@ class FunctionSpecialization:
 								if argument.get_c_public_type().get_primitive_type().is_integer():
 									cpp_unit_test_generator.add_line("if (memcmp({0}Array, {0}RefArray, sizeof({0}Array)) != 0) {{".format(argument.get_name())).indent()
 									cpp_unit_test_generator.add_line("failedTests += 1;")
-									cpp_unit_test_generator.add_line("printf(\"{0} (%s): %sFAILED%s\\n\", getMicroarchitectureName(descriptor->microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR);".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("reportFailedTest(\"{0}\", descriptor->microarchitecture);".format(self.c_function_signature))
 									cpp_unit_test_generator.add_line("goto next_descriptor;")
 									cpp_unit_test_generator.dedent().add_line("}")
 								elif argument.get_c_public_type().get_primitive_type().is_floating_point():
@@ -1007,7 +1161,7 @@ class FunctionSpecialization:
 										argument.get_name(), argument.get_c_public_type().get_primitive_type(), argument.get_c_public_type().get_primitive_type().get_size() * 8))
 									cpp_unit_test_generator.add_line("if (ulpError > {0}) {{".format(max_ulp_error)).indent()
 									cpp_unit_test_generator.add_line("failedTests += 1;")
-									cpp_unit_test_generator.add_line("printf(\"{0} (%s): %sFAILED%s (%f ULP)\\n\", getMicroarchitectureName(descriptor->microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR, float(ulpError));".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("reportFailedTest(\"{0}\", descriptor->microarchitecture, float(ulpError));".format(self.c_function_signature))
 									cpp_unit_test_generator.add_line("goto next_descriptor;")
 									cpp_unit_test_generator.dedent().add_line("}")
 									cpp_unit_test_generator.dedent().add_line("}")
@@ -1015,7 +1169,7 @@ class FunctionSpecialization:
 								if argument.get_c_public_type().get_primitive_type().is_integer():
 									cpp_unit_test_generator.add_line("if ({0} != {0}Ref) {{".format(argument.get_name())).indent()
 									cpp_unit_test_generator.add_line("failedTests += 1;")
-									cpp_unit_test_generator.add_line("printf(\"{0} (%s): %sFAILED%s\\n\", getMicroarchitectureName(descriptor->microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR);".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("reportFailedTest(\"{0}\", descriptor->microarchitecture);".format(self.c_function_signature))
 									cpp_unit_test_generator.add_line("goto next_descriptor;")
 									cpp_unit_test_generator.dedent().add_line("}")
 								elif argument.get_c_public_type().get_primitive_type().is_floating_point():
@@ -1027,14 +1181,14 @@ class FunctionSpecialization:
 										argument.get_name(), argument.get_c_public_type().get_primitive_type(), argument.get_c_public_type().get_primitive_type().get_size() * 8))
 									cpp_unit_test_generator.add_line("if (ulpError > {0}f) {{".format(max_ulp_error)).indent()
 									cpp_unit_test_generator.add_line("failedTests += 1;")
-									cpp_unit_test_generator.add_line("printf(\"{0} (%s): %sFAILED%s (%f ULP)\\n\", getMicroarchitectureName(descriptor->microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR, float(ulpError));".format(self.c_function_signature))
+									cpp_unit_test_generator.add_line("reportFailedTest(\"{0}\", descriptor->microarchitecture, float(ulpError));".format(self.c_function_signature))
 									cpp_unit_test_generator.add_line("goto next_descriptor;")
 									cpp_unit_test_generator.dedent().add_line("}")
 
 			generate_loops(self.arguments)
-			cpp_unit_test_generator.add_line("printf(\"{0} (%s): %sPASSED%s\\n\", getMicroarchitectureName(descriptor->microarchitecture), YEP_ESCAPE_GREEN_COLOR, YEP_ESCAPE_NORMAL_COLOR);".format(self.c_function_signature))
+			cpp_unit_test_generator.add_line("reportPassedTest(\"{0}\", descriptor->microarchitecture);".format(self.c_function_signature))
 			cpp_unit_test_generator.dedent().add_line("} else {").indent()
-			cpp_unit_test_generator.add_line("printf(\"{0} (%s): %sSKIPPED%s\\n\", getMicroarchitectureName(descriptor->microarchitecture), YEP_ESCAPE_YELLOW_COLOR, YEP_ESCAPE_NORMAL_COLOR);".format(self.c_function_signature))
+			cpp_unit_test_generator.add_line("reportSkippedTest(\"{0}\", descriptor->microarchitecture);".format(self.c_function_signature))
 			cpp_unit_test_generator.dedent().add_line("}")
 			cpp_unit_test_generator.add_line("next_descriptor:", indent = 0)
 			cpp_unit_test_generator.add_line("continue;")
@@ -1045,6 +1199,26 @@ class FunctionSpecialization:
 		else:
 			raise TypeError('Unsupported unit test type')
 		
+	def get_optimized_implementations(self):
+		implementations = list()
+		if any(map(bool, self.assembly_functions.itervalues())):
+			implementations.append("\t<table>")
+			implementations.append("\t\t<tr><th>Architecture</th><th>Target microarchitecture</th><th>Required instruction extensions</th></tr>")
+# 				for assembly_function in self.assembly_functions['x86']:
+# 					isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
+# 					documentation_lines.append(" * \t\t\t<tr><td>x86</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.microarchitecture, ", ".join(isa_extensions)))
+			for assembly_function in sorted(self.assembly_functions['x64-sysv'], key = lambda function: function.target.microarchitecture.get_number()):
+				isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
+				isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.x64.supported_isa_extensions.index(isa_extension))
+				implementations.append("\t\t<tr><td>x86-64</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
+			for assembly_function in sorted(self.assembly_functions['arm-softeabi'], key = lambda function: function.target.microarchitecture.get_number()):
+				isa_extensions = [isa_extension for isa_extension in assembly_function.get_isa_extensions() if isa_extension]
+				isa_extensions = sorted(isa_extensions, key = lambda isa_extension: peachpy.arm.supported_isa_extensions.index(isa_extension))
+				implementations.append("\t\t<tr><td>ARM</td><td>{0}</td><td>{1}</td></tr>".format(assembly_function.target.microarchitecture, ", ".join(isa_extensions)))
+			implementations.append("\t</table>")
+		return implementations
+
+
 
 class FunctionGenerator:
 	def __init__(self):
@@ -1053,7 +1227,7 @@ class FunctionGenerator:
 		self.module_header_generator = None
 		self.module_initialization_generator = None
 		self.initialization_function_generator = None
-		self.default_implementation_generator = None
+		self.default_cpp_implementation_generator = None
 		self.dispatch_table_header_generator = None
 		self.dispatch_table_generator = None
 		self.dispatch_pointer_generator = None
@@ -1065,16 +1239,17 @@ class FunctionGenerator:
 		self.csharp_extern_method_generator = None
 		self.cpp_unit_test_generator = None
 		self.assembly_implementation_generators = dict()
+		self.assembly_cache = dict()
 
-		self.default_implementation = None
+		self.default_cpp_implementation = None
 		self.assembly_implementations = list()
-		self.default_documentation = None
+		self.c_documentation = None
 		self.java_documentation = None
 
 		self.unit_test = None
 		self.cpp_unit_tests = list()
 
-	def generate_group_prolog(self, module_name, group_name, group_comment, header_license, source_license):
+	def generate_group_prolog(self, module_name, module_comment, group_name, group_comment, header_license, source_license):
 		from peachpy import x86
 		from peachpy import x64
 		from peachpy import arm
@@ -1086,7 +1261,7 @@ class FunctionGenerator:
 		self.dispatch_table_header_generator.add_line()
 		self.dispatch_table_header_generator.add_line("#include <yepPredefines.h>")
 		self.dispatch_table_header_generator.add_line("#include <yepTypes.h>")
-		self.dispatch_table_header_generator.add_line("#include <yepPrivate.hpp>")
+		self.dispatch_table_header_generator.add_line("#include <yepPrivate.h>")
 		self.dispatch_table_header_generator.add_line("#include <yep{0}.h>".format(module_name))
 		self.dispatch_table_header_generator.add_line("#include <library/functions.h>".format(module_name))
 		self.dispatch_table_header_generator.add_line()
@@ -1106,7 +1281,7 @@ class FunctionGenerator:
 		self.dispatch_table_generator.add_line()
 		self.dispatch_table_generator.add_line("#include <yepPredefines.h>")
 		self.dispatch_table_generator.add_line("#include <yepTypes.h>")
-		self.dispatch_table_generator.add_line("#include <yepPrivate.hpp>")
+		self.dispatch_table_generator.add_line("#include <yepPrivate.h>")
 		self.dispatch_table_generator.add_line("#include <{0}/{1}.disp.h>".format(module_name.lower(), group_name))
 		self.dispatch_table_generator.add_line()
 		self.dispatch_table_generator.add_line("#if defined(YEP_MSVC_COMPATIBLE_COMPILER)")
@@ -1138,13 +1313,13 @@ class FunctionGenerator:
 		self.dispatch_function_generator.add_line("#endif")
 		self.dispatch_function_generator.add_line()
 
-		self.default_implementation_generator = peachpy.codegen.CodeGenerator()
-		self.default_implementation_generator.add_c_comment(source_license)
-		self.default_implementation_generator.add_line()
-		self.default_implementation_generator.add_line("#include <yepIntrinsics.h>")
-		self.default_implementation_generator.add_line("#include <yep{0}.h>".format(module_name))
-		self.default_implementation_generator.add_line()
-		self.default_implementation_generator.add_line()
+		self.default_cpp_implementation_generator = peachpy.codegen.CodeGenerator()
+		self.default_cpp_implementation_generator.add_c_comment(source_license)
+		self.default_cpp_implementation_generator.add_line()
+		self.default_cpp_implementation_generator.add_line("#include <yepBuiltin.h>")
+		self.default_cpp_implementation_generator.add_line("#include <yep{0}.h>".format(module_name))
+		self.default_cpp_implementation_generator.add_line()
+		self.default_cpp_implementation_generator.add_line()
 
 		self.assembly_implementation_generators = [
 # 			x86.Assembler(peachpy.c.ABI('x86')),
@@ -1184,6 +1359,7 @@ class FunctionGenerator:
 		self.jni_implementation_generator.add_c_comment(source_license)
 		self.jni_implementation_generator.add_line()
 		self.jni_implementation_generator.add_line("#include <jni.h>")
+		self.jni_implementation_generator.add_line("#include <yepPrivate.h>")
 		self.jni_implementation_generator.add_line("#include <yep{0}.h>".format(module_name))
 		self.jni_implementation_generator.add_line("#include <yepJavaPrivate.h>")
 		self.jni_implementation_generator.add_empty_lines(2)
@@ -1196,6 +1372,7 @@ class FunctionGenerator:
 		self.public_header_generator.add_line(" * @ingroup yep{0}".format(module_name))
 		self.public_header_generator.add_line(" * @defgroup yep{0}_{1}	{2}".format(module_name, group_name, group_comment))
 		self.public_header_generator.add_line(" */")
+		self.public_header_generator.add_line()
 
 		self.csharp_safe_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_safe_method_generator.add_c_comment(source_license)
@@ -1204,8 +1381,10 @@ class FunctionGenerator:
 		self.csharp_safe_method_generator.add_line()
 		self.csharp_safe_method_generator.add_line("namespace Yeppp")
 		self.csharp_safe_method_generator.add_line("{").indent().add_line()
-		self.csharp_safe_method_generator.add_line("public partial class {0}".format(module_name))
+		self.csharp_safe_method_generator.add_csharp_comment("<summary>%s</summary>" % module_comment, doxygen = True)
+		self.csharp_safe_method_generator.add_line("public partial class %s" % module_name)
 		self.csharp_safe_method_generator.add_line("{").indent().add_line()
+		self.csharp_safe_method_generator.add_line()
 
 		self.csharp_unsafe_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_unsafe_method_generator.add_line().indent().indent()
@@ -1213,33 +1392,106 @@ class FunctionGenerator:
 		self.csharp_dllimport_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_dllimport_method_generator.add_line().indent().indent()
 
+		self.fortran_module_generator.add_fortran90_comment(["@ingroup yep{0}".format(module_name),
+															 "@defgroup yep{0}_{1}	{2}".format(module_name, group_name, group_comment)], doxygen = True)
+		self.fortran_module_generator.add_line()
+
 		self.cpp_unit_test_generator = peachpy.codegen.CodeGenerator()
 		self.cpp_unit_test_generator.add_c_comment(source_license)
 		self.cpp_unit_test_generator.add_line()
 		self.cpp_unit_test_generator.add_line("#include <yepPredefines.h>")
-		self.cpp_unit_test_generator.add_line("#include <yepPrivate.hpp>")
+		self.cpp_unit_test_generator.add_line("#include <yepPrivate.h>")
 		self.cpp_unit_test_generator.add_line("#include <yepLibrary.h>")
 		self.cpp_unit_test_generator.add_line("#include <library/functions.h>")
 		self.cpp_unit_test_generator.add_line("#include <yepRandom.h>")
 		self.cpp_unit_test_generator.add_line("#include <{0}/functions.h>".format(module_name.lower()))
-		self.cpp_unit_test_generator.add_line("#include <yepIntrinsics.h>")
+		self.cpp_unit_test_generator.add_line("#include <yepBuiltin.h>")
 		self.cpp_unit_test_generator.add_line("#include <string.h>")
 		self.cpp_unit_test_generator.add_line("#include <stdio.h>")
 		self.cpp_unit_test_generator.add_line("#include <assert.h>")
 		self.cpp_unit_test_generator.add_line()
-		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_NORMAL_COLOR \"\x1B[0m\"")
-		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_RED_COLOR \"\x1B[31m\"")
-		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_GREEN_COLOR \"\x1B[32m\"")
-		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_YELLOW_COLOR \"\x1B[33m\"")
+		self.cpp_unit_test_generator.add_line("#ifdef YEP_WINDOWS_OS").indent()
+		self.cpp_unit_test_generator.add_line("#include <windows.h>")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_NORMAL_COLOR \"\"")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_RED_COLOR \"\"")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_GREEN_COLOR \"\"")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_YELLOW_COLOR \"\"")
+		self.cpp_unit_test_generator.dedent().add_line("#else").indent()
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_NORMAL_COLOR \"\\x1B[0m\"")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_RED_COLOR \"\\x1B[31m\"")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_GREEN_COLOR \"\\x1B[32m\"")
+		self.cpp_unit_test_generator.add_line("#define YEP_ESCAPE_YELLOW_COLOR \"\\x1B[33m\"")
+		self.cpp_unit_test_generator.dedent().add_line("#endif")
 		self.cpp_unit_test_generator.add_line()
 		self.cpp_unit_test_generator.add_line("static const char* getMicroarchitectureName(YepCpuMicroarchitecture microarchitecture) {").indent()
 		self.cpp_unit_test_generator.add_line("const YepSize bufferSize = 1024;")
 		self.cpp_unit_test_generator.add_line("static char buffer[bufferSize];")
 		self.cpp_unit_test_generator.add_line("YepSize bufferLength = bufferSize - 1;")
-		self.cpp_unit_test_generator.add_line("YepStatus status = yepLibrary_GetString(YepEnumerationCpuMicroarchitecture, microarchitecture, buffer, &bufferLength);")
+		self.cpp_unit_test_generator.add_line("YepStatus status = yepLibrary_GetString(YepEnumerationCpuMicroarchitecture, microarchitecture, YepStringTypeDescription, buffer, &bufferLength);")
 		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
 		self.cpp_unit_test_generator.add_line("buffer[bufferLength] = '\\0';")
 		self.cpp_unit_test_generator.add_line("return buffer;")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.add_line()
+		self.cpp_unit_test_generator.add_line("static void reportFailedTest(const char* functionName, YepCpuMicroarchitecture microarchitecture) {").indent()
+		self.cpp_unit_test_generator.add_line("#ifdef YEP_WINDOWS_OS").indent()
+		self.cpp_unit_test_generator.add_line("CONSOLE_SCREEN_BUFFER_INFO bufferInfo;")
+		self.cpp_unit_test_generator.add_line("::GetConsoleScreenBufferInfo(::GetStdHandle(STD_OUTPUT_HANDLE), &bufferInfo);")
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): \", functionName, getMicroarchitectureName(microarchitecture));")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_INTENSITY);")
+		self.cpp_unit_test_generator.add_line("printf(\"FAILED\\n\");")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);")
+		self.cpp_unit_test_generator.dedent().add_line("#else").indent()
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): %sFAILED%s\\n\", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR);")
+		self.cpp_unit_test_generator.dedent().add_line("#endif")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.add_line()
+		self.cpp_unit_test_generator.add_line("static void reportFailedTest(const char* functionName, YepCpuMicroarchitecture microarchitecture, float ulpError) {").indent()
+		self.cpp_unit_test_generator.add_line("#ifdef YEP_WINDOWS_OS").indent()
+		self.cpp_unit_test_generator.add_line("CONSOLE_SCREEN_BUFFER_INFO bufferInfo;")
+		self.cpp_unit_test_generator.add_line("::GetConsoleScreenBufferInfo(::GetStdHandle(STD_OUTPUT_HANDLE), &bufferInfo);")
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): \", functionName, getMicroarchitectureName(microarchitecture));")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_INTENSITY);")
+		self.cpp_unit_test_generator.add_line("printf(\"FAILED\");")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);")
+		self.cpp_unit_test_generator.add_line("printf(\" (%f ULP)\\n\", ulpError);")
+		self.cpp_unit_test_generator.dedent().add_line("#else").indent()
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): %sFAILED%s (%f ULP)\\n\", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR, ulpError);")
+		self.cpp_unit_test_generator.dedent().add_line("#endif")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.add_line()
+		self.cpp_unit_test_generator.add_line("static void reportPassedTest(const char* functionName, YepCpuMicroarchitecture microarchitecture) {").indent()
+		self.cpp_unit_test_generator.add_line("#ifdef YEP_WINDOWS_OS").indent()
+		self.cpp_unit_test_generator.add_line("CONSOLE_SCREEN_BUFFER_INFO bufferInfo;")
+		self.cpp_unit_test_generator.add_line("::GetConsoleScreenBufferInfo(::GetStdHandle(STD_OUTPUT_HANDLE), &bufferInfo);")
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): \", functionName, getMicroarchitectureName(microarchitecture));")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN | FOREGROUND_INTENSITY);")
+		self.cpp_unit_test_generator.add_line("printf(\"PASSED\\n\");")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);")
+		self.cpp_unit_test_generator.dedent().add_line("#else").indent()
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): %sPASSED%s\\n\", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_GREEN_COLOR, YEP_ESCAPE_NORMAL_COLOR);")
+		self.cpp_unit_test_generator.dedent().add_line("#endif")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.add_line()
+		self.cpp_unit_test_generator.add_line("static void reportSkippedTest(const char* functionName, YepCpuMicroarchitecture microarchitecture) {").indent()
+		self.cpp_unit_test_generator.add_line("#ifdef YEP_WINDOWS_OS").indent()
+		self.cpp_unit_test_generator.add_line("CONSOLE_SCREEN_BUFFER_INFO bufferInfo;")
+		self.cpp_unit_test_generator.add_line("::GetConsoleScreenBufferInfo(::GetStdHandle(STD_OUTPUT_HANDLE), &bufferInfo);")
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): \", functionName, getMicroarchitectureName(microarchitecture));")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);")
+		self.cpp_unit_test_generator.add_line("printf(\"SKIPPED\\n\");")
+		self.cpp_unit_test_generator.add_line("fflush(stdout);")
+		self.cpp_unit_test_generator.add_line("::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);")
+		self.cpp_unit_test_generator.dedent().add_line("#else").indent()
+		self.cpp_unit_test_generator.add_line("printf(\"%s (%s): %sSKIPPED%s\\n\", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_YELLOW_COLOR, YEP_ESCAPE_NORMAL_COLOR);")
+		self.cpp_unit_test_generator.dedent().add_line("#endif")
 		self.cpp_unit_test_generator.dedent().add_line("}")
 		self.cpp_unit_test_generator.add_line()
 
@@ -1260,6 +1512,28 @@ class FunctionGenerator:
 		self.csharp_dllimport_method_generator.add_line()
 
 		self.cpp_unit_test_generator.add_line("int main(int argc, char** argv) {").indent()
+		for cpp_unit_test in self.cpp_unit_tests:
+			self.cpp_unit_test_generator.add_line("YepBoolean test%s = YepBooleanFalse;" % cpp_unit_test)
+		self.cpp_unit_test_generator.add_line("if (argc == 1) {").indent()
+		self.cpp_unit_test_generator.add_c_comment("No tests specified: run all tests")
+		for cpp_unit_test in self.cpp_unit_tests:
+			self.cpp_unit_test_generator.add_line("test%s = YepBooleanTrue;" % cpp_unit_test)
+		self.cpp_unit_test_generator.dedent().add_line("} else {").indent()
+		self.cpp_unit_test_generator.add_c_comment("Some tests specified: run only specified tests")
+		self.cpp_unit_test_generator.add_line("for (int i = 1; i < argc; i++) {").indent()
+		for i, cpp_unit_test in enumerate(self.cpp_unit_tests):
+			if i == 0:
+				self.cpp_unit_test_generator.add_line("if (strcmp(argv[i], \"%s\") == 0) {" % cpp_unit_test[len(group_name) + 1:]).indent()
+				self.cpp_unit_test_generator.add_line("test%s = YepBooleanTrue;" % cpp_unit_test)
+			else:
+				self.cpp_unit_test_generator.dedent().add_line("} else if (strcmp(argv[i], \"%s\") == 0) {" % cpp_unit_test[len(group_name) + 1:]).indent()
+				self.cpp_unit_test_generator.add_line("test%s = YepBooleanTrue;" % cpp_unit_test)
+		self.cpp_unit_test_generator.dedent().add_line("} else {").indent()
+		self.cpp_unit_test_generator.add_line("fprintf(stderr, \"Unknown function name \\\"%s\\\"\", argv[i]);")
+		self.cpp_unit_test_generator.add_line("return 1;")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.dedent().add_line("}")
+		self.cpp_unit_test_generator.dedent().add_line("}")
 		self.cpp_unit_test_generator.add_line("YepStatus status = _yepLibrary_InitCpuInfo();")
 		self.cpp_unit_test_generator.add_line("assert(status == YepStatusOk);")
 		self.cpp_unit_test_generator.add_line()
@@ -1275,7 +1549,9 @@ class FunctionGenerator:
 
 		self.cpp_unit_test_generator.add_line("Yep32s failedTests = 0;")		
 		for cpp_unit_test in self.cpp_unit_tests:
-			self.cpp_unit_test_generator.add_line("failedTests += %s(supportedIsaFeatures, supportedSimdFeatures, supportedSystemFeatures);" % cpp_unit_test)
+			self.cpp_unit_test_generator.add_line("if YEP_LIKELY(test%s)" % cpp_unit_test).indent()
+			self.cpp_unit_test_generator.add_line("failedTests += Test_%s(supportedIsaFeatures, supportedSimdFeatures, supportedSystemFeatures);" % cpp_unit_test)
+			self.cpp_unit_test_generator.dedent()
 		self.cpp_unit_test_generator.add_line("return failedTests;")
 		self.cpp_unit_test_generator.dedent().add_line("}")
 		self.cpp_unit_test_generator.add_line()
@@ -1292,8 +1568,8 @@ class FunctionGenerator:
 			dispatch_table_file.write(self.dispatch_function_generator.get_code())
 			dispatch_table_file.write("\n")
 
-		with open("library/sources/{0}/{1}.impl.cpp".format(module_name.lower(), group_name), "w+") as default_implementation_file:
-			default_implementation_file.write(self.default_implementation_generator.get_code())
+		with open("library/sources/{0}/{1}.impl.cpp".format(module_name.lower(), group_name), "w+") as default_cpp_implementation_file:
+			default_cpp_implementation_file.write(self.default_cpp_implementation_generator.get_code())
 
 		with open("bindings/java/sources-jni/{0}/{1}.c".format(module_name.lower(), group_name), "w+") as jni_implementation_file:
 			jni_implementation_file.write(self.jni_implementation_generator.get_code())
@@ -1307,28 +1583,29 @@ class FunctionGenerator:
 			with open('library/sources/{0}/{1}.{2}.asm'.format(module_name.lower(), group_name, assembly_implementation_generator.abi.get_name()), "w+") as assembly_implementation_file:
 				assembly_implementation_file.write(str(assembly_implementation_generator))
 
-		with open("unit-tests/sources/{0}/{1}.cpp".format(module_name.lower(), group_name), "w+") as cpp_unit_test_file:
-			cpp_unit_test_file.write(self.cpp_unit_test_generator.get_code())
+		if self.unit_test:
+			with open("unit-tests/sources/{0}/{1}.cpp".format(module_name.lower(), group_name), "w+") as cpp_unit_test_file:
+				cpp_unit_test_file.write(self.cpp_unit_test_generator.get_code())
 
 	def generate(self, declaration):
 		specialization = FunctionSpecialization(declaration)
 		for assembly_implementation in self.assembly_implementations:
 			for assembly_implementation_generator in self.assembly_implementation_generators:
-				specialization.generate_assembly_implementation(assembly_implementation_generator, assembly_implementation)
-		specialization.generate_public_header(self.public_header_generator, self.default_documentation)
+				specialization.generate_assembly_implementation(assembly_implementation_generator, assembly_implementation, self.assembly_cache[assembly_implementation_generator.abi])
+		specialization.generate_public_header(self.public_header_generator, self.c_documentation)
 		specialization.generate_dispatch_table_header(self.dispatch_table_header_generator)
 		specialization.generate_dispatch_pointer_header(self.dispatch_pointer_header_generator)
 		specialization.generate_dispatch_table(self.dispatch_table_generator)
 		specialization.generate_initialization_function(self.initialization_function_generator)
 		specialization.generate_dispatch_pointer(self.dispatch_pointer_generator)
 		specialization.generate_dispatch_function(self.dispatch_function_generator)
-		specialization.generate_default_implementation(self.default_implementation_generator, self.default_implementation)
+		specialization.generate_default_cpp_implementation(self.default_cpp_implementation_generator, self.default_cpp_implementation)
 		specialization.generate_jni_function(self.jni_implementation_generator)
 		specialization.generate_java_method(self.java_class_generator, self.java_documentation)
-		specialization.generate_fortran_interface(self.fortran_module_generator)
+		specialization.generate_fortran_interface(self.fortran_module_generator, self.c_documentation)
 		specialization.generate_csharp_dllimport_method(self.csharp_dllimport_method_generator)
-		specialization.generate_csharp_unsafe_method(self.csharp_unsafe_method_generator)
-		specialization.generate_csharp_safe_method(self.csharp_safe_method_generator)
+		specialization.generate_csharp_unsafe_method(self.csharp_unsafe_method_generator, self.c_documentation, self.java_documentation)
+		specialization.generate_csharp_safe_method(self.csharp_safe_method_generator, self.java_documentation)
 
 		if self.unit_test:
 			specialization.generate_cpp_unit_test(self.cpp_unit_test_generator, self.unit_test, self.cpp_unit_tests)
