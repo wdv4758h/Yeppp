@@ -5,7 +5,9 @@
  * See LICENSE.txt for the full text of the license.
  */
 
-#include <yepPredefines.h>
-#include <yepTypes.h>
 #pragma once
 
+#include <yepPredefines.h>
+#include <yepTypes.h>
+
+#include <library/functions.h>
