@@ -2,7 +2,7 @@
 #                      Yeppp! library implementation
 #
 # This file is part of Yeppp! library and licensed under the New BSD license.
-# See library/LICENSE.txt for the full text of the license.
+# See LICENSE.txt for the full text of the license.
 #
 
 import yeppp.module
@@ -28,11 +28,6 @@ def generate_log(module):
 @param[out]	yArray	Output array.
 @param[in]   yOffset Offset of the first element in @a yArray.
 @param[in]	length	The length of the subarrays to be used in computation.
-@throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	IllegalArgumentException	If the @a xOffset or @a yOffset argument is negative.
-@throws	NegativeArraySizeException	If the @a length argument is null.
-@throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
-@throws	MisalignedPointerError	If one of the arrays is not properly aligned.
 """
 		function.c_implementation = """
 while (length-- != 0) {
@@ -61,11 +56,6 @@ def generate_exp(module):
 @param[out]	yArray	Output array.
 @param[in]   yOffset Offset of the first element in @a yArray.
 @param[in]	length	Length of the subarrays to be used in computation.
-@throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	IllegalArgumentException	If the @a xOffset or @a yOffset argument is negative.
-@throws	NegativeArraySizeException	If the @a length argument is null.
-@throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
-@throws	MisalignedPointerError	If one of the arrays is not properly aligned.
 """
 		function.c_implementation = """
 while (length-- != 0) {
@@ -94,11 +84,6 @@ def generate_sin(module):
 @param[out]	yArray	Output array.
 @param[in]   yOffset Offset of the first element in @a yArray.
 @param[in]	length	The length of the subarrays to be used in computation.
-@throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	InvalidArgumentException	If the @a xOffset or @a yOffset argument is negative.
-@throws	NegativeArraySizeException	If the @a length argument is null.
-@throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
-@throws	MisalignedPointerError	If one of the arrays is not properly aligned.
 """
 		function.c_implementation = """
 while (length-- != 0) {
@@ -127,11 +112,6 @@ def generate_cos(module):
 @param[out]	yArray	Output array.
 @param[in]   yOffset Offset of the first element in @a yArray.
 @param[in]	length	The length of the subarrays to be used in computation.
-@throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	InvalidArgumentException	If the @a xOffset or @a yOffset argument is negative.
-@throws	NegativeArraySizeException	If the @a length argument is null.
-@throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
-@throws	MisalignedPointerError	If one of the arrays is not properly aligned.
 """
 		function.c_implementation = """
 while (length-- != 0) {
@@ -159,12 +139,7 @@ def generate_tan(module):
 @param[in]   xOffset Offset of the first element in @a xArray.
 @param[out]	yArray	Output array.
 @param[in]   yOffset Offset of the first element in @a yArray.
-@param[in]	length	The length of the subarrays to be used in computation.
-@throws	NullPointerException	If @a xArray or @a yArray argument is null.
-@throws	InvalidArgumentException	If the @a xOffset or @a yOffset argument is negative.
-@throws	NegativeArraySizeException	If the @a length argument is null.
-@throws  IndexOutOfBoundsException If @a xOffset + @a length exceeds the length of @a xArray array or @a yOffset + @a length exceeds the length of @a yArray array.
-@throws	MisalignedPointerError	If one of the arrays is not properly aligned.
+@param[in]	length	The length of the slices of @a xArray and @a yArray to use in computation.
 """
 		function.c_implementation = """
 while (length-- != 0) {
@@ -192,7 +167,17 @@ def generate_evaluate_polynomial(module):
 @param[out]	y	Pointer the array where the result of polynomial evaluation will be stored.
 @param[in]	coefCount	Number of polynomial coefficients. Should equal the polynomial degree plus one.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
-@retval	#YepStatusInvalidArgument	@a coefCount is zero.
+"""
+		function.java_documentation = """
+@brief	Evaluates polynomial with %(InputType0)s coefficients on an array of %(InputType0)s elements.
+@param[in]	xArray	Array of elements on which the polynomial will be evaluated.
+@param[in]   xOffset Offset of the first element in @a xArray.
+@param[in]	coefArray	Array of polynomial coefficients.
+@param[in]	coefOffset	Offset of the first element in @a yArray.
+@param[out]	yArray	Array where the result of polynomial evaluation will be stored.
+@param[in]   yOffset Offset of the first element in @a yArray.
+@param[in]	coefCount	The length of the slice of @a coef to be used in computation.
+@param[in]	length	The length of the slice of @a xArray and @a yArray to use in computation.
 """
 		function.c_implementation = """
 if YEP_UNLIKELY(coefCount == 0) {
@@ -209,8 +194,8 @@ while (length-- != 0) {
 }
 return YepStatusOk;
 """
-		function.generate("yepMath_EvaluatePolynomial_V32fV32f_V32f(coef[coefCount], x, y, YepSize coefCount, YepSize length)")
-		function.generate("yepMath_EvaluatePolynomial_V64fV64f_V64f(coef[coefCount], x, y, YepSize coefCount, YepSize length)")
+		function.generate("yepMath_EvaluatePolynomial_V32fV32f_V32f(coef[coefCount], x, y, YepSize coefCount: coefCount != 0, YepSize length)")
+		function.generate("yepMath_EvaluatePolynomial_V64fV64f_V64f(coef[coefCount], x, y, YepSize coefCount: coefCount != 0, YepSize length)")
 
 if __name__ == '__main__':
 	with yeppp.module.Module('Math', 'Vector mathematical functions') as module:

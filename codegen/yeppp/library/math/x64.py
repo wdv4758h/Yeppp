@@ -2,7 +2,7 @@
 #                      Yeppp! library implementation
 #
 # This file is part of Yeppp! library and licensed under the New BSD license.
-# See library/LICENSE.txt for the full text of the license.
+# See LICENSE.txt for the full text of the license.
 #
 
 __author__ = 'Marat'
@@ -2148,12 +2148,12 @@ def BATCH_LOG_FULL_Haswell(xPointer, yPointer):
 		LOAD.ZERO( ymm_zero_mask, peachpy.c.Type('uint64_t') )
 		VPCMPEQQ( ymm_zero_mask, ymm_x, ymm_zero_mask )
 		# if (x == +0.0) f = -inf
-		VBLENDVPD( ymm_f[i], ymm_f[i], Constant.float64x4(Log.minus_inf), ymm_x )
+		VBLENDVPD( ymm_f[i], ymm_f[i], Constant.float64x4(Log.minus_inf), ymm_zero_mask )
 
 		# *yPointer = f
 		VMOVUPD( [yPointer + i * 32], ymm_f[i] )
 
-def Log_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Log_V64f_V64f(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Log':
@@ -2168,7 +2168,7 @@ def Log_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 				if x_type.get_size(codegen.abi) != 8 or y_type.get_size(codegen.abi) != 8:
 					return
 
-				with Function(codegen, function_signature, arguments, 'Bobcat'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bobcat', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -2180,7 +2180,7 @@ def Log_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_LOG_SSE, BATCH_LOG_FULL_Bobcat, BATCH_LOG_FAST_Bobcat, xPointer, yPointer, length, 16, 16 * 3, 8)
 
-				with Function(codegen, function_signature, arguments, 'K10'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'K10', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -2192,7 +2192,7 @@ def Log_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_LOG_SSE, BATCH_LOG_FULL_K10, BATCH_LOG_FAST_K10, xPointer, yPointer, length, 16, 16 * 8, 8)
 
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -2204,7 +2204,7 @@ def Log_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_LOG_SSE, BATCH_LOG_FULL_Nehalem, BATCH_LOG_FAST_Nehalem, xPointer, yPointer, length, 16, 16 * 8, 8)
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -2216,7 +2216,7 @@ def Log_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_LOG_AVX, BATCH_LOG_FULL_SandyBridge, BATCH_LOG_FAST_SandyBridge, xPointer, yPointer, length, 32, 32 * 8, 8)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 
@@ -2228,7 +2228,7 @@ def Log_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 
 					Map_Vf_Vf(SCALAR_LOG_AVX, BATCH_LOG_FULL_Bulldozer, BATCH_LOG_FAST_Bulldozer, xPointer, yPointer, length, 32, 32 * 6, 8)
 
-				with Function(codegen, function_signature, arguments, 'Haswell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 
@@ -3989,7 +3989,7 @@ def BATCH_EXP_FULL_Haswell(xPointer, yPointer):
 		# *yPointer = rf
 		VMOVUPD( [yPointer + i * 32], ymm_rf[i] )
 
-def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Exp':
@@ -4004,7 +4004,7 @@ def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 				if x_type.get_size(codegen.abi) != 8 or y_type.get_size(codegen.abi) != 8:
 					return
 
-				with Function(codegen, function_signature, arguments, 'Bobcat'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bobcat', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4016,7 +4016,7 @@ def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_EXP_SSE, BATCH_EXP_FULL_Bobcat, BATCH_EXP_FAST_Bobcat, xPointer, yPointer, length, 16, 16 * 4, 8)
 
-				with Function(codegen, function_signature, arguments, 'K10'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'K10', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4028,7 +4028,7 @@ def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_EXP_SSE, BATCH_EXP_FULL_K10, BATCH_EXP_FAST_K10, xPointer, yPointer, length, 16, 16 * 8, 8)
 
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4040,7 +4040,7 @@ def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_EXP_SSE, BATCH_EXP_FULL_Nehalem, BATCH_EXP_FAST_Nehalem, xPointer, yPointer, length, 16, 16 * 8, 8)
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4052,7 +4052,7 @@ def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_EXP_AVX, BATCH_EXP_FULL_SandyBridge, BATCH_EXP_FAST_SandyBridge, xPointer, yPointer, length, 32, 32 * 8, 8)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4064,7 +4064,7 @@ def Exp_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_EXP_AVX, BATCH_EXP_FULL_Bulldozer, BATCH_EXP_FAST_Bulldozer, xPointer, yPointer, length, 32, 32 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'Haswell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4602,7 +4602,7 @@ def BATCH_SIN_AVX(xPointer, yPointer):
 			VMOVUPD( [yPointer + 32 * i], ymm_sin[i].get_oword() )
 			VEXTRACTF128( [yPointer + 32 * i + 16], ymm_sin[i], 1 )
 
-def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Sin':
@@ -4620,7 +4620,7 @@ def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 				if x_size != 8 or y_size != 8:
 					return
 
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 
@@ -4632,7 +4632,7 @@ def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_SIN_SSE, BATCH_SIN_SSE, None, xPointer, yPointer, length, 32, 16 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -4644,7 +4644,7 @@ def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_SIN_AVX, BATCH_SIN_AVX, None, xPointer, yPointer, length, 32, 32 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 
@@ -4656,7 +4656,7 @@ def Sin_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_SIN_AVX, BATCH_SIN_Bulldozer, None, xPointer, yPointer, length, 16, 16 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'Haswell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -5197,7 +5197,7 @@ def BATCH_COS_AVX(xPointer, yPointer):
 			VMOVUPD( [yPointer + 32 * i], ymm_cos.get_oword() )
 			VEXTRACTF128( [yPointer + 32 * i + 16], ymm_cos, 1 )
 
-def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Cos':
@@ -5215,7 +5215,7 @@ def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 				if x_size != 8 or y_size != 8:
 					return
 
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -5227,7 +5227,7 @@ def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_COS_SSE, BATCH_COS_SSE, None, xPointer, yPointer, length, 32, 16 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 
@@ -5239,7 +5239,7 @@ def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 	
 					Map_Vf_Vf(SCALAR_COS_AVX, BATCH_COS_AVX, None, xPointer, yPointer, length, 32, 32 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 	
@@ -5251,7 +5251,7 @@ def Cos_V64f_V64f(codegen, function_signature, module, function, arguments, erro
 
 					Map_Vf_Vf(SCALAR_COS_AVX, BATCH_COS_Bulldozer, None, xPointer, yPointer, length, 16, 16 * 5, 8)
 
-				with Function(codegen, function_signature, arguments, 'Haswell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( xPointer, x_argument )
 
@@ -5371,7 +5371,7 @@ def SCALAR_TAN_AVX(xPointer, yPointer, is_prologue):
 
 	VMOVSD( [yPointer], xmm_tan )
 
-def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-sysv', 'x64-ms']:
 		if module == 'Math':
 			if function == 'Tan':
@@ -5389,7 +5389,7 @@ def Tan_V64f_V64f_Bulldozer(codegen, function_signature, module, function, argum
 				if x_size != 8 or y_size != 8:
 					return
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache):
 					xPointer = GeneralPurposeRegister64()
 					yPointer = GeneralPurposeRegister64()
 					length = GeneralPurposeRegister64()
@@ -5618,7 +5618,7 @@ def SCALAR_POLYNOMIAL_EVALUATION_AVX(cPointer, xPointer, yPointer, count, is_pro
 	LABEL( scalar_polevl_finish )
 	MOV_SCALAR( [yPointer], xmm_y )
 
-def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5653,7 +5653,7 @@ def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function
 				SIMD_MUL       = { 4: MULPS, 8: MULPD }[element_size] 
 				SIMD_ADD       = { 4: ADDPS, 8: ADDPD }[element_size] 
 
-				with Function(codegen, function_signature, arguments, 'Unknown'):
+				with Function(codegen, function_signature, arguments, 'Unknown', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	
@@ -5715,7 +5715,7 @@ def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 6, element_size)
 
-				with Function(codegen, function_signature, arguments, 'Nehalem'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	
@@ -5780,7 +5780,7 @@ def EvaluatePolynomial_VfVf_Vf_SSE(codegen, function_signature, module, function
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 10, element_size)
 
 
-def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5796,7 +5796,7 @@ def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module
 				if any([type.get_size() != 8 for type in (c_type, x_type, y_type)]):
 					return
 
-				with Function(codegen, function_signature, arguments, 'Bonnell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bonnell', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	
@@ -5855,7 +5855,7 @@ def EvaluatePolynomial_V64fV64f_V64f_Bonnell(codegen, function_signature, module
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 8 * 14, 8)
 
-def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5871,7 +5871,7 @@ def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module
 				if any([type.get_size() != 4 for type in (c_type, x_type, y_type)]):
 					return
 
-				with Function(codegen, function_signature, arguments, 'Bonnell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bonnell', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	
@@ -5932,7 +5932,7 @@ def EvaluatePolynomial_V32fV32f_V32f_Bonnell(codegen, function_signature, module
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 16, 16 * 14, 4)
 
-def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ('x64-sysv', 'x64-ms'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -5959,7 +5959,7 @@ def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function
 				SIMD_FMA4      = { 4: VFMADDPS, 8: VFMADDPD }[element_size] 
 				SIMD_FMA3      = { 4: VFMADD132PS, 8: VFMADD132PD }[element_size] 
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	
@@ -6037,7 +6037,7 @@ def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 32, 160, element_size)
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	
@@ -6100,7 +6100,7 @@ def EvaluatePolynomial_VfVf_Vf_AVX(codegen, function_signature, module, function
 	
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, None, xPointer, yPointer, length, 32, 32 * 8, element_size)
 
-				with Function(codegen, function_signature, arguments, 'Haswell'):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache):
 					cPointer = GeneralPurposeRegister64()
 					LOAD.PARAMETER( cPointer, c_argument )
 	

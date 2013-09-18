@@ -2,7 +2,7 @@
 #                      Yeppp! library implementation
 #
 # This file is part of Yeppp! library and licensed under the New BSD license.
-# See library/LICENSE.txt for the full text of the license.
+# See LICENSE.txt for the full text of the license.
 #
 
 __author__ = 'Marat'
@@ -99,7 +99,7 @@ def SCALAR_POLYNOMIAL_EVALUATION_VFP(cPointer, xPointer, yPointer, count, elemen
 	LABEL( scalar_polevl_finish )
 	STORE.ELEMENT( [yPointer], y, element_type, increment_pointer = True )
 
-def EvaluatePolynomial_V32fV32f_V32f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def EvaluatePolynomial_V32fV32f_V32f(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ('arm-softeabi', 'arm-hardeabi'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -118,7 +118,7 @@ def EvaluatePolynomial_V32fV32f_V32f(codegen, function_signature, module, functi
 					element_type = x_type
 					element_size = x_type.get_size()
 
-				with Function(codegen, function_signature, arguments, 'CortexA9', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'CortexA9', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					(cPointer, xPointer, yPointer, count, length) = LOAD.PARAMETERS()
 	
 					def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer):
@@ -172,7 +172,7 @@ def EvaluatePolynomial_V32fV32f_V32f(codegen, function_signature, module, functi
 
 					Map_Vf_Vf(SCALAR_POLYNOMIAL_EVALUATION, BATCH_POLYNOMIAL_EVALUATION, xPointer, yPointer, length, 16 * 6, element_size)
 
-def EvaluatePolynomial_V64fV64f_V64f(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def EvaluatePolynomial_V64fV64f_V64f(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ('arm-softeabi', 'arm-hardeabi'):
 		if module == 'Math':
 			if function == 'EvaluatePolynomial':
@@ -191,7 +191,7 @@ def EvaluatePolynomial_V64fV64f_V64f(codegen, function_signature, module, functi
 					element_type = x_type
 					element_size = x_type.get_size()
 
-				with Function(codegen, function_signature, arguments, 'CortexA9', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'CortexA9', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					(cPointer, xPointer, yPointer, count, length) = LOAD.PARAMETERS()
 	
 					def SCALAR_POLYNOMIAL_EVALUATION(xPointer, yPointer):

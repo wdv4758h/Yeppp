@@ -2,7 +2,7 @@
 #                      Yeppp! library implementation
 #
 # This file is part of Yeppp! library and licensed under the New BSD license.
-# See library/LICENSE.txt for the full text of the license.
+# See LICENSE.txt for the full text of the license.
 #
 
 __author__ = 'Marat'
@@ -60,4 +60,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.""".split("\n")
        Portable Efficient Assembly Code-generator in Higher-level Python,
                  part of the Yeppp! library infrastructure
 This file is part of Yeppp! library and licensed under the New BSD license.
-See library/LICENSE.txt for the full text of the license.""".split("\n")
+See LICENSE.txt for the full text of the license.""".split("\n")

@@ -2,23 +2,60 @@
 #                      Yeppp! library implementation
 #
 # This file is part of Yeppp! library and licensed under the New BSD license.
-# See library/LICENSE.txt for the full text of the license.
+# See LICENSE.txt for the full text of the license.
 #
 
 __author__ = 'Marat'
 
 from peachpy.x64 import *
 
-def SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, operation):
-	acc = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
-	LOAD.ELEMENT( acc, [xPointer], input_type )
-	temp = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
-	LOAD.ELEMENT( temp, [yPointer], input_type )
-
-	COMPUTE = { 'Add': ADD, 'Subtract': SUB, 'Multiply': IMUL }[operation]
-	COMPUTE( acc, temp )
-
-	STORE.ELEMENT( [zPointer], acc, output_type )
+class SCALAR:
+	@staticmethod
+	def AddSubtractMultiply_VXusVXus_VYus(xPointer, yPointer, zPointer, input_type, output_type, operation):
+		acc = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
+		LOAD.ELEMENT( acc, [xPointer], input_type, increment_pointer = True )
+		temp = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
+		LOAD.ELEMENT( temp, [yPointer], input_type, increment_pointer = True )
+	
+		COMPUTE = { 'Add': ADD, 'Subtract': SUB, 'Multiply': IMUL }[operation]
+		COMPUTE( acc, temp )
+	
+		STORE.ELEMENT( [zPointer], acc, output_type, increment_pointer = True )
+	
+	@staticmethod
+	def AddSubtractMultiply_VXusSXus_VYus(xPointer, y, zPointer, input_type, output_type, operation):
+		acc = GeneralPurposeRegister64() if output_type.get_size() == 8 else GeneralPurposeRegister32()
+		LOAD.ELEMENT( acc, [xPointer], input_type, increment_pointer = True )
+	
+		COMPUTE = { 'Add': ADD, 'Subtract': SUB, 'Multiply': IMUL }[operation]
+		if isinstance(y, GeneralPurposeRegister64) and output_type.get_size() != 8:
+			COMPUTE( acc, y.get_dword() )
+		else:
+			COMPUTE( acc, y )
+	
+		STORE.ELEMENT( [zPointer], acc, output_type, increment_pointer = True )
+	
+	@staticmethod
+	def AddSubtractMultiplyMinimumMaximum_VXfVXf_VXf(xPointer, yPointer, zPointer, ctype, operation):
+		x = SSERegister()
+		LOAD.ELEMENT( x, [xPointer], ctype, increment_pointer = True )
+		y = SSERegister()
+		LOAD.ELEMENT( y, [yPointer], ctype, increment_pointer = True )
+	
+		if Target.has_avx():
+			if ctype.get_size() == 4:
+				COMPUTE = { "Add": VADDSS, "Subtract": VSUBSS, "Multiply": VMULSS, 'Min': VMINSS, 'Max': VMAXSS }[operation]
+			else:
+				COMPUTE = { "Add": VADDSD, "Subtract": VSUBSD, "Multiply": VMULSD, 'Min': VMINSD, 'Max': VMAXSD }[operation]
+		else:
+			if ctype.get_size() == 4:
+				COMPUTE = { "Add": ADDSS, "Subtract": SUBSS, "Multiply": MULSS, 'Min': MINSS, 'Max': MAXSS }[operation]
+			else:
+				COMPUTE = { "Add": ADDSD, "Subtract": SUBSD, "Multiply": MULSD, 'Min': MINSD, 'Max': MAXSD }[operation]
+	
+		COMPUTE( x, y )
+	
+		STORE.ELEMENT( [zPointer], x, ctype, increment_pointer = True )
 
 def PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, max_register_size, batch_elements, input_type, output_type, scalar_function, instruction_columns, instruction_offsets, use_simd = True):
 	# Check that we have an offset for each instruction column
@@ -42,20 +79,23 @@ def PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, max_regis
 	TEST( xPointer, xPointer )
 	JZ( return_null_pointer )
 	
-	TEST( xPointer, input_type.get_size() - 1 )
-	JNZ( return_misaligned_pointer )
+	if input_type.get_size() != 1:
+		TEST( xPointer, input_type.get_size() - 1 )
+		JNZ( return_misaligned_pointer )
 	
 	TEST( yPointer, yPointer )
 	JZ( return_null_pointer )
-	
-	TEST( yPointer, input_type.get_size() - 1 )
-	JNZ( return_misaligned_pointer )
+
+	if input_type.get_size() != 1:	
+		TEST( yPointer, input_type.get_size() - 1 )
+		JNZ( return_misaligned_pointer )
 
 	TEST( zPointer, zPointer )
 	JZ( return_null_pointer )
-	
-	TEST( zPointer, output_type.get_size() - 1 )
-	JNZ( return_misaligned_pointer )
+
+	if output_type.get_size() != 1:	
+		TEST( zPointer, output_type.get_size() - 1 )
+		JNZ( return_misaligned_pointer )
 
 	# If length is zero, return immediately
 	TEST( length, length )
@@ -68,9 +108,6 @@ def PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, max_regis
 	
 		LABEL( source_z_misaligned )
 		scalar_function(xPointer, yPointer, zPointer)
-		ADD( xPointer, input_type.get_size() )
-		ADD( yPointer, input_type.get_size() )
-		ADD( zPointer, output_type.get_size() )
 		SUB( length, 1 )
 		JZ( return_ok )
 	
@@ -112,9 +149,6 @@ def PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, max_regis
 
 	LABEL( process_single )
 	scalar_function(xPointer, yPointer, zPointer)
-	ADD( xPointer, input_type.get_size() )
-	ADD( yPointer, input_type.get_size() )
-	ADD( zPointer, output_type.get_size() )
 	SUB( length, 1 )
 	JNZ( process_single )
 
@@ -127,44 +161,140 @@ def PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, max_regis
 	LABEL( return_null_pointer )
 	MOV( eax, 1 )
 	JMP( return_any )
+
+	if input_type.get_size() != 1 or output_type.get_size() != 1:	
+		LABEL( return_misaligned_pointer )
+		MOV( eax, 2 )
+		JMP( return_any )
+
+def PipelineMap_VXusfSXusf_VYusf(xPointer, y, zPointer, length, max_register_size, batch_elements, input_type, output_type, scalar_function, instruction_columns, instruction_offsets, use_simd = True):
+	# Check that we have an offset for each instruction column
+	assert len(instruction_columns) == len(instruction_offsets)
+
+	max_instructions  = max(map(len, instruction_columns))
 	
-	LABEL( return_misaligned_pointer )
-	MOV( eax, 2 )
+	source_z_aligned          = Label("source_z_%sb_aligned" % max_register_size)
+	source_z_misaligned       = Label("source_z_%sb_misaligned" % max_register_size)
+	return_ok                 = Label("return_ok")
+	return_null_pointer       = Label("return_null_pointer")
+	return_misaligned_pointer = Label("return_misaligned_pointer")
+	return_any                = Label("return")
+	batch_process_finish      = Label("batch_process_finish")
+	process_single            = Label("process_single")
+	process_batch             = Label("process_batch")
+	process_batch_prologue    = Label("process_batch_prologue") 
+	process_batch_epilogue    = Label("process_batch_epilogue") 
+
+	# Check parameters
+	TEST( xPointer, xPointer )
+	JZ( return_null_pointer )
+
+	if input_type.get_size() != 1:	
+		TEST( xPointer, input_type.get_size() - 1 )
+		JNZ( return_misaligned_pointer )
+	
+	TEST( zPointer, zPointer )
+	JZ( return_null_pointer )
+
+	if output_type.get_size() != 1:	
+		TEST( zPointer, output_type.get_size() - 1 )
+		JNZ( return_misaligned_pointer )
+
+	# If length is zero, return immediately
+	TEST( length, length )
+	JZ( return_ok )
+
+	if use_simd:
+		# If the y pointer is not aligned by register size, process by one element until it becomes aligned
+		TEST( zPointer, max_register_size - 1 )
+		JZ( source_z_aligned )
+	
+		LABEL( source_z_misaligned )
+		scalar_function(xPointer, y, zPointer)
+		SUB( length, 1 )
+		JZ( return_ok )
+	
+		TEST( zPointer, max_register_size - 1 )
+		JNZ( source_z_misaligned )
+	
+		LABEL( source_z_aligned )
+
+	SUB( length, batch_elements )
+	JB( batch_process_finish )
+
+	LABEL( process_batch_prologue )
+	for i in range(max_instructions):
+		for instruction_column, instruction_offset in zip(instruction_columns, instruction_offsets):
+			if i >= instruction_offset:
+				Function.get_current().add_instruction(instruction_column[i - instruction_offset])
+
+	SUB( length, batch_elements )
+	JB( process_batch_epilogue )
+
+	ALIGN( 16 )
+	LABEL( process_batch )
+	for i in range(max_instructions):
+		for instruction_column, instruction_offset in zip(instruction_columns, instruction_offsets):
+			Function.get_current().add_instruction(instruction_column[(i - instruction_offset) % max_instructions])
+
+	SUB( length, batch_elements )
+	JAE( process_batch )
+
+	LABEL( process_batch_epilogue )
+	for i in range(max_instructions):
+		for instruction_column, instruction_offset in zip(instruction_columns, instruction_offsets):
+			if i < instruction_offset:
+				Function.get_current().add_instruction(instruction_column[(i - instruction_offset) % max_instructions])
+
+	LABEL( batch_process_finish )
+	ADD( length, batch_elements )
+	JZ( return_ok )
+
+	LABEL( process_single )
+	scalar_function(xPointer, y, zPointer)
+	SUB( length, 1 )
+	JNZ( process_single )
+
+	LABEL( return_ok )
+	XOR( eax, eax )
+	
+	LABEL( return_any )
+	RETURN()
+
+	LABEL( return_null_pointer )
+	MOV( eax, 1 )
 	JMP( return_any )
 
-def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+	if input_type.get_size() != 1 or output_type.get_size() != 1:	
+		LABEL( return_misaligned_pointer )
+		MOV( eax, 2 )
+		JMP( return_any )
+
+def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract']:
 				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
 
-				x_type = x_argument.get_type().get_primitive_type()
-				y_type = y_argument.get_type().get_primitive_type()
-				z_type = z_argument.get_type().get_primitive_type()
-
-				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
-					return
-
-				if len(set([x_type, y_type])) != 1:
-					return
-				elif x_type.get_size() != z_type.get_size() and x_type.get_size() * 2 != z_type.get_size():
-					return
+				if function_signature in ['V8sV8s_V8s',  'V16sV16s_V16s', 'V32sV32s_V32s', 'V64sV64s_V64s', 
+										  'V8uV8u_V16u', 'V16uV16u_V32u', 'V32uV32u_V64u',   
+										  'V8sV8s_V16s', 'V16sV16s_V32s', 'V32sV32s_V64s']:
+					input_type = x_argument.get_type().get_primitive_type()
+					output_type = z_argument.get_type().get_primitive_type()
 				else:
-					input_type = x_type
-					output_type = z_type
+					return
 
 				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
-					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+					SCALAR.AddSubtractMultiply_VXusVXus_VYus(xPointer, yPointer, zPointer, input_type, output_type, function)
 
-				if x_type.get_size() == z_type.get_size():
+				if input_type.get_size() == output_type.get_size():
 					SIMD_LOAD = MOVDQU
 					load_increment = 16
 				else:
 					load_increment = 8
-					SIMD_UNPACK_LO = { 1: PUNPCKLBW, 2: PUNPCKLWD, 4: PUNPCKLDQ }[input_type.get_size()]
-					SIMD_UNPACK_HI = { 1: PUNPCKHBW, 2: PUNPCKHWD, 4: PUNPCKHDQ }[input_type.get_size()]
-					SIMD_COMPARE   = { 1: PCMPGTB, 2: PCMPGTW, 4: PCMPGTD }[input_type.get_size()]
-					if x_type.is_signed_integer():
+					SIMD_UNPACK_LOW = { 1: PUNPCKLBW, 2: PUNPCKLWD, 4: PUNPCKLDQ }[input_type.get_size()]
+					SIMD_COMPARE    = { 1: PCMPGTB, 2: PCMPGTW, 4: PCMPGTD }[input_type.get_size()]
+					if input_type.is_signed_integer():
 						SIMD_LOAD = { 1: PMOVSXBW, 2: PMOVSXWD, 4: PMOVSXDQ }[input_type.get_size()]
 					else:
 						SIMD_LOAD = { 1: PMOVZXBW, 2: PMOVZXWD, 4: PMOVZXDQ }[input_type.get_size()]
@@ -176,7 +306,7 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 				SIMD_STORE = MOVDQA
 
 				if input_type.get_size() * 2 == output_type.get_size(): 
-					with Function(codegen, function_signature, arguments, 'K10', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'K10', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 						xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 						
 						if input_type.is_unsigned_integer():
@@ -189,9 +319,7 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 							batch_elements   = unroll_registers * register_size / output_type.get_size()
 		
 							x = [SSERegister() for _ in range(unroll_registers)]
-							x_hi = [SSERegister() for _ in range(unroll_registers)]
 							y = [SSERegister() for _ in range(unroll_registers)]
-							y_hi = [SSERegister() for _ in range(unroll_registers)]
 		
 							instruction_offsets = (0, 0, 3, 4, 5, 6)
 							instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
@@ -201,9 +329,9 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 								with instruction_columns[1]:
 									MOVQ( y[i], [yPointer + i * load_increment] )
 								with instruction_columns[2]:
-									SIMD_UNPACK_LO( x[i], xmm_zero )
+									SIMD_UNPACK_LOW( x[i], xmm_zero )
 								with instruction_columns[3]:
-									SIMD_UNPACK_LO( y[i], xmm_zero )
+									SIMD_UNPACK_LOW( y[i], xmm_zero )
 								with instruction_columns[4]:
 									SIMD_COMPUTE( x[i], y[i] )
 								with instruction_columns[5]:
@@ -240,9 +368,9 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 								with instruction_columns[5]:
 									SIMD_COMPARE( y_hi[i], y[i] )
 								with instruction_columns[6]:
-									SIMD_UNPACK_LO( x[i], x_hi[i] )
+									SIMD_UNPACK_LOW( x[i], x_hi[i] )
 								with instruction_columns[7]:
-									SIMD_UNPACK_LO( y[i], y_hi[i] )
+									SIMD_UNPACK_LOW( y[i], y_hi[i] )
 								with instruction_columns[8]:
 									SIMD_COMPUTE( x[i], y[i] )
 								with instruction_columns[9]:
@@ -256,7 +384,7 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 	
 						PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 8
@@ -286,34 +414,27 @@ def AddSub_VXusVXus_VYus_SSE(codegen, function_signature, module, function, argu
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-def AddSub_VXusVXus_VYus_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def AddSub_VXusVXus_VYus_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract']:
 				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
 
-				x_type = x_argument.get_type().get_primitive_type()
-				y_type = y_argument.get_type().get_primitive_type()
-				z_type = z_argument.get_type().get_primitive_type()
-
-				if any(type.is_floating_point() for type in (x_type, y_type, z_type)):
-					return
-
-				if len(set([x_type, y_type])) != 1:
-					return
-				elif x_type.get_size() != z_type.get_size() and x_type.get_size() * 2 != z_type.get_size():
-					return
+				if function_signature in ['V8sV8s_V8s',  'V16sV16s_V16s', 'V32sV32s_V32s', 'V64sV64s_V64s', 
+										  'V8uV8u_V16u', 'V16uV16u_V32u', 'V32uV32u_V64u',   
+										  'V8sV8s_V16s', 'V16sV16s_V32s', 'V32sV32s_V64s']:
+					input_type = x_argument.get_type().get_primitive_type()
+					output_type = z_argument.get_type().get_primitive_type()
 				else:
-					input_type = x_type
-					output_type = z_type
+					return
 
 				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
-					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+					SCALAR.AddSubtractMultiply_VXusVXus_VYus(xPointer, yPointer, zPointer, input_type, output_type, function)
 
-				if x_type.get_size() == z_type.get_size():
+				if input_type.get_size() == output_type.get_size():
 					SIMD_LOAD = VMOVDQU
 				else:
-					if x_type.is_signed_integer():
+					if input_type.is_signed_integer():
 						SIMD_LOAD = { 1: VPMOVSXBW, 2: VPMOVSXWD, 4: VPMOVSXDQ }[input_type.get_size()]
 					else:
 						SIMD_LOAD = { 1: VPMOVZXBW, 2: VPMOVZXWD, 4: VPMOVZXDQ }[input_type.get_size()]
@@ -324,7 +445,7 @@ def AddSub_VXusVXus_VYus_AVX(codegen, function_signature, module, function, argu
 					SIMD_COMPUTE = { 1: VPSUBB, 2: VPSUBW, 4: VPSUBD, 8: VPSUBQ }[output_type.get_size()]
 				SIMD_STORE = VMOVDQA
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					load_increment   = 16 if input_type.get_size() == output_type.get_size() else 8
@@ -355,7 +476,7 @@ def AddSub_VXusVXus_VYus_AVX(codegen, function_signature, module, function, argu
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					load_increment   = 32 if input_type.get_size() == output_type.get_size() else 16
@@ -386,7 +507,222 @@ def AddSub_VXusVXus_VYus_AVX(codegen, function_signature, module, function, argu
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def AddSub_VXusSXus_VYus_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
+	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
+		if module == 'Core':
+			if function in ['Add', 'Subtract']:
+				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
+
+				if function_signature in ['V8uS8u_V8u',  'V16uS16u_V16u', 'V32uS32u_V32u', 'V64uS64u_V64u', 
+										  'V8uS8u_V16u', 'V16uS16u_V32u', 'V32uS32u_V64u',   
+										  'V8sS8s_V16s', 'V16sS16s_V32s', 'V32sS32s_V64s']:
+					input_type = x_argument.get_type().get_primitive_type()
+					output_type = z_argument.get_type().get_primitive_type()
+				else:
+					return
+
+				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
+					SCALAR.AddSubtractMultiply_VXusSXus_VYus(xPointer, y, zPointer, input_type, output_type, function)
+
+				if input_type.get_size() == output_type.get_size():
+					SIMD_LOAD = MOVDQU
+					load_increment = 16
+				else:
+					load_increment = 8
+					SIMD_UNPACK_LOW = { 1: PUNPCKLBW, 2: PUNPCKLWD, 4: PUNPCKLDQ }[input_type.get_size()]
+					SIMD_COMPARE    = { 1: PCMPGTB, 2: PCMPGTW, 4: PCMPGTD }[input_type.get_size()]
+					if input_type.is_signed_integer():
+						SIMD_LOAD = { 1: PMOVSXBW, 2: PMOVSXWD, 4: PMOVSXDQ }[input_type.get_size()]
+					else:
+						SIMD_LOAD = { 1: PMOVZXBW, 2: PMOVZXWD, 4: PMOVZXDQ }[input_type.get_size()]
+
+				if function == 'Add':
+					SIMD_COMPUTE = { 1: PADDB, 2: PADDW, 4: PADDD, 8: PADDQ }[output_type.get_size()]
+				elif function == 'Subtract':
+					SIMD_COMPUTE = { 1: PSUBB, 2: PSUBW, 4: PSUBD, 8: PSUBQ }[output_type.get_size()]
+				SIMD_STORE = MOVDQA
+
+				if input_type.get_size() * 2 == output_type.get_size(): 
+					with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'K10', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+						xPointer, y, zPointer, length = LOAD.PARAMETERS()
+						
+						if input_type.is_unsigned_integer():
+							xmm_zero = SSERegister()
+							LOAD.ZERO( xmm_zero, input_type )
+							
+							load_increment   = 8
+							unroll_registers = 7
+							register_size    = 16
+							batch_elements   = unroll_registers * register_size / output_type.get_size()
+		
+							xmm_x = [SSERegister() for _ in range(unroll_registers)]
+							
+							xmm_y = SSERegister()
+							BROADCAST.ELEMENT( xmm_y, y, input_type, output_type )
+		
+							instruction_offsets = (0, 4, 5, 6)
+							instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()] 
+							for i in range(unroll_registers):
+								with instruction_columns[0]:
+									MOVQ( xmm_x[i], [xPointer + i * load_increment] )
+								with instruction_columns[1]:
+									SIMD_UNPACK_LOW( xmm_x[i], xmm_zero )
+								with instruction_columns[2]:
+									SIMD_COMPUTE( xmm_x[i], xmm_y )
+								with instruction_columns[3]:
+									SIMD_STORE( [zPointer + i * register_size], xmm_x[i] )
+							with instruction_columns[0]:
+								ADD( xPointer, load_increment * unroll_registers )
+							with instruction_columns[3]:
+								ADD( zPointer, register_size * unroll_registers )
+						else:
+							unroll_registers = 6
+							register_size    = 16
+							batch_elements   = unroll_registers * register_size / output_type.get_size()
+		
+							xmm_x = [SSERegister() for _ in range(unroll_registers)]
+							xmm_x_hi = [SSERegister() for _ in range(unroll_registers)]
+
+							xmm_y = SSERegister()
+							BROADCAST.ELEMENT( xmm_y, y, input_type, output_type )
+		
+							instruction_offsets = (0, 0, 2, 3, 4, 5)
+							instruction_columns = [InstructionStream() for _ in range(6)] 
+							for i in range(unroll_registers):
+								with instruction_columns[0]:
+									MOVQ( xmm_x[i], [xPointer + i * load_increment] )
+								with instruction_columns[1]:
+									LOAD.ZERO( xmm_x_hi[i], input_type )
+								with instruction_columns[2]:
+									SIMD_COMPARE( xmm_x_hi[i], xmm_x[i] )
+								with instruction_columns[3]:
+									SIMD_UNPACK_LOW( xmm_x[i], xmm_x_hi[i] )
+								with instruction_columns[4]:
+									SIMD_COMPUTE( xmm_x[i], xmm_y )
+								with instruction_columns[5]:
+									SIMD_STORE( [zPointer + i * register_size], xmm_x[i] )
+							with instruction_columns[0]:
+								ADD( xPointer, load_increment * unroll_registers )
+							with instruction_columns[5]:
+								ADD( zPointer, register_size * unroll_registers )
+
+						PipelineMap_VXusfSXusf_VYusf(xPointer, y, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					xPointer, y, zPointer, length = LOAD.PARAMETERS()
+					
+					unroll_registers = 8
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					xmm_x = [SSERegister() for _ in range(unroll_registers)]
+
+					xmm_y = SSERegister()
+					BROADCAST.ELEMENT( xmm_y, y, input_type, output_type )
+					
+					instruction_offsets = (0, 4, 5)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( xmm_x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_COMPUTE( xmm_x[i], xmm_y )
+						with instruction_columns[2]:
+							SIMD_STORE( [zPointer + i * register_size], xmm_x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[2]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfSXusf_VYusf(xPointer, y, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def AddSub_VXusSXus_VYus_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
+	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
+		if module == 'Core':
+			if function in ['Add', 'Subtract']:
+				x_argument, y_argument, z_argument, length_argument = tuple(arguments)
+
+				if function_signature in ['V8uS8u_V8u',  'V16uS16u_V16u', 'V32uS32u_V32u', 'V64uS64u_V64u', 
+										  'V8uS8u_V16u', 'V16uS16u_V32u', 'V32uS32u_V64u',   
+										  'V8sS8s_V16s', 'V16sS16s_V32s', 'V32sS32s_V64s']:
+					input_type = x_argument.get_type().get_primitive_type()
+					output_type = z_argument.get_type().get_primitive_type()
+				else:
+					return
+
+				def PROCESS_SCALAR(xPointer, y, zPointer):
+					SCALAR.AddSubtractMultiply_VXusSXus_VYus(xPointer, y, zPointer, input_type, output_type, function)
+
+				if input_type.get_size() == output_type.get_size():
+					SIMD_LOAD = VMOVDQU
+				else:
+					if input_type.is_signed_integer():
+						SIMD_LOAD = { 1: VPMOVSXBW, 2: VPMOVSXWD, 4: VPMOVSXDQ }[input_type.get_size()]
+					else:
+						SIMD_LOAD = { 1: VPMOVZXBW, 2: VPMOVZXWD, 4: VPMOVZXDQ }[input_type.get_size()]
+
+				if function == 'Add':
+					SIMD_COMPUTE = { 1: VPADDB, 2: VPADDW, 4: VPADDD, 8: VPADDQ }[output_type.get_size()]
+				elif function == 'Subtract':
+					SIMD_COMPUTE = { 1: VPSUBB, 2: VPSUBW, 4: VPSUBD, 8: VPSUBQ }[output_type.get_size()]
+				SIMD_STORE = VMOVDQA
+
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					xPointer, y, zPointer, length = LOAD.PARAMETERS()
+					
+					load_increment   = 16 if input_type.get_size() == output_type.get_size() else 8
+					unroll_registers = 8
+					register_size    = 16
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					xmm_x = [SSERegister() for _ in range(unroll_registers)]
+					xmm_y = SSERegister()
+					BROADCAST.ELEMENT( xmm_y, y, input_type, output_type )
+
+					instruction_offsets = (0, 4, 5)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( xmm_x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_COMPUTE( xmm_x[i], xmm_y )
+						with instruction_columns[2]:
+							SIMD_STORE( [zPointer + i * register_size], xmm_x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[2]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfSXusf_VYusf(xPointer, y, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					xPointer, y, zPointer, length = LOAD.PARAMETERS()
+					
+					load_increment   = 32 if input_type.get_size() == output_type.get_size() else 16
+					unroll_registers = 8
+					register_size    = 32
+					batch_elements   = unroll_registers * register_size / output_type.get_size()
+
+					ymm_x = [AVXRegister() for _ in range(unroll_registers)]
+					ymm_y = AVXRegister()
+
+					instruction_offsets = (0, 4, 5)
+					instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream()] 
+					for i in range(unroll_registers):
+						with instruction_columns[0]:
+							SIMD_LOAD( ymm_x[i], [xPointer + i * load_increment] )
+						with instruction_columns[1]:
+							SIMD_COMPUTE( ymm_x[i], ymm_y )
+						with instruction_columns[2]:
+							SIMD_STORE( [zPointer + i * register_size], ymm_x[i] )
+					with instruction_columns[0]:
+						ADD( xPointer, load_increment * unroll_registers )
+					with instruction_columns[2]:
+						ADD( zPointer, register_size * unroll_registers )
+
+					PipelineMap_VXusfSXusf_VYusf(xPointer, y, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
+
+def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -410,13 +746,13 @@ def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments
 					output_type = z_type
 
 				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
-					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+					SCALAR.AddSubtractMultiply_VXusVXus_VYus(xPointer, yPointer, zPointer, input_type, output_type, function)
 
 				SIMD_LOAD = MOVDQU
 				SIMD_COMPUTE = { 2: PMULLW, 4: PMULLD }[output_type.get_size()]
 				SIMD_STORE = MOVDQA
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 8
@@ -450,7 +786,7 @@ def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments
 				SIMD_COMPUTE = { 2: VPMULLW, 4: VPMULLD }[output_type.get_size()]
 				SIMD_STORE = VMOVDQA
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 8
@@ -480,7 +816,7 @@ def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 8
@@ -510,7 +846,7 @@ def Multiply_VXuVXu_VXu(codegen, function_signature, module, function, arguments
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -532,12 +868,12 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 					output_type = z_type
 
 				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
-					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+					SCALAR.AddSubtractMultiply_VXusVXus_VYus(xPointer, yPointer, zPointer, input_type, output_type, function)
 
 				SIMD_MUL_LO = PMULLW
 				SIMD_MUL_HI = PMULHW if z_type.is_signed_integer() else PMULHUW
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers = 4
@@ -584,7 +920,7 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 				SIMD_MUL_LO = VPMULLW
 				SIMD_MUL_HI = VPMULHW if z_type.is_signed_integer() else VPMULHUW
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 3
@@ -629,7 +965,7 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 				SIMD_MUL  = VPMULLD
 				SIMD_LOAD = VPMOVSXWD if z_type.is_signed_integer() else VPMOVZXWD
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 5
@@ -661,7 +997,7 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 5
@@ -693,7 +1029,7 @@ def Multiply_V16usV16us_V32us(codegen, function_signature, module, function, arg
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function == 'Multiply':
@@ -715,12 +1051,12 @@ def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arg
 					output_type = z_type
 
 				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
-					SCALAR_INT_ADD_SUB_MUL(xPointer, yPointer, zPointer, input_type, output_type, function)
+					SCALAR.AddSubtractMultiply_VXusVXus_VYus(xPointer, yPointer, zPointer, input_type, output_type, function)
 
 				SIMD_MUL = PMULDQ if z_type.is_signed_integer() else PMULUDQ
 
 				if output_type.is_unsigned_integer():
-					with Function(codegen, function_signature, arguments, 'K10', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'K10', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 						xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 	
 						load_increment   = 8
@@ -755,7 +1091,7 @@ def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arg
 
 						PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					load_increment   = 8
@@ -788,7 +1124,7 @@ def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arg
 
 				SIMD_MUL = VPMULDQ if z_type.is_signed_integer() else VPMULUDQ
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					load_increment   = 8
@@ -819,7 +1155,7 @@ def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arg
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					load_increment   = 16
@@ -850,28 +1186,7 @@ def Multiply_V32usV32us_V64us(codegen, function_signature, module, function, arg
 
 					PipelineMap_VXusfVXusf_VYusf(xPointer, yPointer, zPointer, length, register_size, batch_elements, input_type, output_type, PROCESS_SCALAR, instruction_columns, instruction_offsets)
 
-def SCALAR_FP_ADD_SUB_MUL_MIN_MAX(xPointer, yPointer, zPointer, ctype, operation):
-	x = SSERegister()
-	LOAD.ELEMENT( x, [xPointer], ctype )
-	y = SSERegister()
-	LOAD.ELEMENT( y, [yPointer], ctype )
-
-	if Target.has_avx():
-		if ctype.get_size() == 4:
-			COMPUTE = { "Add": VADDSS, "Subtract": VSUBSS, "Multiply": VMULSS, 'Min': VMINSS, 'Max': VMAXSS }[operation]
-		else:
-			COMPUTE = { "Add": VADDSD, "Subtract": VSUBSD, "Multiply": VMULSD, 'Min': VMINSD, 'Max': VMAXSD }[operation]
-	else:
-		if ctype.get_size() == 4:
-			COMPUTE = { "Add": ADDSS, "Subtract": SUBSS, "Multiply": MULSS, 'Min': MINSS, 'Max': MAXSS }[operation]
-		else:
-			COMPUTE = { "Add": ADDSD, "Subtract": SUBSD, "Multiply": MULSD, 'Min': MINSD, 'Max': MAXSD }[operation]
-
-	COMPUTE( x, y )
-
-	STORE.ELEMENT( [zPointer], x, ctype )
-
-def AddSubMulMinMax_VfVf_Vf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def AddSubMulMinMax_VfVf_Vf(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Add', 'Subtract', 'Multiply', 'Min', 'Max']:
@@ -899,9 +1214,9 @@ def AddSubMulMinMax_VfVf_Vf_SSE(codegen, function_signature, module, function, a
 					SIMD_STORE = MOVAPD
 
 				def PROCESS_SCALAR(xPointer, yPointer, zPointer):
-					SCALAR_FP_ADD_SUB_MUL_MIN_MAX(xPointer, yPointer, zPointer, ctype, function)
+					SCALAR.AddSubtractMultiplyMinimumMaximum_VXfVXf_VXf(xPointer, yPointer, zPointer, ctype, function)
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 7
@@ -940,7 +1255,7 @@ def AddSubMulMinMax_VfVf_Vf_SSE(codegen, function_signature, module, function, a
 					SIMD_COMPUTE = { "Add": VADDPD, "Subtract": VSUBPD, "Multiply": VMULPD, 'Min': VMINPD, 'Max': VMAXPD }[function]
 					SIMD_STORE = VMOVAPD
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 					
 					unroll_registers = 7
@@ -1091,7 +1406,7 @@ def PipelineReduce_VXf_SXf(xPointer, yPointer, length, accumulators, ctype, scal
 	MOV( eax, 2 )
 	JMP( return_any )
 
-def SumAbs_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def SumAbs_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumAbs']:
@@ -1121,7 +1436,7 @@ def SumAbs_VXf_SXf_SSE(codegen, function_signature, module, function, arguments,
 					# Accumulate
 					SIMD_ADD( acc, x )
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					xmm_abs_mask = SSERegister()
@@ -1150,7 +1465,7 @@ def SumAbs_VXf_SXf_SSE(codegen, function_signature, module, function, arguments,
 					scalar_function = lambda accumulator, x_pointer: PROCESS_SCALAR(accumulator, x_pointer, xmm_abs_mask)
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, scalar_function, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumAbs']:
@@ -1183,7 +1498,7 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments,
 					else:
 						SIMD_ADD( acc, x )
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					ymm_abs_mask = AVXRegister()
@@ -1212,7 +1527,7 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments,
 					scalar_function = lambda accumulator, x_pointer: PROCESS_SCALAR(accumulator, x_pointer, ymm_abs_mask)
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, scalar_function, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					ymm_abs_mask = AVXRegister()
@@ -1245,7 +1560,7 @@ def SumAbs_VXf_SXf_AVX(codegen, function_signature, module, function, arguments,
 					scalar_function = lambda accumulator, x_pointer: PROCESS_SCALAR(accumulator, x_pointer, ymm_abs_mask)
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, scalar_function, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-def Sum_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Sum_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Sum']:
@@ -1272,7 +1587,7 @@ def Sum_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, er
 					# Accumulate
 					SIMD_ADD( acc, x )
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1292,7 +1607,7 @@ def Sum_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, er
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['Sum']:
@@ -1322,7 +1637,7 @@ def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, er
 					else:
 						SIMD_ADD( acc, x )
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1342,7 +1657,7 @@ def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, er
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 6
@@ -1363,7 +1678,7 @@ def Sum_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, er
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-def SumSquares_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def SumSquares_VXf_SXf_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumSquares']:
@@ -1394,7 +1709,7 @@ def SumSquares_VXf_SXf_SSE(codegen, function_signature, module, function, argume
 					# Accumulate
 					SIMD_ADD( acc, temp )
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1416,7 +1731,7 @@ def SumSquares_VXf_SXf_SSE(codegen, function_signature, module, function, argume
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['SumSquares']:
@@ -1462,7 +1777,7 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 						# Accumulate
 						SIMD_ADD( acc, temp.get_hword() )
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1484,7 +1799,7 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 9
@@ -1505,7 +1820,7 @@ def SumSquares_VXf_SXf_AVX(codegen, function_signature, module, function, argume
 
 					PipelineReduce_VXf_SXf(xPointer, yPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1654,7 +1969,7 @@ def PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, accumulators
 	MOV( eax, 2 )
 	JMP( return_any )
 
-def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
@@ -1686,7 +2001,7 @@ def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arg
 					# Accumulate
 					SIMD_ADD( acc, temp )
 
-				with Function(codegen, function_signature, arguments, 'Nehalem', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Nehalem', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1711,7 +2026,7 @@ def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arg
 					PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 					
 				if ctype.get_size() == 8:
-					with Function(codegen, function_signature, arguments, 'Bonnell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+					with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bonnell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 						xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 	
 						unroll_registers  = 8
@@ -1734,7 +2049,7 @@ def DotProduct_VXfVXf_SXf_SSE(codegen, function_signature, module, function, arg
 	
 						PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets, use_simd = False)
 
-def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arguments, error_diagnostics_mode = False):
+def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arguments, assembly_cache = dict(), error_diagnostics_mode = False):
 	if codegen.abi.name in ['x64-ms', 'x64-sysv']:
 		if module == 'Core':
 			if function in ['DotProduct']:
@@ -1784,7 +2099,7 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 						# Accumulate
 						SIMD_ADD( acc, temp.get_hword() )
 
-				with Function(codegen, function_signature, arguments, 'SandyBridge', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'SandyBridge', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
@@ -1808,7 +2123,7 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 
 					PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Bulldozer', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Bulldozer', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 6
@@ -1831,7 +2146,7 @@ def DotProduct_VXfVXf_SXf_AVX(codegen, function_signature, module, function, arg
 
 					PipelineReduce_VXfVXf_SXf(xPointer, yPointer, zPointer, length, acc, ctype, PROCESS_SCALAR, REDUCE.SUM, instruction_columns, instruction_offsets)
 
-				with Function(codegen, function_signature, arguments, 'Haswell', collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
+				with Function(codegen, "yep" + module + "_" + function + "_" + function_signature, arguments, 'Haswell', assembly_cache = assembly_cache, collect_origin = bool(error_diagnostics_mode), check_only = bool(error_diagnostics_mode)):
 					xPointer, yPointer, zPointer, length = LOAD.PARAMETERS()
 
 					unroll_registers  = 8
