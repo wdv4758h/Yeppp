@@ -931,13 +931,13 @@ class FunctionSpecialization:
 				csharp_safe_method_generator.add_line("if (%s < 0)" % argument.get_csharp_safe_name())
 				csharp_safe_method_generator.indent().add_line("throw new System.ArgumentException();").dedent().add_line()
 			elif argument.is_vector:
-				csharp_safe_method_generator.add_line("if ({0} > 0)".format(argument.get_csharp_safe_name(1)))
+				csharp_safe_method_generator.add_line("if ({0} < 0)".format(argument.get_csharp_safe_name(1)))
 				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
 
 				csharp_safe_method_generator.add_line("if ({0} + {1} > {2}.Length)".format(argument.get_csharp_safe_name(1), argument.length_argument_name, argument.get_csharp_safe_name(0)))
 				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
 			elif argument.is_scalar and argument.is_output and not argument.is_return_argument:
-				csharp_safe_method_generator.add_line("if ({0} > 0)".format(argument.get_csharp_safe_name(1)))
+				csharp_safe_method_generator.add_line("if ({0} < 0)".format(argument.get_csharp_safe_name(1)))
 				csharp_safe_method_generator.indent().add_line("throw new System.IndexOutOfRangeException();").dedent().add_line()
 
 				csharp_safe_method_generator.add_line("if ({0} >= {1}.Length)".format(argument.get_csharp_safe_name(1), argument.get_csharp_safe_name(0)))
