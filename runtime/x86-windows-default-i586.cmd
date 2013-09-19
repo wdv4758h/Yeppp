@@ -1,5 +1,5 @@
 set CXX=cl
-set CXXFLAGS=/nologo /Zl /O2 /GR- /EHs- /I../library/headers/ /c
+set CXXFLAGS=/nologo /Zl /O2 /GR- /EHs- /I../library/headers/ /I../library/sources/ /c
 set AS=nasm
 set ASFLAGS=-f win32
 set RM=del

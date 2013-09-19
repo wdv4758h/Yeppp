@@ -8,8 +8,8 @@
 
 #include <yepPredefines.h>
 #include <yepTypes.h>
-#include <yepPrivate.hpp>
-#include <yepIntrinsics.h>
+#include <yepPrivate.h>
+#include <yepBuiltin.h>
 
 #if defined(YEP_CUSTOM_RUNTIME)
 
@@ -45,13 +45,13 @@
 		}
 
 		#pragma function(sqrt)
-		#if defined(YEP_X64_CPU)
+		#if defined(YEP_X64_ABI)
 			extern "C" YEP_PRIVATE_SYMBOL double sqrt(double x) {
 				const __m128d xmm = _mm_set_sd(x);
 				return _mm_cvtsd_f64(_mm_sqrt_sd(xmm, xmm));
 			}
 			
-		#elif defined(YEP_X86_CPU)
+		#elif defined(YEP_X86_ABI)
 			extern "C" YEP_PRIVATE_SYMBOL __declspec(naked) double __cdecl sqrt(double x) {
 				__asm {
 					fld QWORD PTR [esp + 4]
