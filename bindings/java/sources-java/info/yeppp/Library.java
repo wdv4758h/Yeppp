@@ -373,7 +373,7 @@ public class Library {
 																								/* ULEB128-encoded integer. Parse. */
 																								int valueByte = section[tagOffset++];
 																								int value = (valueByte & 0x7F);
-																								while (tagByte < 0) {
+																								while (valueByte < 0) {
 																									valueByte = section[tagOffset++];
 																									value = (value << 7) | (valueByte & 0x7F);
 																								}
