@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		printf("Target endianness: unknown\n");
 	#endif
 
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		printf("Target processor suppport for x86/x86-64 ISA extensions:\n");
 		#if defined(YEP_PROCESSOR_SUPPORTS_X86_MMX_EXTENSION)
 			printf("\tMMX:     Yes\n");
@@ -338,7 +338,7 @@ int main(int argc, char **argv) {
 		printf("Position-independent code generation: No\n");
 	#endif
 
-	#if defined(YEP_X86_CPU) || defined(YEP_X64_CPU)
+	#if defined(YEP_X86_CPU)
 		printf("Compiler suppport for x86/x86-64 intrinsics:\n");
 		#if defined(YEP_COMPILER_SUPPORTS_X86_MMX_EXTENSION)
 			printf("\tMMX:     Yes\n");
