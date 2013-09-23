@@ -131,6 +131,24 @@ namespace Yeppp
 		/// <summary>Ingenic XBurst 2.</summary>
 		public static readonly CpuMicroarchitecture XBurst2           = new CpuMicroarchitecture((CpuArchitecture.MIPS.Id << 24) + (CpuVendor.Ingenic.Id << 16) + 0x0002);
 
+		/// <summary>IBM PowerPC 970 (PowerPC G5).</summary>
+		public static readonly CpuMicroarchitecture PowerPC970        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0021);
+
+		/// <summary>IBM POWER 6.</summary>
+		public static readonly CpuMicroarchitecture POWER6            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0121);
+		/// <summary>IBM POWER 7.</summary>
+		public static readonly CpuMicroarchitecture POWER7            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0122);
+		/// <summary>IBM POWER 8.</summary>
+		public static readonly CpuMicroarchitecture POWER8            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0123);
+
+		/// <summary>IBM PowerPC 460 (Blue Gene/P processor).</summary>
+		public static readonly CpuMicroarchitecture PowerPC460        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0201);
+		/// <summary>IBM PowerPC A2 (Blue Gene/Q processor).</summary>
+		public static readonly CpuMicroarchitecture PowerPCA2         = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0202);
+
+		/// <summary>P.A.Semi PWRficient.</summary>
+		public static readonly CpuMicroarchitecture PWRficient        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.PASemi.Id << 16) + 0x0001);
+
 		private readonly uint id;
 
 		internal CpuMicroarchitecture(uint id)
