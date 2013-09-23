@@ -403,14 +403,16 @@ extern "C" {
 		YepCpuMicroarchitecturePowerPC970    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0021,
 
 		/** @brief IBM POWER 6. */
-		YepCpuMicroarchitecturePowerPOWER6   = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0121,
+		YepCpuMicroarchitecturePOWER6        = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0121,
 		/** @brief IBM POWER 7. */
-		YepCpuMicroarchitecturePowerPOWER7   = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0122,
+		YepCpuMicroarchitecturePOWER7        = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0122,
 		/** @brief IBM POWER 8. */
-		YepCpuMicroarchitecturePowerPOWER8   = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0123,
+		YepCpuMicroarchitecturePOWER8        = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0123,
 
-		/** @brief IBM PowerPC 460 (Blue Gene/P processor). */
-		YepCpuMicroarchitecturePowerPC460    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0201,
+		/** @brief IBM PowerPC 440 (Blue Gene/L processor). */
+		YepCpuMicroarchitecturePowerPC440    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0200,
+		/** @brief IBM PowerPC 450 (Blue Gene/P processor). */
+		YepCpuMicroarchitecturePowerPC450    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0201,
 		/** @brief IBM PowerPC A2 (Blue Gene/Q processor). */
 		YepCpuMicroarchitecturePowerPCA2     = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0202,
 
