@@ -15,7 +15,7 @@ namespace Yeppp
 
 		/// <summary>Processor vendor is not known to the library, or the library failed to get vendor information from the OS.</summary>
 		public static readonly CpuVendor Unknown            = new CpuVendor(0);
-		
+
 		/* x86/x86-64 CPUs */
 
 		/// <summary>Intel Corporation. Vendor of x86, x86-64, IA64, and ARM processor microarchitectures.</summary>
@@ -72,18 +72,18 @@ namespace Yeppp
 		public static readonly CpuVendor TI                 = new CpuVendor(24);
 		/// <summary>Apple Inc. Vendor of ARM processor microarchitectures.</summary>
 		public static readonly CpuVendor Apple              = new CpuVendor(25);
-		
+
 		/* MIPS CPUs */
-		
+
 		/// <summary>Ingenic Semiconductor. Vendor of MIPS processor microarchitectures.</summary>
 		public static readonly CpuVendor Ingenic            = new CpuVendor(40);
 		/// <summary>Institute of Computing Technology of the Chinese Academy of Sciences. Vendor of MIPS processor microarchitectures.</summary>
 		public static readonly CpuVendor ICT                = new CpuVendor(41);
 		/// <summary>MIPS Technologies, Inc. Vendor of MIPS processor microarchitectures.</summary>
 		public static readonly CpuVendor MIPS               = new CpuVendor(42);
-		
+
 		/* PowerPC CPUs */
-		
+
 		/// <summary>International Business Machines Corporation. Vendor of PowerPC processor microarchitectures.</summary>
 		public static readonly CpuVendor IBM                = new CpuVendor(50);
 		/// <summary>Motorola, Inc. Vendor of PowerPC and ARM processor microarchitectures.</summary>
@@ -91,9 +91,9 @@ namespace Yeppp
 		/// <summary>P. A. Semi. Vendor of PowerPC processor microarchitectures.</summary>
 		/// <remarks>Now defunct. The last processor design was released in 2007.</remarks>
 		public static readonly CpuVendor PASemi             = new CpuVendor(52);
-		
+
 		/* SPARC CPUs */
-		
+
 		/// <summary>Sun Microsystems, Inc. Vendor of SPARC processor microarchitectures.</summary>
 		/// <remarks>Now defunct. The last processor design was released in 2008.</remarks>
 		public static readonly CpuVendor Sun                = new CpuVendor(60);
