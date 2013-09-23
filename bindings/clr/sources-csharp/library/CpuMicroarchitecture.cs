@@ -98,17 +98,17 @@ namespace Yeppp
 		public static readonly CpuMicroarchitecture CortexA9          = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x0007);
 		/// <summary>ARM Cortex-A15.</summary>
 		public static readonly CpuMicroarchitecture CortexA15         = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x0008);
-		
+
 		/// <summary>Qualcomm Scorpion.</summary>
 		public static readonly CpuMicroarchitecture Scorpion          = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Qualcomm.Id << 16) + 0x0001);
 		/// <summary>Qualcomm Krait.</summary>
 		public static readonly CpuMicroarchitecture Krait             = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Qualcomm.Id << 16) + 0x0002);
-		
+
 		/// <summary>Marvell Sheeva PJ1.</summary>
 		public static readonly CpuMicroarchitecture PJ1               = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Marvell.Id  << 16) + 0x0001);
 		/// <summary>Marvell Sheeva PJ4.</summary>
 		public static readonly CpuMicroarchitecture PJ4               = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Marvell.Id  << 16) + 0x0002);
-		
+
 		/// <summary>Apple A6 and A6X processors.</summary>
 		public static readonly CpuMicroarchitecture Swift             = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Apple.Id    << 16) + 0x0001);
 		/// <summary>Apple A7 processor.</summary>
@@ -118,14 +118,14 @@ namespace Yeppp
 		public static readonly CpuMicroarchitecture Itanium           = new CpuMicroarchitecture((CpuArchitecture.IA64.Id << 24) + (CpuVendor.Intel.Id   << 16) + 0x0001);
 		/// <summary>Intel Itanium 2.</summary>
 		public static readonly CpuMicroarchitecture Itanium2          = new CpuMicroarchitecture((CpuArchitecture.IA64.Id << 24) + (CpuVendor.Intel.Id   << 16) + 0x0002);
-		
+
 		/// <summary>MIPS 24K.</summary>
 		public static readonly CpuMicroarchitecture MIPS24K           = new CpuMicroarchitecture((CpuArchitecture.MIPS.Id << 24) + (CpuVendor.MIPS.Id    << 16) + 0x0001);
 		/// <summary>MIPS 34K.</summary>
 		public static readonly CpuMicroarchitecture MIPS34K           = new CpuMicroarchitecture((CpuArchitecture.MIPS.Id << 24) + (CpuVendor.MIPS.Id    << 16) + 0x0002);
 		/// <summary>MIPS 74K.</summary>
 		public static readonly CpuMicroarchitecture MIPS74K           = new CpuMicroarchitecture((CpuArchitecture.MIPS.Id << 24) + (CpuVendor.MIPS.Id    << 16) + 0x0003);
-		
+
 		/// <summary>Ingenic XBurst.</summary>
 		public static readonly CpuMicroarchitecture XBurst            = new CpuMicroarchitecture((CpuArchitecture.MIPS.Id << 24) + (CpuVendor.Ingenic.Id << 16) + 0x0001);
 		/// <summary>Ingenic XBurst 2.</summary>
