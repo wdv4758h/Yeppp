@@ -111,6 +111,8 @@ namespace Yeppp
 		
 		/// <summary>Apple A6 and A6X processors.</summary>
 		public static readonly CpuMicroarchitecture Swift             = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Apple.Id    << 16) + 0x0001);
+		/// <summary>Apple A7 processor.</summary>
+		public static readonly CpuMicroarchitecture Cyclone           = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Apple.Id    << 16) + 0x0002);
 
 		/// <summary>Intel Itanium.</summary>
 		public static readonly CpuMicroarchitecture Itanium           = new CpuMicroarchitecture((CpuArchitecture.IA64.Id << 24) + (CpuVendor.Intel.Id   << 16) + 0x0001);

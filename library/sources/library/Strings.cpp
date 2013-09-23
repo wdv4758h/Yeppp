@@ -347,6 +347,8 @@ ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchite
 			YEP_RETURN_CONSTANT_STRING("PJ4");
 		case YepCpuMicroarchitectureSwift:
 			YEP_RETURN_CONSTANT_STRING("Swift");
+		case YepCpuMicroarchitectureCyclone:
+			YEP_RETURN_CONSTANT_STRING("Cyclone");
 		case YepCpuMicroarchitectureItanium:
 			YEP_RETURN_CONSTANT_STRING("Itanium");
 		case YepCpuMicroarchitectureItanium2:
@@ -456,6 +458,8 @@ static ConstantString _yepLibrary_GetCpuMicroarchitectureID(YepCpuMicroarchitect
 			YEP_RETURN_CONSTANT_STRING("PJ4");
 		case YepCpuMicroarchitectureSwift:
 			YEP_RETURN_CONSTANT_STRING("Swift");
+		case YepCpuMicroarchitectureCyclone:
+			YEP_RETURN_CONSTANT_STRING("Cyclone");
 		case YepCpuMicroarchitectureItanium:
 			YEP_RETURN_CONSTANT_STRING("Itanium");
 		case YepCpuMicroarchitectureItanium2:

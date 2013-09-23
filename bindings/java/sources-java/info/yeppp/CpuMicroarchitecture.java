@@ -114,6 +114,8 @@ public final class CpuMicroarchitecture {
 
 	/** @brief Apple A6 and A6X processors. */
 	public static final CpuMicroarchitecture Swift             = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.Apple.getId()    << 16) + 0x0001);
+	/** @brief Apple A7 processor. */
+	public static final CpuMicroarchitecture Cyclone           = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.Apple.getId()    << 16) + 0x0002);
 
 	/** @brief Intel Itanium. */
 	public static final CpuMicroarchitecture Itanium           = new CpuMicroarchitecture((CpuArchitecture.IA64.getId() << 24) + (CpuVendor.Intel.getId()   << 16) + 0x0001);

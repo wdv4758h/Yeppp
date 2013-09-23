@@ -379,6 +379,8 @@ extern "C" {
 		
 		/** @brief Apple A6 and A6X processors. */
 		YepCpuMicroarchitectureSwift         = (YepCpuArchitectureARM << 24) + (YepCpuVendorApple   << 16) + 0x0001,
+		/** @brief Apple A7 processor. */
+		YepCpuMicroarchitectureCyclone       = (YepCpuArchitectureARM << 24) + (YepCpuVendorApple   << 16) + 0x0002,
 
 		/** @brief Intel Itanium. */
 		YepCpuMicroarchitectureItanium       = (YepCpuArchitectureIA64 << 24) + (YepCpuVendorIntel << 16) + 0x0001,
