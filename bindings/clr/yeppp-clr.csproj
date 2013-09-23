@@ -8,7 +8,10 @@
 		<CSFile Include="sources-csharp\math\*.cs" />
 		<CSFile Include="sources-csharp\library\*.cs" />
 	</ItemGroup>
-	<Target Name="CompileResources" Inputs="sources-csharp/Version.rc" Outputs="$(BuildDirectory)\Version.res">
+	<Target Name="CreateDirectories">
+		<MakeDir Directories="$(BuildDirectory)"/>
+	</Target>
+	<Target Name="CompileResources" DependsOnTargets="CreateDirectories" Inputs="sources-csharp/Version.rc" Outputs="$(BuildDirectory)\Version.res">
 		<Exec Command="rc.exe /I../../library/headers /Fobinaries/Version.res sources-csharp/Version.rc" />
 	</Target>
 	<Target Name="Build" DependsOnTargets="CompileResources">
