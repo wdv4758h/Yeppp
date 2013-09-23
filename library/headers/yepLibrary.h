@@ -285,7 +285,7 @@ extern "C" {
 	enum YepCpuMicroarchitecture {
 		/** @brief Microarchitecture is unknown, or the library failed to get information about the microarchitecture from OS */
 		YepCpuMicroarchitectureUnknown       = 0,
-		
+
 		/** @brief Pentium and Pentium MMX microarchitecture. */
 		YepCpuMicroarchitectureP5            = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0001,
 		/** @brief Pentium Pro, Pentium II, and Pentium III. */
@@ -316,12 +316,12 @@ extern "C" {
 		YepCpuMicroarchitectureHaswell       = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x000E,
 		/** @brief Intel Silvermont microarchitecture (22 nm out-of-order Atom). */
 		YepCpuMicroarchitectureSilvermont    = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x000F,
-		
+
 		/** @brief Intel Knights Ferry HPC boards. */
 		YepCpuMicroarchitectureKnightsFerry  = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0100,
 		/** @brief Intel Knights Corner HPC boards (aka Xeon Phi). */
 		YepCpuMicroarchitectureKnightsCorner = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0101,
-		
+
 		/** @brief AMD K5. */
 		YepCpuMicroarchitectureK5            = (YepCpuArchitectureX86 << 24) + (YepCpuVendorAMD   << 16) + 0x0001,
 		/** @brief AMD K6 and alike. */
@@ -344,12 +344,12 @@ extern "C" {
 		YepCpuMicroarchitectureJaguar        = (YepCpuArchitectureX86 << 24) + (YepCpuVendorAMD   << 16) + 0x000A,
 		/** @brief AMD Steamroller microarchitecture (3rd gen K15). */
 		YepCpuMicroarchitectureSteamroller   = (YepCpuArchitectureX86 << 24) + (YepCpuVendorAMD   << 16) + 0x000B,
-		
+
 		/** @brief DEC/Intel StrongARM processors. */
 		YepCpuMicroarchitectureStrongARM     = (YepCpuArchitectureARM << 24) + (YepCpuVendorIntel   << 16) + 0x0001,
 		/** @brief Intel/Marvell XScale processors. */
 		YepCpuMicroarchitectureXScale        = (YepCpuArchitectureARM << 24) + (YepCpuVendorIntel   << 16) + 0x0002,
-		
+
 		/** @brief ARM7 series. */
 		YepCpuMicroarchitectureARM7          = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x0001,
 		/** @brief ARM9 series. */
@@ -366,17 +366,17 @@ extern "C" {
 		YepCpuMicroarchitectureCortexA9      = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x0007,
 		/** @brief ARM Cortex-A15. */
 		YepCpuMicroarchitectureCortexA15     = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x0008,
-		
+
 		/** @brief Qualcomm Scorpion. */
 		YepCpuMicroarchitectureScorpion      = (YepCpuArchitectureARM << 24) + (YepCpuVendorQualcomm << 16) + 0x0001,
 		/** @brief Qualcomm Krait. */
 		YepCpuMicroarchitectureKrait         = (YepCpuArchitectureARM << 24) + (YepCpuVendorQualcomm << 16) + 0x0002,
-		
+
 		/** @brief Marvell Sheeva PJ1. */
 		YepCpuMicroarchitecturePJ1           = (YepCpuArchitectureARM << 24) + (YepCpuVendorMarvell << 16) + 0x0001,
 		/** @brief Marvell Sheeva PJ4. */
 		YepCpuMicroarchitecturePJ4           = (YepCpuArchitectureARM << 24) + (YepCpuVendorMarvell << 16) + 0x0002,
-		
+
 		/** @brief Apple A6 and A6X processors. */
 		YepCpuMicroarchitectureSwift         = (YepCpuArchitectureARM << 24) + (YepCpuVendorApple   << 16) + 0x0001,
 		/** @brief Apple A7 processor. */
@@ -386,18 +386,37 @@ extern "C" {
 		YepCpuMicroarchitectureItanium       = (YepCpuArchitectureIA64 << 24) + (YepCpuVendorIntel << 16) + 0x0001,
 		/** @brief Intel Itanium 2. */
 		YepCpuMicroarchitectureItanium2      = (YepCpuArchitectureIA64 << 24) + (YepCpuVendorIntel << 16) + 0x0002,
-		
+
 		/** @brief MIPS 24K. */
 		YepCpuMicroarchitectureMIPS24K       = (YepCpuArchitectureMIPS << 24) + (YepCpuVendorMIPS << 16) + 0x0001,
 		/** @brief MIPS 34K. */
 		YepCpuMicroarchitectureMIPS34K       = (YepCpuArchitectureMIPS << 24) + (YepCpuVendorMIPS << 16) + 0x0002,
 		/** @brief MIPS 74K. */
 		YepCpuMicroarchitectureMIPS74K       = (YepCpuArchitectureMIPS << 24) + (YepCpuVendorMIPS << 16) + 0x0003,
-		
+
 		/** @brief Ingenic XBurst. */
 		YepCpuMicroarchitectureXBurst        = (YepCpuArchitectureMIPS << 24) + (YepCpuVendorIngenic << 16) + 0x0001,
 		/** @brief Ingenic XBurst 2. */
-		YepCpuMicroarchitectureXBurst2       = (YepCpuArchitectureMIPS << 24) + (YepCpuVendorIngenic << 16) + 0x0002
+		YepCpuMicroarchitectureXBurst2       = (YepCpuArchitectureMIPS << 24) + (YepCpuVendorIngenic << 16) + 0x0002,
+
+		/** @brief IBM PowerPC 970 (PowerPC G5). */
+		YepCpuMicroarchitecturePowerPC970    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0021,
+
+		/** @brief IBM POWER 6. */
+		YepCpuMicroarchitecturePowerPOWER6   = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0121,
+		/** @brief IBM POWER 7. */
+		YepCpuMicroarchitecturePowerPOWER7   = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0122,
+		/** @brief IBM POWER 8. */
+		YepCpuMicroarchitecturePowerPOWER8   = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0123,
+
+		/** @brief IBM PowerPC 460 (Blue Gene/P processor). */
+		YepCpuMicroarchitecturePowerPC460    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0201,
+		/** @brief IBM PowerPC A2 (Blue Gene/Q processor). */
+		YepCpuMicroarchitecturePowerPCA2     = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0202,
+
+		/** @brief P.A.Semi PWRficient. */
+		YepCpuMicroarchitecturePWRficient    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorPASemi << 16) + 0x0001
+
 	};
 	/**
 	 * @ingroup yepLibrary_CpuInfo

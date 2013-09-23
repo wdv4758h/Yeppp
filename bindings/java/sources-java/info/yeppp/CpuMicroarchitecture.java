@@ -134,6 +134,24 @@ public final class CpuMicroarchitecture {
 	/** @brief Ingenic XBurst 2. */
 	public static final CpuMicroarchitecture XBurst2           = new CpuMicroarchitecture((CpuArchitecture.MIPS.getId() << 24) + (CpuVendor.Ingenic.getId() << 16) + 0x0002);
 
+	/** @brief IBM PowerPC 970 (PowerPC G5). */
+	public static final CpuMicroarchitecture PowerPC970        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0021);
+
+	/** @brief IBM POWER 6. */
+	public static final CpuMicroarchitecture POWER6            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0121);
+	/** @brief IBM POWER 7. */
+	public static final CpuMicroarchitecture POWER7            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0122);
+	/** @brief IBM POWER 8. */
+	public static final CpuMicroarchitecture POWER8            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0123);
+
+	/** @brief IBM PowerPC 460 (Blue Gene/P processor). */
+	public static final CpuMicroarchitecture PowerPC460        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0201);
+	/** @brief IBM PowerPC A2 (Blue Gene/Q processor). */
+	public static final CpuMicroarchitecture PowerPCA2         = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0202);
+
+	/** @brief P.A.Semi PWRficient. */
+	public static final CpuMicroarchitecture PWRficient        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.PASemi.getId() << 16) + 0x0001);
+
 	private final int id;
 
 	protected CpuMicroarchitecture(int id) {

@@ -363,6 +363,20 @@ ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchite
 			YEP_RETURN_CONSTANT_STRING("XBurst");
 		case YepCpuMicroarchitectureXBurst2:
 			YEP_RETURN_CONSTANT_STRING("XBurst 2");
+		case YepCpuMicroarchitecturePowerPC970:
+			YEP_RETURN_CONSTANT_STRING("PowerPC 970");
+		case YepCpuMicroarchitecturePOWER6:
+			YEP_RETURN_CONSTANT_STRING("POWER 6");
+		case YepCpuMicroarchitecturePOWER7:
+			YEP_RETURN_CONSTANT_STRING("POWER 7");
+		case YepCpuMicroarchitecturePOWER8:
+			YEP_RETURN_CONSTANT_STRING("POWER 8");
+		case YepCpuMicroarchitecturePowerPC460:
+			YEP_RETURN_CONSTANT_STRING("PowerPC 460");
+		case YepCpuMicroarchitecturePowerPCA2:
+			YEP_RETURN_CONSTANT_STRING("PowerPC A2");
+		case YepCpuMicroarchitecturePWRficient:
+			YEP_RETURN_CONSTANT_STRING("PWRficient");
 		default:
 			return ConstantString();
 	}
@@ -474,6 +488,20 @@ static ConstantString _yepLibrary_GetCpuMicroarchitectureID(YepCpuMicroarchitect
 			YEP_RETURN_CONSTANT_STRING("XBurst");
 		case YepCpuMicroarchitectureXBurst2:
 			YEP_RETURN_CONSTANT_STRING("XBurst2");
+		case YepCpuMicroarchitecturePowerPC970:
+			YEP_RETURN_CONSTANT_STRING("PowerPC970");
+		case YepCpuMicroarchitecturePOWER6:
+			YEP_RETURN_CONSTANT_STRING("POWER6");
+		case YepCpuMicroarchitecturePOWER7:
+			YEP_RETURN_CONSTANT_STRING("POWER7");
+		case YepCpuMicroarchitecturePOWER8:
+			YEP_RETURN_CONSTANT_STRING("POWER8");
+		case YepCpuMicroarchitecturePowerPC460:
+			YEP_RETURN_CONSTANT_STRING("PowerPC460");
+		case YepCpuMicroarchitecturePowerPCA2:
+			YEP_RETURN_CONSTANT_STRING("PowerPCA2");
+		case YepCpuMicroarchitecturePWRficient:
+			YEP_RETURN_CONSTANT_STRING("PWRficient");
 		default:
 			return ConstantString();
 	}
