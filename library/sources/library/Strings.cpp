@@ -371,8 +371,10 @@ ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchite
 			YEP_RETURN_CONSTANT_STRING("POWER 7");
 		case YepCpuMicroarchitecturePOWER8:
 			YEP_RETURN_CONSTANT_STRING("POWER 8");
-		case YepCpuMicroarchitecturePowerPC460:
-			YEP_RETURN_CONSTANT_STRING("PowerPC 460");
+		case YepCpuMicroarchitecturePowerPC440:
+			YEP_RETURN_CONSTANT_STRING("PowerPC 440");
+		case YepCpuMicroarchitecturePowerPC450:
+			YEP_RETURN_CONSTANT_STRING("PowerPC 450");
 		case YepCpuMicroarchitecturePowerPCA2:
 			YEP_RETURN_CONSTANT_STRING("PowerPC A2");
 		case YepCpuMicroarchitecturePWRficient:
@@ -496,8 +498,10 @@ static ConstantString _yepLibrary_GetCpuMicroarchitectureID(YepCpuMicroarchitect
 			YEP_RETURN_CONSTANT_STRING("POWER7");
 		case YepCpuMicroarchitecturePOWER8:
 			YEP_RETURN_CONSTANT_STRING("POWER8");
-		case YepCpuMicroarchitecturePowerPC460:
-			YEP_RETURN_CONSTANT_STRING("PowerPC460");
+		case YepCpuMicroarchitecturePowerPC440:
+			YEP_RETURN_CONSTANT_STRING("PowerPC440");
+		case YepCpuMicroarchitecturePowerPC450:
+			YEP_RETURN_CONSTANT_STRING("PowerPC450");
 		case YepCpuMicroarchitecturePowerPCA2:
 			YEP_RETURN_CONSTANT_STRING("PowerPCA2");
 		case YepCpuMicroarchitecturePWRficient:

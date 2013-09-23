@@ -141,8 +141,10 @@ namespace Yeppp
 		/// <summary>IBM POWER 8.</summary>
 		public static readonly CpuMicroarchitecture POWER8            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0123);
 
-		/// <summary>IBM PowerPC 460 (Blue Gene/P processor).</summary>
-		public static readonly CpuMicroarchitecture PowerPC460        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0201);
+		/// <summary>IBM PowerPC 440 (Blue Gene/L processor).</summary>
+		public static readonly CpuMicroarchitecture PowerPC440        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0200);
+		/// <summary>IBM PowerPC 450 (Blue Gene/P processor).</summary>
+		public static readonly CpuMicroarchitecture PowerPC450        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0201);
 		/// <summary>IBM PowerPC A2 (Blue Gene/Q processor).</summary>
 		public static readonly CpuMicroarchitecture PowerPCA2         = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0202);
 

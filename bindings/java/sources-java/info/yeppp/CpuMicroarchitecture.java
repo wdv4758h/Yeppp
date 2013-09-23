@@ -144,8 +144,10 @@ public final class CpuMicroarchitecture {
 	/** @brief IBM POWER 8. */
 	public static final CpuMicroarchitecture POWER8            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0123);
 
-	/** @brief IBM PowerPC 460 (Blue Gene/P processor). */
-	public static final CpuMicroarchitecture PowerPC460        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0201);
+	/** @brief IBM PowerPC 440 (Blue Gene/L processor). */
+	public static final CpuMicroarchitecture PowerPC440        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0200);
+	/** @brief IBM PowerPC 450 (Blue Gene/P processor). */
+	public static final CpuMicroarchitecture PowerPC450        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0201);
 	/** @brief IBM PowerPC A2 (Blue Gene/Q processor). */
 	public static final CpuMicroarchitecture PowerPCA2         = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0202);
 
