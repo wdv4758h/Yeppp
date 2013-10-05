@@ -10,27 +10,45 @@ package info.yeppp;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/** @brief	The basic instruction set architecture of the processor. */
-/** @see	Library#getCpuArchitecture */
+/**
+ * The basic instruction set architecture of the processor.
+ *
+ * @see	Library#getCpuArchitecture
+ */
 public final class CpuArchitecture {
 	static {
 		Library.load();
 	}
 
-	/** @brief	Instruction set architecture is not known to the library. */
-	/** @details	This value is never returned on supported architectures. */
+	/**
+	 * Instruction set architecture is not known to the library.
+	 *
+	 * This value is never returned on supported architectures.
+	 */
 	public static final CpuArchitecture Unknown = new CpuArchitecture(0);
-	/** @brief	x86 or x86-64 ISA. */
+	/**
+	 * x86 or x86-64 ISA.
+	 */
 	public static final CpuArchitecture X86     = new CpuArchitecture(1);
-	/** @brief	ARM ISA. */
+	/**
+	 * ARM ISA.
+	 */
 	public static final CpuArchitecture ARM     = new CpuArchitecture(2);
-	/** @brief	MIPS ISA. */
+	/**
+	 * MIPS, MIPS 32, or MIPS 64 ISA.
+	 */
 	public static final CpuArchitecture MIPS    = new CpuArchitecture(3);
-	/** @brief	PowerPC ISA. */
+	/**
+	 * PowerPC or PowerPC 64 ISA.
+	 */
 	public static final CpuArchitecture PowerPC = new CpuArchitecture(4);
-	/** @brief	IA64 ISA. */
+	/**
+	 * IA64 ISA.
+	 */
 	public static final CpuArchitecture IA64    = new CpuArchitecture(5);
-	/** @brief	SPARC ISA. */
+	/**
+	 * SPARC ISA.
+	 */
 	public static final CpuArchitecture SPARC   = new CpuArchitecture(6);
 
 	private final int id;
@@ -182,8 +200,10 @@ public final class CpuArchitecture {
 	}
 
 	/**
-	 * @brief	Provides an iterator over ISA features potentially available on this architecture.
-	 * @details	For #Unknown architecture provides an iterator over common ISA features.
+	 * Provides an iterator over ISA features potentially available on this architecture.
+	 *
+	 * For {@link #Unknown} architecture provides an iterator over common ISA features.
+	 *
 	 * @return	An iterator over ISA features of this architecture.
 	 */
 	public final Iterator<CpuIsaFeature> iterateIsaFeatures() {
@@ -191,8 +211,10 @@ public final class CpuArchitecture {
 	}
 
 	/**
-	 * @brief	Provides an iterator over SIMD features potentially available on this architecture.
-	 * @details	For #Unknown architecture provides an iterator over common SIMD features.
+	 * Provides an iterator over SIMD features potentially available on this architecture.
+	 *
+	 * For {@link #Unknown} architecture provides an iterator over common SIMD features.
+	 *
 	 * @return	An iterator over SIMD features of this architecture.
 	 */
 	public final Iterator<CpuSimdFeature> iterateSimdFeatures() {
@@ -200,8 +222,10 @@ public final class CpuArchitecture {
 	}
 
 	/**
-	 * @brief	Provides an iterator over non-ISA processor and system features potentially available on this architecture.
-	 * @details	For #Unknown architecture provides an iterator over common non-ISA CPU and system features.
+	 * Provides an iterator over non-ISA processor and system features potentially available on this architecture.
+	 *
+	 * For {@link #Unknown} architecture provides an iterator over common non-ISA CPU and system features.
+	 *
 	 * @return	An iterator over non-ISA processor and system features of this architecture.
 	 */
 	public final Iterator<CpuSystemFeature> iterateSystemFeatures() {
@@ -234,9 +258,11 @@ public final class CpuArchitecture {
 	}
 
 	/**
-	 * @brief	Provides a string ID for this CPU architecture.
+	 * Provides a string ID for this CPU architecture.
+	 *
 	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
-	 * @see	getDescription()
+	 *
+	 * @see	#getDescription()
 	 */
 	@Override
 	public final String toString() {
@@ -244,9 +270,11 @@ public final class CpuArchitecture {
 	}
 
 	/**
-	 * @brief	Provides a text description for this CPU architecture.
+	 * Provides a text description for this CPU architecture.
+	 *
 	 * @return	A string description which can contain spaces and non-ASCII characters.
-	 * @see	toString()
+	 *
+	 * @see	#toString()
 	 */
 	public final String getDescription() {
 		return CpuArchitecture.getDescription(this.id);

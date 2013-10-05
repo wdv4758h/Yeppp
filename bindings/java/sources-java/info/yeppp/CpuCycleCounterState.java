@@ -8,9 +8,12 @@
 package info.yeppp;
 
 /**
- * @brief	The state of the processor cycle counter.
- * @details	This class is intended to use only through Library#acquireCycleCounter and Library#releaseCycleCounter methods.
- * @see	Library#acquireCycleCounter(), Library#releaseCycleCounter(CpuCycleCounterState)
+ * The state of the processor cycle counter.
+ * <p>
+ * This class is intended to use only through {@link Library#acquireCycleCounter Library.acquireCycleCounter} and {@link Library#releaseCycleCounter Library.releaseCycleCounter} methods.
+ *
+ * @see	Library#acquireCycleCounter
+ * @see	Library#releaseCycleCounter
  */
 public final class CpuCycleCounterState {
 

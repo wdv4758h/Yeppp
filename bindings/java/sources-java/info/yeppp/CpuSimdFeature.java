@@ -8,8 +8,13 @@
 package info.yeppp;
 
 /**
- * @brief	SIMD extensions.
- * @see	CpuArchitecture#iterateSimdFeatures(), Library#isSupported(CpuSimdFeature), X86CpuSimdFeature, ArmCpuSimdFeature, MipsCpuSimdFeature
+ * SIMD extensions.
+ *
+ * @see	CpuArchitecture#iterateSimdFeatures()
+ * @see Library#isSupported(CpuSimdFeature)
+ * @see X86CpuSimdFeature
+ * @see ArmCpuSimdFeature
+ * @see MipsCpuSimdFeature
  */
 public class CpuSimdFeature {
 	static {
@@ -64,9 +69,11 @@ public class CpuSimdFeature {
 	}
 
 	/**
-	 * @brief	Provides a string ID for this SIMD extension.
+	 * Provides a string ID for this SIMD extension.
+	 *
 	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
-	 * @see	getDescription()
+	 *
+	 * @see	#getDescription()
 	 */
 	@Override
 	public final String toString() {
@@ -74,9 +81,11 @@ public class CpuSimdFeature {
 	}
 
 	/**
-	 * @brief	Provides a text description for this ISA extension.
+	 * Provides a text description for this ISA extension.
+	 *
 	 * @return	A string description which can contain spaces and non-ASCII characters.
-	 * @see	toString()
+	 *
+	 * @see	#toString()
 	 */
 	public final String getDescription() {
 		return CpuSimdFeature.getDescription(this.id, this.architectureId);

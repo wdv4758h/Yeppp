@@ -8,13 +8,14 @@
 package info.yeppp;
 
 /**
- * @brief	Operating System exception
- * @details	This exception is thrown when a @Yeppp function call fails inside the OS kernel.
+ * Operating System exception
+ * <p>
+ * This exception is thrown when a Yeppp! function call fails inside the OS kernel.
  */
 public class SystemException extends RuntimeException {
 	
 	/**
-	 * @brief	Constructs an Operating System exception with the supplied description.
+	 * Constructs an Operating System exception with the supplied description.
 	 */
 	public SystemException(String description) {
 		super(description);

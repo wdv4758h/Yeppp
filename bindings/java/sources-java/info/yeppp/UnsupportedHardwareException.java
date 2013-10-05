@@ -8,13 +8,14 @@
 package info.yeppp;
 
 /**
- * @brief	Unsupported hardware exception
- * @details	This exception is thrown when system lacks hardware required for the requested @Yeppp function call.
+ * Unsupported hardware exception
+ * <p>
+ * This exception is thrown when system lacks hardware required for the requested Yeppp! function call.
  */
 public class UnsupportedHardwareException extends RuntimeException {
 	
 	/**
-	 * @brief	Constructs an unsupported hardware exception with the specified description.
+	 * Constructs an unsupported hardware exception with the specified description.
 	 */
 	public UnsupportedHardwareException(String description) {
 		super(description);
