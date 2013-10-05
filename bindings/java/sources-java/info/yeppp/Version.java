@@ -7,8 +7,11 @@
 
 package info.yeppp;
 
-/** @brief	Contains information about @Yeppp library version. */
-/** @see	Library#getVersion() */
+/**
+ * Contains information about Yeppp! library version.
+ *
+ * @see	Library#getVersion()
+ */
 public class Version {
 	protected Version(int major, int minor, int patch, int build, String releaseName) {
 		this.major = major;
@@ -25,52 +28,63 @@ public class Version {
 	final private String releaseName;
 
 	/**
-	 * @brief	Provides the major version number of @Yeppp library.
-	 * @details	Library releases with the same major versions are guaranteed to be API- and ABI-compatible.
-	 * @return	The major version of @Yeppp library.
+	 * Provides the major version number of Yeppp! library.
+	 * <p>
+	 * Library releases with the same major versions are guaranteed to be API- and ABI-compatible.
+	 *
+	 * @return	The major version of Yeppp! library.
 	 */
 	public int getMajor() {
 		return this.major;
 	}
 
 	/**
-	 * @brief	Provides the minor version number of @Yeppp library.
-	 * @details	A change in minor versions indicates addition of new features, and major bug-fixes.
-	 * @return	The minor version of @Yeppp library.
+	 * Provides the minor version number of Yeppp! library.
+	 * <p>
+	 * A change in minor versions indicates addition of new features, and major bug-fixes.
+	 *
+	 * @return	The minor version of Yeppp! library.
 	 */
 	public int getMinor() {
 		return this.minor;
 	}
 
 	/**
-	 * @brief	Provides the patch level of @Yeppp library.
-	 * @details	A version with a higher patch level indicates minor bug-fixes.
-	 * @return	The patch level of @Yeppp library.
+	 * Provides the patch level of Yeppp! library.
+	 * <p>
+	 * A version with a higher patch level indicates minor bug-fixes.
+	 *
+	 * @return	The patch level of Yeppp! library.
 	 */
 	public int getPatch() {
 		return this.patch;
 	}
 
 	/**
-	 * @brief	Provides the build number of @Yeppp library.
-	 * @details	The build number is unique for the fixed combination of major, minor, and patch-level versions.
-	 * @return	The build number of @Yeppp library.
+	 * Provides the build number of Yeppp! library.
+	 * <p>
+	 * The build number is unique for the fixed combination of major, minor, and patch-level versions.
+	 *
+	 * @return	The build number of Yeppp! library.
 	 */
 	public int getBuild() {
 		return this.build;
 	}
 
 	/**
-	 * @brief	Provides the human-readable name of this release of @Yeppp library.
-	 * @details	The release name may contain non-ASCII characters.
-	 * @return	The release name of the @Yeppp library.
+	 * Provides the human-readable name of this release of Yeppp! library.
+	 * <p>
+	 * The release name may contain non-ASCII characters.
+	 *
+	 * @return	The release name of the Yeppp! library.
 	 */
 	public String getReleaseName() {
 		return this.releaseName;
 	}
 
 	/**
-	 * @brief	Provides a string representation for all parts of the version.
+	 * Provides a string representation for all parts of the version.
+	 *
 	 * @return	The full version string in the format "major.minor.patch.build (release name)".
 	 */
 	@Override

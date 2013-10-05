@@ -8,25 +8,41 @@
 package info.yeppp;
 
 /**
- * @brief	Non-ISA processor or system features.
- * @see	CpuArchitecture#iterateSystemFeatures(), Library#isSupported(CpuSystemFeature), X86CpuSystemFeature, ArmCpuSystemFeature
+ * Non-ISA processor or system features.
+ *
+ * @see	CpuArchitecture#iterateSystemFeatures()
+ * @see Library#isSupported(CpuSystemFeature)
+ * @see X86CpuSystemFeature
+ * @see ArmCpuSystemFeature
  */
 public class CpuSystemFeature {
 	static {
 		Library.load();
 	}
 
-	/** @brief The processor has a built-in cycle counter, and the operating system provides a way to access it. */
+	/**
+	 * The processor has a built-in cycle counter, and the operating system provides a way to access it.
+	 */
 	public static final CpuSystemFeature CycleCounter      = new CpuSystemFeature(0);
-	/** @brief The processor has a 64-bit cycle counter, or the operating system provides an abstraction of a 64-bit cycle counter. */
+	/**
+	 * The processor has a 64-bit cycle counter, or the operating system provides an abstraction of a 64-bit cycle counter.
+	 */
 	public static final CpuSystemFeature CycleCounter64Bit = new CpuSystemFeature(1);
-	/** @brief The processor and the operating system allows to use 64-bit pointers. */
+	/**
+	 * The processor and the operating system allows to use 64-bit pointers.
+	 */
 	public static final CpuSystemFeature AddressSpace64Bit = new CpuSystemFeature(2);
-	/** @brief The processor and the operating system allows to do 64-bit arithmetical operations on general-purpose registers. */
+	/**
+	 * The processor and the operating system allows to do 64-bit arithmetical operations on general-purpose registers.
+	 */
 	public static final CpuSystemFeature GPRegisters64Bit  = new CpuSystemFeature(3);
-	/** @brief The processor and the operating system allows misaligned memory reads and writes. */
+	/**
+	 * The processor and the operating system allows misaligned memory reads and writes.
+	 */
 	public static final CpuSystemFeature MisalignedAccess  = new CpuSystemFeature(4);
-	/** @brief The processor or the operating system support at most one hardware thread. */
+	/**
+	 * The processor or the operating system support at most one hardware thread.
+	 */
 	public static final CpuSystemFeature SingleThreaded    = new CpuSystemFeature(5);
 
 	private final int architectureId;
@@ -77,9 +93,11 @@ public class CpuSystemFeature {
 	}
 
 	/**
-	 * @brief	Provides a string ID for this non-ISA processor or system feature.
+	 * Provides a string ID for this non-ISA processor or system feature.
+	 *
 	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
-	 * @see	getDescription()
+	 *
+	 * @see	#getDescription()
 	 */
 	@Override
 	public final String toString() {
@@ -87,9 +105,11 @@ public class CpuSystemFeature {
 	}
 
 	/**
-	 * @brief	Provides a text description for this non-ISA processor or system feature.
+	 * Provides a text description for this non-ISA processor or system feature.
+	 *
 	 * @return	A string description which can contain spaces and non-ASCII characters.
-	 * @see	toString()
+	 *
+	 * @see	#toString()
 	 */
 	public final String getDescription() {
 		return CpuSystemFeature.getDescription(this.id, this.architectureId);

@@ -8,8 +8,14 @@
 package info.yeppp;
 
 /**
- * @brief	ISA extensions.
- * @see	CpuArchitecture#iterateIsaFeatures(), Library#isSupported(CpuIsaFeature), X86CpuIsaFeature, ArmCpuIsaFeature, MipsCpuIsaFeature, IA64CpuIsaFeature
+ * ISA extensions.
+ *
+ * @see	CpuArchitecture#iterateIsaFeatures()
+ * @see Library#isSupported(CpuIsaFeature)
+ * @see X86CpuIsaFeature
+ * @see ArmCpuIsaFeature
+ * @see MipsCpuIsaFeature
+ * @see IA64CpuIsaFeature
  */
 public class CpuIsaFeature {
 	static {
@@ -64,9 +70,11 @@ public class CpuIsaFeature {
 	}
 
 	/**
-	 * @brief	Provides a string ID for this ISA extension.
+	 * Provides a string ID for this ISA extension.
+	 *
 	 * @return	A string which starts with a Latin letter and contains only Latin letters, digits, and underscore symbol.
-	 * @see	getDescription()
+	 *
+	 * @see	#getDescription()
 	 */
 	@Override
 	public final String toString() {
@@ -74,9 +82,11 @@ public class CpuIsaFeature {
 	}
 
 	/**
-	 * @brief	Provides a text description for this ISA extension.
+	 * Provides a text description for this ISA extension.
+	 *
 	 * @return	A string description which can contain spaces and non-ASCII characters.
-	 * @see	toString()
+	 *
+	 * @see	#toString()
 	 */
 	public final String getDescription() {
 		return CpuIsaFeature.getDescription(this.id, this.architectureId);
