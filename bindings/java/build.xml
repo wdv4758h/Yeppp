@@ -1,17 +1,23 @@
 <?xml version="1.0"?>
 <project name="yeppp" default="package">
 	<target name="clean" description="Delete all class and jar files">
+		<delete dir="classes/java-1.5" />
 		<delete dir="binaries/java-1.5" />
 	</target>
 	<target name="build" description="Build yeppp.jar from Java source files">
+		<mkdir dir="classes" />
+		<mkdir dir="classes/java-1.5" />
 		<mkdir dir="binaries" />
 		<mkdir dir="binaries/java-1.5" />
-		<javac srcdir="sources-java" classpath="sources-java" destdir="binaries/java-1.5" target="1.5" includeAntRuntime="false" />
+		<javac srcdir="sources-java" classpath="sources-java" destdir="classes/java-1.5" target="1.5" includeAntRuntime="false" />
+		<javadoc sourcepath="sources-java" destdir="doc" access="public">
+			<tag name="warning" scope="packages,types,constructors,methods,fields" description="Warnings:" />
+		</javadoc>
 		<jar destfile="binaries/java-1.5/yeppp.jar" level="9">
-			<fileset dir="binaries/java-1.5" includes="**/*.class" />
+			<fileset dir="classes/java-1.5" includes="**/*.class" />
 		</jar>
 		<jar destfile="binaries/java-1.5/yeppp-bundle.jar" level="9">
-			<fileset dir="binaries/java-1.5" includes="**/*.class" />
+			<fileset dir="classes/java-1.5" includes="**/*.class" />
 			<fileset dir="../../binaries" includes="windows/x86/yeppp.dll" />
 			<fileset dir="../../binaries" includes="windows/amd64/yeppp.dll" />
 			<fileset dir="../../binaries" includes="macosx/x86/libyeppp.dylib" />
@@ -20,6 +26,12 @@
 			<fileset dir="../../binaries" includes="linux/x86_64/libyeppp.so" />
 			<fileset dir="../../binaries" includes="linux/armel/libyeppp.so" />
 			<fileset dir="../../binaries" includes="linux/armhf/libyeppp.so" />
+		</jar>
+		<jar destfile="binaries/java-1.5/yeppp-javadoc.jar" level="9">
+			<fileset dir="doc" includes="**" />
+		</jar>
+		<jar destfile="binaries/java-1.5/yeppp-sources.jar" level="9">
+			<fileset dir="sources-java" includes="**/*.java" />
 		</jar>
 	</target>
 	<target name="rebuild" description="Recompile all source files and build yeppp.jar" depends="clean,build" />
