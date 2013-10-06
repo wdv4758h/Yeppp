@@ -247,6 +247,8 @@ public class Library {
 	private static final int EM_386    = 3;
 	private static final int EM_X86_64 = 62;
 	private static final int EM_K1OM   = 181;
+	private static final int EM_PPC = 20;
+	private static final int EM_PPC64 = 21;
 	private static final int EM_ARM    = 40;
 	private static final int EM_ARM64  = 183;
 
@@ -330,6 +332,8 @@ public class Library {
 								final int machine = header[2] | (header[3] << 8);
 								if (machine == EM_386) {
 									return "/linux/x86/libyeppp.so";
+								} else if (machine == EM_PPC) {
+									return "/linux/ppc/libyeppp.so";
 								} else if (machine == EM_ARM) {
 									final int flags = header[20] | (header[21] << 8) | (header[22] << 16) | (header[23] << 24);
 									if ((flags & EF_ARM_ABIMASK) != 0) {
@@ -460,6 +464,8 @@ public class Library {
 								final int machine = header[2] | (header[3] << 8);
 								if (machine == EM_X86_64) {
 									return "/linux/x86_64/libyeppp.so";
+								} else if (machine == EM_PPC64) {
+									return "/linux/ppc64/libyeppp.so";
 								}
 							}
 						}
