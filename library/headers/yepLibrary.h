@@ -402,6 +402,10 @@ extern "C" {
 		/** @brief IBM PowerPC 970 (PowerPC G5). */
 		YepCpuMicroarchitecturePowerPC970    = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0021,
 
+		/** @brief IBM POWER 4. */
+		YepCpuMicroarchitecturePOWER4        = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x011F,
+		/** @brief IBM POWER 5. */
+		YepCpuMicroarchitecturePOWER5        = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0120,
 		/** @brief IBM POWER 6. */
 		YepCpuMicroarchitecturePOWER6        = (YepCpuArchitecturePowerPC << 24) + (YepCpuVendorIBM << 16) + 0x0121,
 		/** @brief IBM POWER 7. */
@@ -1417,7 +1421,197 @@ extern "C" {
 	#define YepMIPSSimdFeatureMXU2                0x0000000000000080ull
 	/**@}*/
 #endif
-	
+
+#ifdef __cplusplus
+	const Yep64u YepPowerPCIsaFeatureFPU           = 0x0000000000000001ull;
+	const Yep64u YepPowerPCIsaFeatureMCRF          = 0x0000000000000002ull;
+	const Yep64u YepPowerPCIsaFeatureGPOpt         = 0x0000000000000004ull;
+	const Yep64u YepPowerPCIsaFeatureGfxOpt        = 0x0000000000000008ull;
+	const Yep64u YepPowerPCIsaFeatureGfxOpt202     = 0x0000000000000010ull;
+	const Yep64u YepPowerPCIsaFeatureMAC           = 0x0000000000000020ull;
+	const Yep64u YepPowerPCIsaFeatureEFPS          = 0x0000000000000040ull;
+	const Yep64u YepPowerPCIsaFeatureEFPD          = 0x0000000000000080ull;
+	const Yep64u YepPowerPCIsaFeatureISEL          = 0x0000000000000100ull;
+	const Yep64u YepPowerPCIsaFeaturePOPCNTB       = 0x0000000000000200ull;
+	const Yep64u YepPowerPCIsaFeatureFRI           = 0x0000000000000400ull;
+	const Yep64u YepPowerPCIsaFeatureFPU205        = 0x0000000000000800ull;
+	const Yep64u YepPowerPCIsaFeatureLFDP          = 0x0000000000001000ull;
+	const Yep64u YepPowerPCIsaFeatureDFP           = 0x0000000000002000ull;
+	const Yep64u YepPowerPCIsaFeatureISA205        = 0x0000000000004000ull;
+	const Yep64u YepPowerPCIsaFeatureBPERMD        = 0x0000000000008000ull;
+	const Yep64u YepPowerPCIsaFeatureDIVWE         = 0x0000000000010000ull;
+	const Yep64u YepPowerPCIsaFeaturePOPCNTW       = 0x0000000000020000ull;
+	const Yep64u YepPowerPCIsaFeatureISA206        = 0x0000000000040000ull;
+	const Yep64u YepPowerPCIsaFeatureLFIWZX        = 0x0000000000080000ull;
+	const Yep64u YepPowerPCIsaFeatureFCTIWU        = 0x0000000000100000ull;
+	const Yep64u YepPowerPCIsaFeatureFTDIV         = 0x0000000000200000ull;
+	const Yep64u YepPowerPCIsaFeatureLBARX         = 0x0000000000400000ull;
+	const Yep64u YepPowerPCIsaFeatureLQARX         = 0x0000000000800000ull;
+	const Yep64u YepPowerPCIsaFeatureLQ            = 0x0000000001000000ull;
+	const Yep64u YepPowerPCIsaFeatureVMXCrypto     = 0x0000000002000000ull;
+	const Yep64u YepPowerPCIsaFeatureTM            = 0x0000000004000000ull;
+#else
+	/** @anchor	PowerPC_ISA_Extensions
+	 *  @name	PowerPC ISA Extensions
+	 *  @see	yepLibrary_GetCpuIsaFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FPU instructions. */
+	#define YepPowerPCIsaFeatureFPU                  0x0000000000000001ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief MTOCRF and MFOCRF instructions. */
+	/** @details MTOCRF and MFOCRF are new forms of MTCRF and MFCRF instructions. They were introduced in PowerPC ISA 2.00. */
+	#define YepPowerPCIsaFeatureMCRF                 0x0000000000000002ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FSQRT and FSQRTS instructions. */
+	/** @details These optional general-purpose instructions are defined in PowerPC ISA 2.01. */
+	#define YepPowerPCIsaFeatureGPOpt                0x0000000000000004ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FRES, FRSQRTE, and FSEL.
+	/** @details These optional graphics instructions are defined in PowerPC ISA 2.01. */
+	#define YepPowerPCIsaFeatureGfxOpt               0x0000000000000008ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FRE and FRSQRTES instructions.
+	/** @details These optional graphics instructions are defined in PowerPC ISA 2.02. */
+	#define YepPowerPCIsaFeatureGfxOpt202            0x0000000000000010ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Legacy integer multiply-accumulate instructions. */
+	/** @details These multiply-accumulate instructions were implemented in some 400 series processors. */
+	#define YepPowerPCIsaFeatureMAC                  0x0000000000000020ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Embedded Floating-Point Single Precision instructions. */
+	/** @details These instructions are defined in POWER ISA 2.03 in SPE.Embedded Float Scalar Single category. */
+	#define YepPowerPCIsaFeatureEFPS                 0x0000000000000040ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Embedded Floating-Point Double Precision instructions. */
+	/** @details These instructions are defined in POWER ISA 2.03 in SPE.Embedded Float Scalar Double category. */
+	#define YepPowerPCIsaFeatureEFPD                 0x0000000000000080ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief ISEL instruction. */
+	/** @details ISEL instruction is defined as optional (Phased-In) in Power ISA 2.03. */
+	#define YepPowerPCIsaFeatureISEL                 0x0000000000000100ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief POPCNTB instruction. */
+	/** @details POPCNTB instruction is defined as optional (Phased-In) in Power ISA 2.03. */
+	#define YepPowerPCIsaFeaturePOPCNTB              0x0000000000000200ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FRIN, FRIZ, FRIP, and FRIM instructions. */
+	/** @details Floating-point round-to-integer instructions are defined as optional (Phased-In) in Power ISA 2.03 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureFRI                  0x0000000000000400ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FPCPSGN and LFIWAX instructions. */
+	/** @details These instruction is defined in Power ISA 2.05 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureFPU205               0x0000000000000800ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief LFDP, STFDP, LFDPX, and STFDPX instructions. */
+	/** @details Floating-point load/store double pair instructions are defined as optional (Phased-Out) in Power ISA 2.05 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureLFDP                 0x0000000000001000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Decimal Floating-Point instructions. */
+	/** @details These instructions are defined in POWER ISA 2.05 in Decimal Floating-Point category. */
+	#define YepPowerPCIsaFeatureDFP                  0x0000000000002000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief CMPB, PRTYW, and PRTYD instructions. */
+	/** @details These instructions are defined in Power ISA 2.05. */
+	#define YepPowerPCIsaFeatureISA205               0x0000000000004000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief BPERMD instruction. */
+	/** @details This instruction is defined as optional (Embedded.Phased-In, Server) in Power ISA 2.06. */
+	#define YepPowerPCIsaFeatureBPERMD               0x0000000000008000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Extended division instructions (DIVWE, DIVWEO, DIVWEU, DIVWEUO, DIVDE, DIVDEO, DIVDEU, and DIVDEUO). */
+	/** @details These instructions are defined as optional (Embedded.Phased-In, Server) in Power ISA 2.06. */
+	#define YepPowerPCIsaFeatureDIVWE                0x0000000000010000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief POPCNTW and POPCNTD instructions. */
+	/** @details These instructions are defined as optional (Embedded.Phased-In, Server) in Power ISA 2.06. */
+	#define YepPowerPCIsaFeaturePOPCNTW              0x0000000000020000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief LDBRX and STDBRX instructions. */
+	/** @details These instructions are defined in Power ISA 2.06. */
+	#define YepPowerPCIsaFeatureISA206               0x0000000000040000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief LFIWZX instruction. */
+	/** @details This instruction is defined as optional (Phased-In) in Power ISA 2.06 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureLFIWZX               0x0000000000080000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FCTIDU, FCTIDUZ, FCTIWU, FCTIWUZ, FCFIDU, FCFIDS, and FCFIDUS instructions. */
+	/** @details These instructions are defined as optional (Phased-In) in Power ISA 2.06 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureFCTIWU               0x0000000000100000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief FTDIV and FTSQRT instructions. */
+	/** @details These instructions are defined as optional (Phased-In) in Power ISA 2.06 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureFTDIV                0x0000000000200000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief LBARX, LHARX, STBCX, and STHCX instructions. */
+	/** @details These instructions are defined as optional (Phased-In) in Power ISA 2.06 in Floating-Point category. */
+	#define YepPowerPCIsaFeatureLBARX                0x0000000000400000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief LQARX and STQCX instructions. */
+	/** @details These instructions are defined in Power ISA 2.07 in Load/Store Quadword category. */
+	#define YepPowerPCIsaFeatureLQARX                0x0000000000800000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief LQ and STQ instructions (accessible in problem state). */
+	/** @details LQ and STQ instructions are redefined as accessible in problem state in Power ISA 2.07 in Load/Store Quadword category. */
+	#define YepPowerPCIsaFeatureLQ                   0x0000000001000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief VCIPHER, VCIPHERLAST, VNCIPHER, VNCIPHERLAST, VSBOX, VSHASIGMAW, and VSHASIGMAD instructions. */
+	/** @details These instructions are defined in Power ISA 2.07 in VMX.Crypto category. */
+	#define YepPowerPCIsaFeatureVMXCrypto            0x0000000002000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Transactional Memory instructions. */
+	/** @details These instructions are defined in Power ISA 2.07 in Transactional Memory category. */
+	#define YepPowerPCIsaFeatureTM                   0x0000000004000000ull
+	/**@}*/
+#endif
+
+#ifdef __cplusplus
+	const Yep64u YepPowerPCSimdFeatureVMX          = 0x0000000000000001ull;
+	const Yep64u YepPowerPCSimdFeatureVMXRAID      = 0x0000000000000002ull;
+	const Yep64u YepPowerPCSimdFeatureVMX207       = 0x0000000000000004ull;
+	const Yep64u YepPowerPCSimdFeatureVSX          = 0x0000000000000100ull;
+	const Yep64u YepPowerPCSimdFeatureVSX207       = 0x0000000000000200ull;
+	const Yep64u YepPowerPCSimdFeatureSPE          = 0x0000000001000000ull;
+	const Yep64u YepPowerPCSimdFeatureEFPV         = 0x0000000002000000ull;
+	const Yep64u YepPowerPCSimdFeatureDoubleHummer = 0x0001000000000000ull;
+	const Yep64u YepPowerPCSimdFeatureQPX          = 0x0002000000000000ull;
+#else
+	/** @anchor	PowerPC_SIMD_Extensions
+	 *  @name	PowerPC SIMD Extensions
+	 *  @see	yepLibrary_GetCpuSimdFeatures */
+	/**@{*/
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Vector Media eXtension (aka AltiVec and Velocity Engine). */
+	#define YepPowerPCSimdFeatureVMX                 0x0000000000000001ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief VMX VPERMXOR instruction from Power ISA 2.07. */
+	#define YepPowerPCSimdFeatureVMXRAID             0x0000000000000002ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Additional VMX instructions from Power ISA 2.07. */
+	#define YepPowerPCSimdFeatureVMX207              0x0000000000000004ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief VSX instructions (Vector-Scalar eXtensions). */
+	#define YepPowerPCSimdFeatureVSX                 0x0000000000000100ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Additional VSX instructions from Power ISA 2.07. */
+	#define YepPowerPCSimdFeatureVSX207              0x0000000000000200ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief SPE (Signal Processing Engine). */
+	#define YepPowerPCSimdFeatureSPE                 0x0000000001000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Embedded Floating-Point Vector instructions. */
+	#define YepPowerPCSimdFeatureEFPV                0x0000000002000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Double Hummer instruction set. */
+	/** @details 2-wide double precision floating-point SIMD for Blue Gene/L and Blue Gene/P supercomputers. */
+	#define YepPowerPCSimdFeatureDoubleHummer        0x0001000000000000ull
+	/** @ingroup yepLibrary_CpuFeatures */
+	/** @brief Quad Processing eXtension. */
+	/** @details 4-wide double precision floating-point SIMD for Blue Gene/Q supercomputers. */
+	#define YepPowerPCSimdFeatureQPX                 0x0002000000000000ull
+	/**@}*/
+#endif
+
 #ifdef __cplusplus
 }
 #endif

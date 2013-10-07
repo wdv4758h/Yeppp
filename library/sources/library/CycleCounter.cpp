@@ -271,6 +271,13 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
 	#else
 		#error "Not yet supported combination of OS and CPU"
 	#endif
+#elif defined(YEP_POWERPC_CPU) && defined(YEP_POWERPC64_ABI)
+	Yep64u state;
+	do {
+		state = yepBuiltin_PPC_ReadTimeBase_64u();
+	} while YEP_UNLIKELY(state == 0);
+	*statePointer = state;
+	return YepStatusOk;
 #else
 	#error "Not yet implemented for this combination of compiler and architecture"
 #endif
@@ -477,6 +484,22 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 		return YepStatusUnsupportedSoftware;
 	#else
 		#error "Not yet supported combination of OS and CPU"
+	#endif
+#elif defined(YEP_POWERPC_CPU) && defined(YEP_POWERPC64_ABI)
+	#if defined(YEP_GCC_COMPATIBLE_COMPILER)
+		const Yep64u endTicks = yepBuiltin_PPC_ReadTimeBase_64u();
+
+		const Yep64u startTicks = *statePointer;
+		*statePointer = 0;
+		if YEP_LIKELY(startTicks != 0) {
+			const Yep64u elapsedTicks = endTicks - startTicks;
+			*ticksPointer = elapsedTicks;
+			return YepStatusOk;
+		} else {
+			return YepStatusInvalidState;
+		}
+	#else
+		#error "Not yet implemented for this combination of compiler and architecture (PPC64)"
 	#endif
 #else
 	#error "Not yet implemented for this combination of compiler and architecture"

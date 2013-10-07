@@ -113,6 +113,8 @@ extern YEP_PRIVATE_SYMBOL CacheHierarchyInfo _cache;
 	};
 
 	extern YEP_PRIVATE_SYMBOL ModelInfo _modelInfo;
+#elif defined(YEP_POWERPC_CPU)
+	extern YEP_PRIVATE_SYMBOL Yep32u processorVersion;
 #endif
 extern YEP_PRIVATE_SYMBOL const YepCpuMicroarchitecture* _dispatchList;
 
@@ -123,9 +125,11 @@ YEP_PRIVATE_SYMBOL ConstantString _yepLibrary_GetCpuVendorDescription(YepCpuVend
 YEP_PRIVATE_SYMBOL ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchitecture microarchitecture);
 
 typedef void (*LineParser)(const char* lineStart, const char* lineEnd, void* state);
+typedef void (*AuxVectorParser)(YepSize type, YepSize value, void* state);
 
 #if defined(YEP_LINUX_OS)
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_ParseProcCpuInfo(LineParser lineParser, void* state);
+	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_ParseAuxVectors(AuxVectorParser auxParser, void* state);
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_ParseKernelLog(LineParser lineParser, void* state);
 
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_InitLinuxLogicalCoresCount(Yep32u& logicalCoresCount, Yep64u& systemFeatures);

@@ -173,7 +173,11 @@ typedef double                         Yep64f;
 	#endif
 #endif
 
-#pragma pack(push, 1)
+#if defined(YEP_IBM_COMPILER)
+	#pragma pack(1)
+#else
+	#pragma pack(push, 1)
+#endif
 
 /**
  * @ingroup	yepTypes

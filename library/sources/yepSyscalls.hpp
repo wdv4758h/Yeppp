@@ -1592,5 +1592,111 @@
 			);
 			return static_cast<int>(v0);
 		}
+	#elif defined(YEP_POWERPC64_ABI)
+		static YEP_INLINE int yepSyscall_open(const char *path, int flags) {
+			register Yep64u r0 asm ("r0") = __NR_open;
+			register Yep64u r3 asm ("r3") = reinterpret_cast<Yep64u>(path);
+			register Yep64u r4 asm ("r4") = static_cast<Yep64u>(flags);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4)
+				:
+				: "cr0", "ctr", "memory", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_ioctl(int file, int request) {
+			register Yep64u r0 asm ("r0") = __NR_ioctl;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(file);
+			register Yep64u r4 asm ("r4") = static_cast<Yep64u>(request);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4)
+				:
+				: "cr0", "ctr", "memory", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE ssize_t yepSyscall_read(int file, void *buffer, size_t count) {
+			register Yep64u r0 asm ("r0") = __NR_read;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(file);
+			register Yep64u r4 asm ("r4") = reinterpret_cast<Yep64u>(buffer);
+			register Yep64u r5 asm ("r5") = static_cast<Yep64u>(count);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5)
+				:
+				: "cr0", "ctr", "memory", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE ssize_t yepSyscall_write(int file, const void *buffer, size_t count) {
+			register Yep64u r0 asm ("r0") = __NR_write;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(file);
+			register Yep64u r4 asm ("r4") = reinterpret_cast<Yep64u>(buffer);
+			register Yep64u r5 asm ("r5") = static_cast<Yep64u>(count);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5)
+				:
+				: "cr0", "ctr", "memory", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_close(int file) {
+			register Yep64u r0 asm ("r0") = __NR_close;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(file);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3)
+				:
+				: "cr0", "ctr", "memory", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_getdents(int file, struct linux_dirent *buffer, unsigned int count) {
+			register Yep64u r0 asm ("r0") = __NR_getdents;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(file);
+			register Yep64u r4 asm ("r4") = reinterpret_cast<Yep64u>(buffer);
+			register Yep64u r5 asm ("r5") = static_cast<Yep64u>(count);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5)
+				:
+				: "cr0", "ctr", "memory", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_clock_gettime(clockid_t clockId, struct timespec *time) {
+			register Yep64u r0 asm ("r0") = __NR_clock_gettime;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(clockId);
+			register Yep64u r4 asm ("r4") = reinterpret_cast<Yep64u>(time);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4)
+				:
+				: "cr0", "ctr", "memory", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_clock_getres(clockid_t clockId, struct timespec *resolution) {
+			register Yep64u r0 asm ("r0") = __NR_clock_gettime;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(clockId);
+			register Yep64u r4 asm ("r4") = reinterpret_cast<Yep64u>(resolution);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4)
+				:
+				: "cr0", "ctr", "memory", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
 	#endif
 #endif

@@ -14,6 +14,8 @@ show_usage()
 	echo "   k1om   - set variables for Xeon Phi target"
 	echo "   armel  - set variables for ARM Soft-Float EABI target"
 	echo "   armhf  - set variables for ARM Hard-Float EABI target"
+	echo "   ppc64  - set variables for PowerPC 64 target"
+	echo "   bgq    - set variables for Blue Gene/Q target"
 	echo "By default the variables are set according to OS architecture"
 }
 
@@ -136,6 +138,10 @@ guess_platform()
 					echo "linux-armhf"
 					return -1
 				fi
+			;;
+			"ppc64")
+				echo "linux-ppc64"
+				return 0
 			;;
 			*)
 				if [ "$1" != "silent" ]
@@ -288,14 +294,19 @@ setup_x86()
 			echo "Error: cross-compilation for x86 on Xeon Phi is not supported" >&2
 			return 1
 		;;
-		"linux-armel"|"linux-armhf")
-			# Cross-compilation for x86 on ARM (armel/armhf)
+		"linux-armel"|"linux-armhf"|"linux-ppc64")
+			# Cross-compilation for x86 on ARM (armel/armhf) or PowerPC 64 (Linux)
 			export YEPROOT="${YEP_ROOT}"
 			export YEPBINARIES="${YEPROOT}/binaries/linux/i586"
 			export YEPPLATFORM="x86-linux-pic-i586"
 
 			setup_cross_tools
 			return 0
+		;;
+		"linux-bgq")
+			# Cross-compilation for x86 on BGQ
+			echo "Error: cross-compilation for x86 on Blue Gene/Q is not supported" >&2
+			return 1
 		;;
 		"darwin-x86"|"darwin-x86_64")
 			# Native compilation for x86 on x86/x86-64 (Mac OS X)
@@ -334,14 +345,19 @@ setup_x64()
 			echo "Error: cross-compilation for x86-64 on Xeon Phi is not supported" >&2
 			return 1
 		;;
-		"linux-x86"|"linux-armel"|"linux-armhf")
-			# Cross-compilation for x86-64 on x86 or ARM (armel/armhf)
+		"linux-x86"|"linux-armel"|"linux-armhf"|"linux-ppc64")
+			# Cross-compilation for x86-64 on x86, ARM (armel/armhf), or PowerPC 64
 			export YEPROOT="${YEP_ROOT}"
 			export YEPBINARIES="${YEPROOT}/binaries/linux/x86_64"
 			export YEPPLATFORM="x64-linux-sysv-default"
 
 			setup_cross_tools
 			return 0
+		;;
+		"linux-bgq")
+			# Cross-compilation for x86-64 on BGQ
+			echo "Error: cross-compilation for x86-64 on Blue Gene/Q is not supported" >&2
+			return 1
 		;;
 		"darwin-x86_64")
 			# Native compilation for x86-64 on x86-64 (Mac OS X)
@@ -394,8 +410,18 @@ setup_k1om()
 			return 0
 		;;
 		"linux-armel"|"linux-armhf")
-			# Cross-compilation for x86-64 on ARM (armel/armhf)
+			# Cross-compilation for K1OM on ARM (armel/armhf)
 			echo "Error: cross-compilation for Xeon Phi on ARM is not supported" >&2
+			return 1
+		;;
+		"linux-ppc64")
+			# Cross-compilation for K1OM on PowerPC 64
+			echo "Error: cross-compilation for Xeon Phi on PowerPC is not supported" >&2
+			return 1
+		;;
+		"linux-bgq")
+			# Cross-compilation for K1OM on BGQ
+			echo "Error: cross-compilation for Xeon Phi on Blue Gene/Q is not supported" >&2
 			return 1
 		;;
 		"darwin-x86"|"darwin-x86_64")
@@ -415,8 +441,8 @@ setup_armel()
 	YEP_HOST_PLATFORM="$1"
 	YEP_ROOT="$2"
 	case "${YEP_HOST_PLATFORM}" in
-		"linux-x86"|"linux-x86_64")
-			# Cross-compilation for ARM (armel) on x86/x86-64 (Linux)
+		"linux-x86"|"linux-x86_64"|"linux-ppc64")
+			# Cross-compilation for ARM (armel) on x86/x86-64 or PowerPC 64 (Linux)
 			export YEPROOT="${YEP_ROOT}"
 			export YEPBINARIES="${YEPROOT}/binaries/linux/armel"
 			export YEPPLATFORM="arm-linux-softeabi-v5t"
@@ -439,6 +465,11 @@ setup_armel()
 			setup_ld_library_path
 			return 0
 		;;
+		"linux-bgq")
+			# Cross-compilation for ARM on BGQ
+			echo "Error: cross-compilation for ARM on Blue Gene/Q is not supported" >&2
+			return 1
+		;;
 		"darwin-x86"|"darwin-x86_64")
 			# Cross-compilation for ARM on x86/x86-64 (Mac OS X)
 			echo "Error: cross-compilation for ARM on Mac OS X is not supported" >&2
@@ -456,8 +487,8 @@ setup_armhf()
 	YEP_HOST_PLATFORM="$1"
 	YEP_ROOT="$2"
 	case "${YEP_HOST_PLATFORM}" in
-		"linux-x86"|"linux-x86_64")
-			# Cross-compilation for ARM (armel) on x86/x86-64 (Linux)
+		"linux-x86"|"linux-x86_64"|"linux-ppc64")
+			# Cross-compilation for ARM (armel) on x86/x86-64 or PowerPC 64 (Linux)
 			export YEPROOT="${YEP_ROOT}"
 			export YEPBINARIES="${YEPROOT}/binaries/linux/armhf"
 			export YEPPLATFORM="arm-linux-hardeabi-v7a"
@@ -480,9 +511,106 @@ setup_armhf()
 			setup_ld_library_path
 			return 0
 		;;
+		"linux-bgq")
+			# Cross-compilation for ARM on BGQ
+			echo "Error: cross-compilation for ARM on Blue Gene/Q is not supported" >&2
+			return 1
+		;;
 		"darwin-x86"|"darwin-x86_64")
 			# Cross-compilation for ARM on x86/x86-64 (Mac OS X)
 			echo "Error: cross-compilation for ARM on Mac OS X is not supported" >&2
+			return 1
+		;;
+		*)
+			guess_platform >/dev/null
+			return 1
+		;;
+	esac
+}
+
+setup_ppc64()
+{
+	YEP_HOST_PLATFORM="$1"
+	YEP_ROOT="$2"
+	case "${YEP_HOST_PLATFORM}" in
+		"linux-k1om")
+			# Cross-compilation for PowerPC 64 on K1OM (Xeon Phi)
+			echo "Error: cross-compilation for PowerPC 64 on Xeon Phi is not supported" >&2
+			return 1
+		;;
+		"linux-x86"|"linux-x86_64"|"linux-armel"|"linux-armhf")
+			# Cross-compilation for PowerPC 64 on x86, x86-64 or ARM (armel/armhf)
+			export YEPROOT="${YEP_ROOT}"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/ppc64"
+			export YEPPLATFORM="ppc64-linux-sysv-default"
+
+			setup_cross_tools
+			return 0
+		;;
+		"linux-ppc64")
+			# Native compilation on PowerPC 64
+			export YEPROOT="${YEP_ROOT}"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/ppc64"
+			export YEPPLATFORM="ppc64-linux-sysv-default"
+
+			setup_native_tools
+			setup_ld_library_path
+			return 0
+		;;
+		"darwin-x86"|"darwin-x86_64")
+			# Cross-compilation for PowerPC 64 on x86/x86-64 (Mac OS X)
+			echo "Error: cross-compilation for PowerPC 64 on Mac OS X is not supported" >&2
+			return 1
+		;;
+		*)
+			guess_platform >/dev/null
+			return 1
+		;;
+	esac
+}
+
+setup_bgq()
+{
+	YEP_HOST_PLATFORM="$1"
+	YEP_ROOT="$2"
+	case "${YEP_HOST_PLATFORM}" in
+		"linux-x86"|"linux-x86_64")
+			# Cross-compilation for BGQ on x86/x86-64 (Linux)
+			echo "Error: cross-compilation for Blue Gene/Q on x86/x86-64 is not supported" >&2
+			return 1
+		;;
+		"linux-k1om")
+			# Cross-compilation for BGQ on K1OM (Xeon Phi)
+			echo "Error: cross-compilation for Blue Gene/Q on Xeon Phi is not supported" >&2
+			return 1
+		;;
+		"linux-armel"|"linux-armhf")
+			# Cross-compilation for BGQ on ARM (armel/armhf)
+			echo "Error: cross-compilation for Blue Gene/Q on ARM is not supported" >&2
+			return 1
+		;;
+		"linux-ppc64")
+			# Cross-compilation for BGQ on PPC64 (Linux)
+			export YEPROOT="${YEP_ROOT}"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/bgq"
+			export YEPPLATFORM="ppc64-linux-sysv-bgq"
+
+			setup_cross_tools
+			setup_ld_library_path
+			return 0
+		;;
+		"linux-bgq")
+			# Native-compilation on BGQ (Xeon Phi)
+			export YEPROOT="${YEP_ROOT}"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/bgq"
+			export YEPPLATFORM="ppc64-linux-sysv-bgq"
+
+			setup_ld_library_path
+			return 0
+		;;
+		"darwin-x86"|"darwin-x86_64")
+			# Cross-compilation for K1OM on x86/x86-64 (Mac OS X)
+			echo "Error: cross-compilation for Xeon Phi on Mac OS X is not supported" >&2
 			return 1
 		;;
 		*)
@@ -550,6 +678,28 @@ setup_guess()
 
 			# Report warnings in ABI detection (if any)
 			guess_platform >/dev/null
+			return 0
+		;;
+		"linux-ppc64")
+			# Native compilation for PowerPC 64 on PowerPC 64
+			export YEPROOT="${YEP_ROOT}"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/ppc64"
+			export YEPPLATFORM="ppc64-linux-sysv-default"
+
+			setup_native_tools
+			setup_ld_library_path
+
+			# Report warnings in ABI detection (if any)
+			guess_platform >/dev/null
+			return 0
+		;;
+		"linux-bgq")
+			# Native compilation for BGQ on BGQ
+			export YEPROOT="${YEP_ROOT}"
+			export YEPBINARIES="${YEPROOT}/binaries/linux/bgq"
+			export YEPPLATFORM="ppc64-linux-sysv-bgq"
+
+			setup_ld_library_path
 			return 0
 		;;
 		"darwin-x86")
@@ -636,6 +786,16 @@ case "$1" in
 	;;
 	"armhf")
 		setup_armhf "${YEP_HOST_PLATFORM}" "${YEP_ROOT}"
+		unset YEP_ROOT
+		unset YEP_HOST_PLATFORM
+	;;
+	"ppc64")
+		setup_ppc64 "${YEP_HOST_PLATFORM}" "${YEP_ROOT}"
+		unset YEP_ROOT
+		unset YEP_HOST_PLATFORM
+	;;
+	"bgq")
+		setup_bgq "${YEP_HOST_PLATFORM}" "${YEP_ROOT}"
 		unset YEP_ROOT
 		unset YEP_HOST_PLATFORM
 	;;

@@ -107,6 +107,19 @@ YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *valuePoin
 				return YepStatusOk;
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		Yep32u oldValue;
+		asm volatile(
+		"1:\n"
+			"LWARX %[oldValue], 0, %[valuePointer];"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			: [oldValue] "=&r" (oldValue)  
+			: [valuePointer] "r" (valuePointer), [newValue] "r" (newValue)
+			: "cr0", "memory"
+		);
+		*oldValuePointer = oldValue;
+		return YepStatusOk;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif
@@ -230,6 +243,20 @@ YepStatus YEPABI yepAtomic_Swap_Acquire_S32uS32u_S32u(volatile Yep32u *valuePoin
 				return YepStatusOk;
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		Yep32u oldValue;
+		asm volatile(
+		"1:\n"
+			"LWARX %[oldValue], 0, %[valuePointer];"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			"ISYNC;"
+			: [oldValue] "=&r" (oldValue)  
+			: [valuePointer] "r" (valuePointer), [newValue] "r" (newValue)
+			: "cr0", "memory"
+		);
+		*oldValuePointer = oldValue;
+		return YepStatusOk;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif
@@ -355,6 +382,20 @@ YepStatus YEPABI yepAtomic_Swap_Release_S32uS32u_S32u(volatile Yep32u *valuePoin
 				return YepStatusOk;
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		Yep32u oldValue;
+		asm volatile(
+			"ISYNC;"
+		"1:\n"
+			"LWARX %[oldValue], 0, %[valuePointer];"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			: [oldValue] "=&r" (oldValue)  
+			: [valuePointer] "r" (valuePointer), [newValue] "r" (newValue)
+			: "cr0", "memory"
+		);
+		*oldValuePointer = oldValue;
+		return YepStatusOk;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif
@@ -482,6 +523,21 @@ YepStatus YEPABI yepAtomic_Swap_Ordered_S32uS32u_S32u(volatile Yep32u *valuePoin
 				return YepStatusOk;
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		Yep32u oldValue;
+		asm volatile(
+			"ISYNC;"
+		"1:\n"
+			"LWARX %[oldValue], 0, %[valuePointer];"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			"ISYNC;"
+			: [oldValue] "=&r" (oldValue)  
+			: [valuePointer] "r" (valuePointer), [newValue] "r" (newValue)
+			: "cr0", "memory"
+		);
+		*oldValuePointer = oldValue;
+		return YepStatusOk;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif

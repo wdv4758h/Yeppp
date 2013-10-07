@@ -1768,3 +1768,29 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 		#endif
 	#endif
 #endif
+
+#if defined(YEP_POWERPC_CPU)
+	#if defined(YEP_GCC_COMPATIBLE_COMPILER)
+		static YEP_INLINE Yep64u yepBuiltin_PPC_ReadTimeBase_64u() {
+			register Yep64u timebase;
+			asm volatile (
+				"MFTB %[timebase];"
+				: [timebase] "=r" (timebase)
+				:
+				:
+			);
+			return timebase;
+		}
+
+		static YEP_INLINE Yep32u yepBuiltin_PPC_ReadProcessorVersionRegister_32u() {
+			register Yep32u pvr;
+			asm volatile (
+				"MFSPR %[pvr], 287;"
+				: [pvr] "=r" (pvr)
+				:
+				:
+			);
+			return pvr;
+		}
+	#endif
+#endif
