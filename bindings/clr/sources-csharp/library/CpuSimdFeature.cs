@@ -14,6 +14,7 @@ namespace Yeppp
 	/// <seealso cref="X86CpuSimdFeature" />
 	/// <seealso cref="ArmCpuSimdFeature" />
 	/// <seealso cref="MipsCpuSimdFeature" />
+	/// <seealso cref="PowerPCCpuSimdFeature" />
 	public class CpuSimdFeature {
 
 		private readonly uint architectureId;

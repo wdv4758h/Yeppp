@@ -125,6 +125,7 @@ namespace Yeppp
 		/// <seealso cref="ArmCpuIsaFeature" />
 		/// <seealso cref="MipsCpuIsaFeature" />
 		/// <seealso cref="IA64CpuIsaFeature" />
+		/// <seealso cref="PowerPCCpuIsaFeature" />
 		public static bool IsSupported(CpuIsaFeature isaFeature)
 		{
 			ulong isaFeaturesMask = 0;
@@ -142,6 +143,7 @@ namespace Yeppp
 		/// <seealso cref="X86CpuSimdFeature" />
 		/// <seealso cref="ArmCpuSimdFeature" />
 		/// <seealso cref="MipsCpuSimdFeature" />
+		/// <seealso cref="PowerPCCpuSimdFeature" />
 		public static bool IsSupported(CpuSimdFeature simdFeature)
 		{
 			ulong simdFeaturesMask = 0;
