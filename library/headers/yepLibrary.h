@@ -1467,11 +1467,11 @@ extern "C" {
 	/** @details These optional general-purpose instructions are defined in PowerPC ISA 2.01. */
 	#define YepPowerPCIsaFeatureGPOpt                0x0000000000000004ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief FRES, FRSQRTE, and FSEL.
+	/** @brief FRES, FRSQRTE, and FSEL. */
 	/** @details These optional graphics instructions are defined in PowerPC ISA 2.01. */
 	#define YepPowerPCIsaFeatureGfxOpt               0x0000000000000008ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief FRE and FRSQRTES instructions.
+	/** @brief FRE and FRSQRTES instructions. */
 	/** @details These optional graphics instructions are defined in PowerPC ISA 2.02. */
 	#define YepPowerPCIsaFeatureGfxOpt202            0x0000000000000010ull
 	/** @ingroup yepLibrary_CpuFeatures */
