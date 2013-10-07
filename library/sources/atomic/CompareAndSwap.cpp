@@ -123,6 +123,23 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Relaxed_S32uS32uS32u(volatile Yep32u *
 				}
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		register YepStatus status = YepStatusInvalidState;
+		register Yep32u currentValue;
+		asm volatile(
+		"1:\n"
+			"LWARX %[currentValue], 0, %[valuePointer];"
+			"CMPW %[currentValue], %[oldValue];"
+			"BNE- 2f;"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			"LI %[status], %[YepStatusOk];"
+		"2:\n"
+			: [currentValue] "=&r" (currentValue), [status] "+r" (status)
+			: [valuePointer] "r" (valuePointer), [oldValue] "r" (oldValue), [newValue] "r" (newValue), [YepStatusOk] "i" (YepStatusOk)
+			: "cr0", "memory"
+		);
+		return status;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif
@@ -270,6 +287,24 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Acquire_S32uS32uS32u(volatile Yep32u *
 				}
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		register YepStatus status = YepStatusInvalidState;
+		register Yep32u currentValue;
+		asm volatile(
+		"1:\n"
+			"LWARX %[currentValue], 0, %[valuePointer];"
+			"CMPW %[currentValue], %[oldValue];"
+			"BNE- 2f;"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			"LI %[status], %[YepStatusOk];"
+		"2:\n"
+			"ISYNC;"
+			: [currentValue] "=&r" (currentValue), [status] "+r" (status)
+			: [valuePointer] "r" (valuePointer), [oldValue] "r" (oldValue), [newValue] "r" (newValue), [YepStatusOk] "i" (YepStatusOk)
+			: "cr0", "memory"
+		);
+		return status;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif
@@ -417,6 +452,24 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Release_S32uS32uS32u(volatile Yep32u *
 				}
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		register YepStatus status = YepStatusInvalidState;
+		register Yep32u currentValue;
+		asm volatile(
+			"ISYNC;"
+		"1:\n"
+			"LWARX %[currentValue], 0, %[valuePointer];"
+			"CMPW %[currentValue], %[oldValue];"
+			"BNE- 2f;"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			"LI %[status], %[YepStatusOk];"
+		"2:\n"
+			: [currentValue] "=&r" (currentValue), [status] "+r" (status)
+			: [valuePointer] "r" (valuePointer), [oldValue] "r" (oldValue), [newValue] "r" (newValue), [YepStatusOk] "i" (YepStatusOk)
+			: "cr0", "memory"
+		);
+		return status;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif
@@ -568,6 +621,25 @@ YepStatus YEPABI yepAtomic_CompareAndSwap_Ordered_S32uS32uS32u(volatile Yep32u *
 				}
 			}
 		#endif
+	#elif defined(YEP_POWERPC_CPU)
+		register YepStatus status = YepStatusInvalidState;
+		register Yep32u currentValue;
+		asm volatile(
+			"ISYNC;"
+		"1:\n"
+			"LWARX %[currentValue], 0, %[valuePointer];"
+			"CMPW %[currentValue], %[oldValue];"
+			"BNE- 2f;"
+			"STWCX. %[newValue], 0, %[valuePointer];"
+			"BNE- 1b;"
+			"LI %[status], %[YepStatusOk];"
+		"2:\n"
+			"ISYNC;"
+			: [currentValue] "=&r" (currentValue), [status] "+r" (status)
+			: [valuePointer] "r" (valuePointer), [oldValue] "r" (oldValue), [newValue] "r" (newValue), [YepStatusOk] "i" (YepStatusOk)
+			: "cr0", "memory"
+		);
+		return status;
 	#else
 		#error "Architecture-specific implementation needed"
 	#endif

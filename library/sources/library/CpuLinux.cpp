@@ -22,6 +22,7 @@
 	#include <errno.h>
 	#include <sys/klog.h>
 	#include <sys/mman.h>
+	#include <linux/auxvec.h>
 #else
 	#error "The functions in this file should only be used in and compiled for Linux"
 #endif
@@ -69,6 +70,46 @@ YepStatus _yepLibrary_ParseProcCpuInfo(LineParser lineParser, void* state) {
 			const YepSize lineLength = lineEnd - lineStart;
 			memcpy(buffer, lineStart, lineLength);
 			bufferStart = buffer + lineLength;
+		}
+	} while (readResult != 0);
+
+cleanup:
+	int closeResult = yepSyscall_close(file);
+	if YEP_UNLIKELY(closeResult < 0) {
+		return YepStatusSystemError;
+	}
+	return status;
+}
+
+struct AuxVector {
+	YepSize type;
+	YepSize value;
+};
+
+YepStatus _yepLibrary_ParseAuxVectors(AuxVectorParser auxParser, void* state) {
+	int file = yepSyscall_open("/proc/self/auxv", O_RDONLY);
+	if YEP_UNLIKELY(file < 0) {
+		return YepStatusSystemError;
+	}
+	YepStatus status = YepStatusOk;
+	
+	const YepSize auxVectorsMax = 128;
+	AuxVector auxVectorsBuffer[auxVectorsMax];
+
+	ssize_t readResult;
+	do {
+		readResult = yepSyscall_read(file, auxVectorsBuffer, sizeof(auxVectorsBuffer));
+		if YEP_UNLIKELY(readResult < 0) {
+			status = YepStatusSystemError;
+			goto cleanup;
+		}
+
+		for (YepSize index = 0; index * sizeof(AuxVector) < readResult; index++) {
+			if YEP_LIKELY(auxVectorsBuffer[index].type != AT_NULL) {
+				auxParser(auxVectorsBuffer[index].type, auxVectorsBuffer[index].value, state);
+			} else {
+				goto cleanup;
+			}
 		}
 	} while (readResult != 0);
 

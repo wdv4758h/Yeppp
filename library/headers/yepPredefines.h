@@ -44,6 +44,9 @@
 	#if defined(__gnu_linux__)
 		#define YEP_GNU_LINUX_OS
 	#endif
+	#if defined(__bg__)
+		#define YEP_CNK_LINUX_OS
+	#endif
 #elif defined(__APPLE__) && defined(__MACH__)
 	#define YEP_MACOSX_OS
 #endif
@@ -121,6 +124,9 @@
 #elif defined(__sparc__) || defined(__sparc)
 	#define YEP_SPARC_CPU
 	#define YEP_SPARC_ABI
+#elif defined(__PPC64__) || defined(_ARCH_PPC64) || defined(__powerpc64__)
+	#define YEP_POWERPC_CPU
+	#define YEP_POWERPC64_ABI
 #elif defined(_M_PPC) || defined(__powerpc) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc__)
 	#define YEP_POWERPC_CPU
 	#define YEP_POWERPC_ABI
@@ -133,6 +139,18 @@
 	#elif defined(__GPU__)
 		#define YEP_OPENCL_GPU
 	#endif
+#endif
+
+#if defined(YEP_X86_CPU) && defined(__KNC__)
+	#define YEP_XEON_PHI_SYSTEM
+#elif defined(YEP_POWERPC_CPU) && defined(__bgq__)
+	#define YEP_BLUEGENE_SYSTEM
+	#define YEP_BLUEGENE_Q_SYSTEM
+#elif defined(YEP_POWERPC_CPU) && defined(__bgp__)
+	#define YEP_BLUEGENE_SYSTEM
+	#define YEP_BLUEGENE_P_SYSTEM
+#elif defined(YEP_POWERPC_CPU) && defined(__bg__)
+	#define YEP_BLUEGENE_SYSTEM
 #endif
 
 #if defined(YEP_X86_CPU)
@@ -650,6 +668,45 @@
 			#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
 		#endif
 	#endif
+#elif defined(YEP_POWERPC_CPU)
+	#if defined(YEP_GCC_COMPATIBLE_COMPILER)
+		#if defined(__VSX__)
+			#ifndef YEP_PROCESSOR_SUPPORTS_VSX_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_VSX_INSTRUCTIONS
+			#endif
+			#ifndef YEP_COMPILER_SUPPORTS_VSX_INSTRUCTIONS
+				#define YEP_COMPILER_SUPPORTS_VSX_INSTRUCTIONS
+			#endif
+		#endif
+	#endif
+	#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_IBM_COMPILER)
+		#if defined(_ARCH_PPCGR) || defined(_ARCH_PPC64GR) || defined(_ARCH_PPC64GRSQ)
+			#ifndef YEP_PROCESSOR_SUPPORTS_GFXOPT_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_GFXOPT_INSTRUCTIONS
+			#endif
+		#endif
+		#if defined(_ARCH_PPCSQ) || defined(_ARCH_PPC64GRSQ)
+			#ifndef YEP_PROCESSOR_SUPPORTS_GPOPT_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_GPOPT_INSTRUCTIONS
+			#endif
+		#endif
+		#if defined(__VEC__) || defined(__ALTIVEC__)
+			#ifndef YEP_PROCESSOR_SUPPORTS_VMX_INSTRUCTIONS
+				#define YEP_PROCESSOR_SUPPORTS_VMX_INSTRUCTIONS
+			#endif
+			#ifndef YEP_COMPILER_SUPPORTS_VMX_INSTRUCTIONS
+				#define YEP_COMPILER_SUPPORTS_VMX_INSTRUCTIONS
+			#endif
+		#endif
+	#endif
+	#if defined(YEP_BLUEGENE_Q_SYSTEM)
+		#ifndef YEP_PROCESSOR_SUPPORTS_QPX_INSTRUCTIONS
+			#define YEP_PROCESSOR_SUPPORTS_QPX_INSTRUCTIONS
+		#endif
+		#ifndef YEP_COMPILER_SUPPORTS_QPX_INSTRUCTIONS
+			#define YEP_COMPILER_SUPPORTS_QPX_INSTRUCTIONS
+		#endif
+	#endif
 #elif defined(YEP_CUDA_GPU)
 	#ifndef YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
 		#define YEP_PROCESSOR_SUPPORTS_SINGLE_PRECISION_FPU_INSTRUCTIONS
@@ -796,6 +853,8 @@
 	#define YEP_RESTRICT __restrict__
 #elif defined(YEP_NVIDIA_COMPILER)
 	#define YEP_RESTRICT __restrict__
+#elif defined(YEP_IBM_COMPILER)
+	#define YEP_RESTRICT __restrict__
 #elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
 	#define YEP_RESTRICT restrict
 #else
@@ -804,7 +863,11 @@
 
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#define YEP_NOINLINE __declspec(noinline)
-#elif defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
+	#define YEP_NOINLINE __attribute__((noinline))
+#elif defined(YEP_ARM_COMPILER)
+	#define YEP_NOINLINE __attribute__((noinline))
+#elif defined(YEP_IBM_COMPILER)
 	#define YEP_NOINLINE __attribute__((noinline))
 #elif defined(YEP_NVIDIA_COMPILER)
 	#define YEP_NOINLINE __noinline__
@@ -814,7 +877,11 @@
 
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#define YEP_INLINE __forceinline
-#elif defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
+	#define YEP_INLINE __attribute__((always_inline)) inline
+#elif defined(YEP_ARM_COMPILER)
+	#define YEP_INLINE __attribute__((always_inline)) inline
+#elif defined(YEP_IBM_COMPILER)
 	#define YEP_INLINE __attribute__((always_inline)) inline
 #elif defined(YEP_NVIDIA_COMPILER)
 	#define YEP_INLINE __forceinline__
@@ -826,7 +893,13 @@
 
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#define YEP_NORETURN __declspec(noreturn)
-#elif defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER) || defined(YEP_NVIDIA_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
+	#define YEP_NORETURN __attribute__((noreturn))
+#elif defined(YEP_ARM_COMPILER)
+	#define YEP_NORETURN __attribute__((noreturn))
+#elif defined(YEP_NVIDIA_COMPILER)
+	#define YEP_NORETURN __attribute__((noreturn))
+#elif defined(YEP_IBM_COMPILER)
 	#define YEP_NORETURN __attribute__((noreturn))
 #else
 	#define YEP_NORETURN
@@ -834,7 +907,11 @@
 
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#define YEP_ALIGN(bytes) __declspec(align(bytes))
-#elif defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_ARM_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
+	#define YEP_ALIGN(bytes) __attribute__((aligned(bytes)))
+#elif defined(YEP_ARM_COMPILER)
+	#define YEP_ALIGN(bytes) __attribute__((aligned(bytes)))
+#elif defined(YEP_IBM_COMPILER)
 	#define YEP_ALIGN(bytes) __attribute__((aligned(bytes)))
 #else
 	/* Do nothing. Let the use of YEP_ALIGN generate compiler error. */
@@ -845,6 +922,8 @@
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	#define YEP_ALIGN_OF(type) __alignof(type)
 #elif defined(YEP_GCC_COMPATIBLE_COMPILER)
+	#define YEP_ALIGN_OF(type) __alignof__(type)
+#elif defined(YEP_IBM_COMPILER)
 	#define YEP_ALIGN_OF(type) __alignof__(type)
 #elif defined(YE_ARM_COMPILER)
 	#define YEP_ALIGN_OF(type) __ALIGNOF__(type)

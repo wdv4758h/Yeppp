@@ -14,6 +14,12 @@ else ifeq (${YEPPLATFORM},x86-macosx-pic-default)
     override CFLAGS += -m32
 else ifeq (${YEPPLATFORM},arm-linux-softeabi-v5t)
 else ifeq (${YEPPLATFORM},arm-linux-hardeabi-v7a)
+else ifeq (${YEPPLATFORM},ppc64-linux-sysv-default)
+    override CFLAGS += -m64
+else ifeq (${YEPPLATFORM},ppc64-linux-sysv-bgq)
+    override LDFLAGS += -L${YEPBINARIES}
+    override LDFLAGS += -Wl,-rpath,'${YEPBINARIES}'
+    override LDFLAGS += -Wl,-Bdynamic
 else
     $(error YEPPLATFORM variable is not defined or contains unsupported value)
 endif

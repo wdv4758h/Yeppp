@@ -42,7 +42,11 @@
  * @defgroup yepRandom_WELL1024a	WELL 1024a random number generator
  */
 
-#pragma pack(push, 1)
+#if defined(YEP_IBM_COMPILER)
+	#pragma pack(1)
+#else
+	#pragma pack(push, 1)
+#endif
 
 struct YepRandom_WELL1024a {
 	Yep32u state[32];

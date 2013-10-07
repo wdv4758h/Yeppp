@@ -27,7 +27,10 @@ YepStatus YEPABI yepLibrary_GetTimerTicks(Yep64u* ticksPointer) {
 	if YEP_UNLIKELY(ticksPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-#if defined(YEP_WINDOWS_OS)
+#if defined(YEP_BLUEGENE_SYSTEM)
+	*ticksPointer = yepBuiltin_PPC_ReadTimeBase_64u();
+	return YepStatusOk;
+#elif defined(YEP_WINDOWS_OS)
 	LARGE_INTEGER ticks;
 	BOOL qpcResult = ::QueryPerformanceCounter(&ticks);
 	if YEP_UNLIKELY(qpcResult == 0) {
@@ -63,7 +66,18 @@ YepStatus YEPABI yepLibrary_GetTimerFrequency(Yep64u* frequencyPointer) {
 	if YEP_UNLIKELY(frequencyPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-#if defined(YEP_WINDOWS_OS)
+#if defined(YEP_BLUEGENE_SYSTEM)
+	#if defined(YEP_BLUEGENE_Q_SYSTEM)
+		/* 1.6 GHz */
+		*frequencyPointer = 1600000000ull;
+	#elif defined(YEP_BLUEGENE_P_SYSTEM)
+		/* 850 MHz */
+		*frequencyPointer = 850000000ull;
+	#else
+		#error "This BlueGene system is not supported yet"
+	#endif
+	return YepStatusOk;
+#elif defined(YEP_WINDOWS_OS)
 	LARGE_INTEGER frequency;
 	BOOL qpfResult = ::QueryPerformanceFrequency(&frequency);
 	if YEP_UNLIKELY(qpfResult == 0) {
@@ -95,7 +109,18 @@ YepStatus YEPABI yepLibrary_GetTimerAccuracy(Yep64u* accuracyPointer) {
 	if YEP_UNLIKELY(accuracyPointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-#if defined(YEP_WINDOWS_OS)
+#if defined(YEP_BLUEGENE_SYSTEM)
+	#if defined(YEP_BLUEGENE_Q_SYSTEM)
+		/* 1 / 1.6 GHz ~= 1 ns */
+		*accuracyPointer = 1ull;
+	#elif defined(YEP_BLUEGENE_P_SYSTEM)
+		/* 1 / 850 MHz ~= 1 ns */
+		*accuracyPointer = 1ull;
+	#else
+		#error "This BlueGene system is not supported yet"
+	#endif
+	return YepStatusOk;
+#elif defined(YEP_WINDOWS_OS)
 	LARGE_INTEGER frequency;
 	BOOL qpfResult = ::QueryPerformanceFrequency(&frequency);
 	if YEP_UNLIKELY(qpfResult == 0) {

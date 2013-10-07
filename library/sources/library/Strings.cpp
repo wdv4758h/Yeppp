@@ -1217,6 +1217,60 @@ static ConstantString getMIPSSystemFeatureID(Yep32u ctzSystemFeature) {
 
 static ConstantString getPowerPCIsaFeatureDescription(Yep32u ctzIsaFeature) {
 	switch (ctzIsaFeature) {
+		case CTZ<YepPowerPCIsaFeatureFPU>::result:
+			YEP_RETURN_CONSTANT_STRING("Floating-Point facility");
+		case CTZ<YepPowerPCIsaFeatureMCRF>::result:
+			YEP_RETURN_CONSTANT_STRING("MTOCRF and MFOCRF instructions");
+		case CTZ<YepPowerPCIsaFeatureGPOpt>::result:
+			YEP_RETURN_CONSTANT_STRING("FSQRT and FSQRTS instructions");
+		case CTZ<YepPowerPCIsaFeatureGfxOpt>::result:
+			YEP_RETURN_CONSTANT_STRING("FRES, FRSQRTE, and FSEL instructions");
+		case CTZ<YepPowerPCIsaFeatureGfxOpt202>::result:
+			YEP_RETURN_CONSTANT_STRING("FRE and FRSQRTES instructions");
+		case CTZ<YepPowerPCIsaFeatureMAC>::result:
+			YEP_RETURN_CONSTANT_STRING("Integer multiply-accumulate instructions");
+		case CTZ<YepPowerPCIsaFeatureEFPS>::result:
+			YEP_RETURN_CONSTANT_STRING("Embedded Floating-Point Single instructions");
+		case CTZ<YepPowerPCIsaFeatureEFPD>::result:
+			YEP_RETURN_CONSTANT_STRING("Embedded Floating-Point Double instructions");
+		case CTZ<YepPowerPCIsaFeatureISEL>::result:
+			YEP_RETURN_CONSTANT_STRING("ISEL instruction");
+		case CTZ<YepPowerPCIsaFeaturePOPCNTB>::result:
+			YEP_RETURN_CONSTANT_STRING("POPCNTB instruction");
+		case CTZ<YepPowerPCIsaFeatureFRI>::result:
+			YEP_RETURN_CONSTANT_STRING("FRIN, FRIZ, FRIP, and FRIM instructions");
+		case CTZ<YepPowerPCIsaFeatureFPU205>::result:
+			YEP_RETURN_CONSTANT_STRING("FPCPSGN and LFIWAX instructions");
+		case CTZ<YepPowerPCIsaFeatureLFDP>::result:
+			YEP_RETURN_CONSTANT_STRING("LFDP, STFDP, LFDPX, and STFDPX instructions");
+		case CTZ<YepPowerPCIsaFeatureDFP>::result:
+			YEP_RETURN_CONSTANT_STRING("Decimal Floating-Point instructions");
+		case CTZ<YepPowerPCIsaFeatureISA205>::result:
+			YEP_RETURN_CONSTANT_STRING("CMPB, PRTYW, and PRTYD instructions");
+		case CTZ<YepPowerPCIsaFeatureBPERMD>::result:
+			YEP_RETURN_CONSTANT_STRING("BPERMD instruction");
+		case CTZ<YepPowerPCIsaFeatureDIVWE>::result:
+			YEP_RETURN_CONSTANT_STRING("Extended division instructions");
+		case CTZ<YepPowerPCIsaFeaturePOPCNTW>::result:
+			YEP_RETURN_CONSTANT_STRING("POPCNTW and POPCNTD instructions");
+		case CTZ<YepPowerPCIsaFeatureISA206>::result:
+			YEP_RETURN_CONSTANT_STRING("LDBRX and STDBRX instructions");
+		case CTZ<YepPowerPCIsaFeatureLFIWZX>::result:
+			YEP_RETURN_CONSTANT_STRING("LFIWZX instruction");
+		case CTZ<YepPowerPCIsaFeatureFCTIWU>::result:
+			YEP_RETURN_CONSTANT_STRING("FP convert instructions (ISA 2.06)");
+		case CTZ<YepPowerPCIsaFeatureFTDIV>::result:
+			YEP_RETURN_CONSTANT_STRING("FTDIV and FTSQRT instructions");
+		case CTZ<YepPowerPCIsaFeatureLBARX>::result:
+			YEP_RETURN_CONSTANT_STRING("LBARX, LHARX, STBCX, and STHCX instructions");
+		case CTZ<YepPowerPCIsaFeatureLQARX>::result:
+			YEP_RETURN_CONSTANT_STRING("LQARX and STQCX instructions");
+		case CTZ<YepPowerPCIsaFeatureLQ>::result:
+			YEP_RETURN_CONSTANT_STRING("LQ and STQ instructions");
+		case CTZ<YepPowerPCIsaFeatureVMXCrypto>::result:
+			YEP_RETURN_CONSTANT_STRING("VMX Crypto instructions");
+		case CTZ<YepPowerPCIsaFeatureTM>::result:
+			YEP_RETURN_CONSTANT_STRING("Transactional Memory facility");
 		default:
 			return getGenericIsaFeatureDescription(ctzIsaFeature);
 	}
@@ -1224,6 +1278,60 @@ static ConstantString getPowerPCIsaFeatureDescription(Yep32u ctzIsaFeature) {
 
 static ConstantString getPowerPCIsaFeatureID(Yep32u ctzIsaFeature) {
 	switch (ctzIsaFeature) {
+		case CTZ<YepPowerPCIsaFeatureFPU>::result:
+			YEP_RETURN_CONSTANT_STRING("FPU");
+		case CTZ<YepPowerPCIsaFeatureMCRF>::result:
+			YEP_RETURN_CONSTANT_STRING("MCRF");
+		case CTZ<YepPowerPCIsaFeatureGPOpt>::result:
+			YEP_RETURN_CONSTANT_STRING("GPOpt");
+		case CTZ<YepPowerPCIsaFeatureGfxOpt>::result:
+			YEP_RETURN_CONSTANT_STRING("GfxOpt");
+		case CTZ<YepPowerPCIsaFeatureGfxOpt202>::result:
+			YEP_RETURN_CONSTANT_STRING("GfxOpt202");
+		case CTZ<YepPowerPCIsaFeatureMAC>::result:
+			YEP_RETURN_CONSTANT_STRING("MAC");
+		case CTZ<YepPowerPCIsaFeatureEFPS>::result:
+			YEP_RETURN_CONSTANT_STRING("EFPS");
+		case CTZ<YepPowerPCIsaFeatureEFPD>::result:
+			YEP_RETURN_CONSTANT_STRING("EFPD");
+		case CTZ<YepPowerPCIsaFeatureISEL>::result:
+			YEP_RETURN_CONSTANT_STRING("ISEL");
+		case CTZ<YepPowerPCIsaFeaturePOPCNTB>::result:
+			YEP_RETURN_CONSTANT_STRING("POPCNTB");
+		case CTZ<YepPowerPCIsaFeatureFRI>::result:
+			YEP_RETURN_CONSTANT_STRING("FRI");
+		case CTZ<YepPowerPCIsaFeatureFPU205>::result:
+			YEP_RETURN_CONSTANT_STRING("FPU205");
+		case CTZ<YepPowerPCIsaFeatureLFDP>::result:
+			YEP_RETURN_CONSTANT_STRING("LFDP");
+		case CTZ<YepPowerPCIsaFeatureDFP>::result:
+			YEP_RETURN_CONSTANT_STRING("DFP");
+		case CTZ<YepPowerPCIsaFeatureISA205>::result:
+			YEP_RETURN_CONSTANT_STRING("ISA205");
+		case CTZ<YepPowerPCIsaFeatureBPERMD>::result:
+			YEP_RETURN_CONSTANT_STRING("BPERMD");
+		case CTZ<YepPowerPCIsaFeatureDIVWE>::result:
+			YEP_RETURN_CONSTANT_STRING("DIVWE");
+		case CTZ<YepPowerPCIsaFeaturePOPCNTW>::result:
+			YEP_RETURN_CONSTANT_STRING("POPCNTW");
+		case CTZ<YepPowerPCIsaFeatureISA206>::result:
+			YEP_RETURN_CONSTANT_STRING("ISA206");
+		case CTZ<YepPowerPCIsaFeatureLFIWZX>::result:
+			YEP_RETURN_CONSTANT_STRING("LFIWZX");
+		case CTZ<YepPowerPCIsaFeatureFCTIWU>::result:
+			YEP_RETURN_CONSTANT_STRING("FCTIWU");
+		case CTZ<YepPowerPCIsaFeatureFTDIV>::result:
+			YEP_RETURN_CONSTANT_STRING("FTDIV");
+		case CTZ<YepPowerPCIsaFeatureLBARX>::result:
+			YEP_RETURN_CONSTANT_STRING("LBARX");
+		case CTZ<YepPowerPCIsaFeatureLQARX>::result:
+			YEP_RETURN_CONSTANT_STRING("LQARX");
+		case CTZ<YepPowerPCIsaFeatureLQ>::result:
+			YEP_RETURN_CONSTANT_STRING("LQ");
+		case CTZ<YepPowerPCIsaFeatureVMXCrypto>::result:
+			YEP_RETURN_CONSTANT_STRING("VMXCrypto");
+		case CTZ<YepPowerPCIsaFeatureTM>::result:
+			YEP_RETURN_CONSTANT_STRING("TM");
 		default:
 			return getGenericIsaFeatureID(ctzIsaFeature);
 	}
@@ -1231,6 +1339,24 @@ static ConstantString getPowerPCIsaFeatureID(Yep32u ctzIsaFeature) {
 
 static ConstantString getPowerPCSimdFeatureDescription(Yep32u ctzSimdFeature) {
 	switch (ctzSimdFeature) {
+		case CTZ<YepPowerPCSimdFeatureVMX>::result:
+			YEP_RETURN_CONSTANT_STRING("Vector Multimedia eXtension");
+		case CTZ<YepPowerPCSimdFeatureVMXRAID>::result:
+			YEP_RETURN_CONSTANT_STRING("VPERMXOR instruction");
+		case CTZ<YepPowerPCSimdFeatureVMX207>::result:
+			YEP_RETURN_CONSTANT_STRING("Additional VMX instructions (Power ISA 2.07)");
+		case CTZ<YepPowerPCSimdFeatureVSX>::result:
+			YEP_RETURN_CONSTANT_STRING("Vector-Scalar eXtensions");
+		case CTZ<YepPowerPCSimdFeatureVSX207>::result:
+			YEP_RETURN_CONSTANT_STRING("Additional VSX instructions (Power ISA 2.07)");
+		case CTZ<YepPowerPCSimdFeatureSPE>::result:
+			YEP_RETURN_CONSTANT_STRING("Signal Processing Engine");
+		case CTZ<YepPowerPCSimdFeatureEFPV>::result:
+			YEP_RETURN_CONSTANT_STRING("Embedded Floating-Point Vector instructions");
+		case CTZ<YepPowerPCSimdFeatureDoubleHummer>::result:
+			YEP_RETURN_CONSTANT_STRING("Double Hummer instructions");
+		case CTZ<YepPowerPCSimdFeatureQPX>::result:
+			YEP_RETURN_CONSTANT_STRING("Quad Processing eXtension");
 		default:
 			return getGenericSimdFeatureDescription(ctzSimdFeature);
 	}
@@ -1238,6 +1364,24 @@ static ConstantString getPowerPCSimdFeatureDescription(Yep32u ctzSimdFeature) {
 
 static ConstantString getPowerPCSimdFeatureID(Yep32u ctzSimdFeature) {
 	switch (ctzSimdFeature) {
+		case CTZ<YepPowerPCSimdFeatureVMX>::result:
+			YEP_RETURN_CONSTANT_STRING("VMX");
+		case CTZ<YepPowerPCSimdFeatureVMXRAID>::result:
+			YEP_RETURN_CONSTANT_STRING("VMXRAID");
+		case CTZ<YepPowerPCSimdFeatureVMX207>::result:
+			YEP_RETURN_CONSTANT_STRING("VMX207");
+		case CTZ<YepPowerPCSimdFeatureVSX>::result:
+			YEP_RETURN_CONSTANT_STRING("VSX");
+		case CTZ<YepPowerPCSimdFeatureVSX207>::result:
+			YEP_RETURN_CONSTANT_STRING("VSX207");
+		case CTZ<YepPowerPCSimdFeatureSPE>::result:
+			YEP_RETURN_CONSTANT_STRING("SPE");
+		case CTZ<YepPowerPCSimdFeatureEFPV>::result:
+			YEP_RETURN_CONSTANT_STRING("EFPV");
+		case CTZ<YepPowerPCSimdFeatureDoubleHummer>::result:
+			YEP_RETURN_CONSTANT_STRING("DoubleHummer");
+		case CTZ<YepPowerPCSimdFeatureQPX>::result:
+			YEP_RETURN_CONSTANT_STRING("QPX");
 		default:
 			return getGenericSimdFeatureID(ctzSimdFeature);
 	}
