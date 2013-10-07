@@ -16,6 +16,7 @@ package info.yeppp;
  * @see ArmCpuIsaFeature
  * @see MipsCpuIsaFeature
  * @see IA64CpuIsaFeature
+ * @see PowerPCCpuIsaFeature
  */
 public class CpuIsaFeature {
 	static {
