@@ -15,7 +15,12 @@ else ifeq (${YEPPLATFORM},x86-macosx-pic-default)
 else ifeq (${YEPPLATFORM},arm-linux-softeabi-v5t)
 else ifeq (${YEPPLATFORM},arm-linux-hardeabi-v7a)
 else ifeq (${YEPPLATFORM},ppc64-linux-sysv-default)
-    override CFLAGS += -m64
+    ifeq ($(CC),xlc)
+        override CFLAGS += -q64 -O5 -I${YEPROOT}/library/headers
+        override LDFLAGS += -L${YEPBINARIES}
+    else
+        override CFLAGS += -m64
+    endif
 else ifeq (${YEPPLATFORM},ppc64-linux-sysv-bgq)
     override LDFLAGS += -L${YEPBINARIES}
     override LDFLAGS += -Wl,-rpath,'${YEPBINARIES}'
