@@ -134,6 +134,10 @@ namespace Yeppp
 		/// <summary>IBM PowerPC 970 (PowerPC G5).</summary>
 		public static readonly CpuMicroarchitecture PowerPC970        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0021);
 
+		/// <summary>IBM POWER 4.</summary>
+		public static readonly CpuMicroarchitecture POWER4            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x011F);
+		/// <summary>IBM POWER 5.</summary>
+		public static readonly CpuMicroarchitecture POWER5            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0120);
 		/// <summary>IBM POWER 6.</summary>
 		public static readonly CpuMicroarchitecture POWER6            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.Id << 24) + (CpuVendor.IBM.Id << 16) + 0x0121);
 		/// <summary>IBM POWER 7.</summary>
