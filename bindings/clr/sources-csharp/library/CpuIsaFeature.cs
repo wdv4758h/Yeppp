@@ -15,6 +15,7 @@ namespace Yeppp
 	/// <seealso cref="ArmCpuIsaFeature" />
 	/// <seealso cref="MipsCpuIsaFeature" />
 	/// <seealso cref="IA64CpuIsaFeature" />
+	/// <seealso cref="PowerPCCpuIsaFeature" />
 	public class CpuIsaFeature
 	{
 
