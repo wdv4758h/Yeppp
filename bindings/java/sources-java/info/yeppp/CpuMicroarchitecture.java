@@ -247,6 +247,14 @@ public final class CpuMicroarchitecture {
 	public static final CpuMicroarchitecture PowerPC970        = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0021);
 
 	/**
+	 * IBM POWER 4.
+	 */
+	public static final CpuMicroarchitecture POWER4            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x011F);
+	/**
+	 * IBM POWER 5.
+	 */
+	public static final CpuMicroarchitecture POWER5            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0120);
+	/**
 	 * IBM POWER 6.
 	 */
 	public static final CpuMicroarchitecture POWER6            = new CpuMicroarchitecture((CpuArchitecture.PowerPC.getId() << 24) + (CpuVendor.IBM.getId() << 16) + 0x0121);
