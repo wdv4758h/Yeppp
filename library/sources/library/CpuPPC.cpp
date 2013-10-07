@@ -91,6 +91,11 @@
 			 * http://github.com/randombit/cpuinfo/tree/master/ppc
 			 */
 			switch (processorVersion & 0xFFFF0000) {
+				case 0x00350000: /* POWER 4 */
+				case 0x00380000: /* POWER 4+ */
+					vendor = YepCpuVendorIBM;
+					microarchitecture = YepCpuMicroarchitecturePOWER4;
+					return;
 				case 0x00390000: /* PowerPC 970 */
 				case 0x003C0000: /* PowerPC 970 FX */
 				case 0x00440000: /* PowerPC 970 MP */
