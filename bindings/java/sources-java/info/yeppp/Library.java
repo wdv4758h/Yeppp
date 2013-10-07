@@ -149,6 +149,7 @@ public class Library {
 	 * @see ArmCpuIsaFeature
 	 * @see MipsCpuIsaFeature
 	 * @see IA64CpuIsaFeature
+	 * @see PowerPCCpuIsaFeature
 	 */
 	public static boolean isSupported(CpuIsaFeature isaFeature) {
 		if ((isaFeature.getArchitectureId() == Library.architectureId) || (isaFeature.getArchitectureId() == CpuArchitecture.Unknown.getId())) {
@@ -170,6 +171,7 @@ public class Library {
 	 * @see	X86CpuSimdFeature
 	 * @see	ArmCpuSimdFeature
 	 * @see	MipsCpuSimdFeature
+	 * @see	PowerPCCpuSimdFeature
 	 */
 	public static boolean isSupported(CpuSimdFeature simdFeature) {
 		if ((simdFeature.getArchitectureId() == Library.architectureId) || (simdFeature.getArchitectureId() == CpuArchitecture.Unknown.getId())) {

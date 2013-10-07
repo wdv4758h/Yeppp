@@ -15,6 +15,7 @@ package info.yeppp;
  * @see X86CpuSimdFeature
  * @see ArmCpuSimdFeature
  * @see MipsCpuSimdFeature
+ * @see PowerPCCpuSimdFeature
  */
 public class CpuSimdFeature {
 	static {
