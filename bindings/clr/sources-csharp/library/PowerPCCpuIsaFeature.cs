@@ -45,7 +45,7 @@ namespace Yeppp
 		/// <summary>FRIN, FRIZ, FRIP, and FRIM instructions.</summary>
 		/// <remarks>Floating-point round-to-integer instructions are defined as optional (Phased-In) in Power ISA 2.03 in Floating-Point category.</remarks>
 		public static readonly PowerPCCpuIsaFeature FRI        = new PowerPCCpuIsaFeature(10);
-		/// <summary>FPCPSGN and LFIWAX instructions.</summary>
+		/// <summary>FCPSGN and LFIWAX instructions.</summary>
 		/// <remarks>These instruction is defined in Power ISA 2.05 in Floating-Point category.</remarks>
 		public static readonly PowerPCCpuIsaFeature FPU205     = new PowerPCCpuIsaFeature(11);
 		/// <summary>LFDP, STFDP, LFDPX, and STFDPX instructions.</summary>

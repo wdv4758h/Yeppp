@@ -1499,7 +1499,7 @@ extern "C" {
 	/** @details Floating-point round-to-integer instructions are defined as optional (Phased-In) in Power ISA 2.03 in Floating-Point category. */
 	#define YepPowerPCIsaFeatureFRI                  0x0000000000000400ull
 	/** @ingroup yepLibrary_CpuFeatures */
-	/** @brief FPCPSGN and LFIWAX instructions. */
+	/** @brief FCPSGN and LFIWAX instructions. */
 	/** @details These instruction is defined in Power ISA 2.05 in Floating-Point category. */
 	#define YepPowerPCIsaFeatureFPU205               0x0000000000000800ull
 	/** @ingroup yepLibrary_CpuFeatures */
