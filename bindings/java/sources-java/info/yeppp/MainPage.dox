@@ -4,7 +4,7 @@
 
 @section Introduction	Introduction
 
-Yeppp! is a high-performance SIMD-optimized mathematical library for x86, ARM, and MIPS processors on Windows, Android, Mac OS X, and GNU/Linux systems.
+Yeppp! is a high-performance SIMD-optimized mathematical library for x86, ARM, PowerPC, and MIPS processors on Windows, Android, Mac OS X, and GNU/Linux systems.
 Yeppp! functions are presented in several versions with optimizations for different processor microarchitectures.
 During initialization @Yeppp library detects the processor it is running on, and chooses the optimal function implementations.
 
@@ -29,6 +29,7 @@ Releases of @Yeppp library contain the following files relevant to Java programm
 	<tr><td>binaries/linux/x86_64/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on x86-64 (aka AMD64, x64, or Intel64) architecture</td></tr>
 	<tr><td>binaries/linux/armel/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on ARM architecture with armel ABI (ARM EABI Little-Endian Soft-Float)</td></tr>
 	<tr><td>binaries/linux/armhf/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on ARM architecture with armhf ABI (ARM EABI Little-Endian Hard-Float)</td></tr>
+	<tr><td>binaries/linux/ppc64/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on PowerPC 64 architecture</td></tr>
 	<tr><td>binaries/macosx/x86/</td><td>Pre-built @Yeppp dynamic library and debug symbols for Mac OS X on x86 architecture</td></tr>
 	<tr><td>binaries/macosx/x86_64/</td><td>Pre-built @Yeppp dynamic library and debug symbols for Mac OS X on x86-64 (aka AMD64, x64, or Intel64) architecture</td></tr>
 	<tr><td>bindings/java/sources-java/</td><td>Source code of @Yeppp binaries for Java (Java classes only)</td></tr>
@@ -97,6 +98,7 @@ If your shell does not support \c source command, use the equivalent command
 	<li>\c x86_64 to set variables for x86-64 (64-bit x86) JVM</li>
 	<li>\c armel to set variables for ARM Soft-Float EABI JVM (Linux only)</li>
 	<li>\c armhf to set variables for ARM Hard-Float EABI JVM (Linux only)</li>
+	<li>\c ppc64 to set variables for PowerPC 64 (64-bit PowerPC) JVM (Linux only)</li>
 </ul>
 You can also omit the &lt;arch&gt; parameter. This case the setup script will setup the environment according to your operating system architecture.
 

@@ -4,7 +4,7 @@
 
 @section Introduction	Introduction
 
-Yeppp! is a high-performance SIMD-optimized mathematical library for x86, ARM, and MIPS processors on Windows, Android, Mac OS X, and GNU/Linux systems.
+Yeppp! is a high-performance SIMD-optimized mathematical library for x86, ARM, PowerPC, and MIPS processors on Windows, Android, Mac OS X, and GNU/Linux systems.
 Yeppp! functions are presented in several versions with optimizations for different processor microarchitectures.
 During initialization @Yeppp library detects the processor it is running on, and chooses the optimal function implementations.
 
@@ -23,6 +23,7 @@ Releases of @Yeppp library contain the following files relevant to C# programmin
 	<tr><td>binaries/linux/x86_64/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on x86-64 (aka AMD64, x64, or Intel64) architecture</td></tr>
 	<tr><td>binaries/linux/armel/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on ARM architecture with armel ABI (ARM EABI Little-Endian Soft-Float)</td></tr>
 	<tr><td>binaries/linux/armhf/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on ARM architecture with armhf ABI (ARM EABI Little-Endian Hard-Float)</td></tr>
+	<tr><td>binaries/linux/ppc64/</td><td>Pre-built @Yeppp shared object and debug symbols for GNU/Linux on PowerPC 64 architecture</td></tr>
 	<tr><td>binaries/macosx/x86/</td><td>Pre-built @Yeppp dynamic library and debug symbols for Mac OS X on x86 architecture</td></tr>
 	<tr><td>binaries/macosx/x86_64/</td><td>Pre-built @Yeppp dynamic library and debug symbols for Mac OS X on x86-64 (aka AMD64, x64, or Intel64) architecture</td></tr>
 	<tr><td>binaries/clr-2.0/</td><td>Pre-built @Yeppp bindings for CLR 2.0 (.Net- and Mono-compatible). Includes managed platform-independent DLL and xml documentation</td></tr>
