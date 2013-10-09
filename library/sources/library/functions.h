@@ -168,3 +168,30 @@ typedef void (*AuxVectorParser)(YepSize type, YepSize value, void* state);
 	YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeInstruction(Yep32u (*ProbeFunction)());
 	YEP_PRIVATE_SYMBOL YepStatus _yepLibrary_DetectLinuxPerfEventSupport(Yep64u &systemFeatures);
 #endif
+#if defined(YEP_POWERPC_CPU) && defined(YEP_LINUX_OS)
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFSQRT();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFRES();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFRE();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbePOPCNTB();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbePOPCNTW();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbePRTYW();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeISEL();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeBPERMD();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeDIVWE();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFRIN();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFCPSGN();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFCTIWU();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeFTDIV();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeVADDUDM();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeVPERMXOR();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeVCIPHER();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeXSADDSP();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeLFDP();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeLDBRX();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeLFIWZX();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeLBARX();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeLQARX();
+	extern "C" YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeLQ();
+
+	YEP_PRIVATE_SYMBOL Yep32u _yepLibrary_ProbeInstruction(Yep32u (*ProbeFunction)());
+#endif

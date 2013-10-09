@@ -63,6 +63,7 @@
 				systemFeatures |= YepSystemFeatureCycleCounter64Bit;
 				systemFeatures |= YepSystemFeatureAddressSpace64Bit;
 				systemFeatures |= YepSystemFeatureGPRegisters64Bit;
+				systemFeatures |= YepSystemFeatureMisalignedAccess;
 			#elif defined(YEP_BLUEGENE_P_SYSTEM)
 				/* 4 cores, no SMT */
 				logicalCoresCount = 4;
@@ -74,6 +75,7 @@
 
 				systemFeatures |= YepSystemFeatureCycleCounter;
 				systemFeatures |= YepSystemFeatureCycleCounter64Bit;
+				systemFeatures |= YepSystemFeatureMisalignedAccess;
 			#else
 				#error "This BlueGene system is not supported yet"
 			#endif
@@ -149,13 +151,55 @@
 		static void initProcessorIsaExtensions(Yep32u auxHwcapVectors[2], YepCpuMicroarchitecture microarchitecture, Yep64u& isaFeatures, Yep64u& simdFeatures, Yep64u& systemFeatures) {
 			systemFeatures |= YepSystemFeatureCycleCounter;
 			systemFeatures |= YepSystemFeatureCycleCounter64Bit;
+			systemFeatures |= YepSystemFeatureMisalignedAccess;
 			#if defined(YEP_POWERPC64_ABI)
 				systemFeatures |= YepSystemFeatureAddressSpace64Bit;
 				systemFeatures |= YepSystemFeatureGPRegisters64Bit;
+				isaFeatures |= YepPowerPCIsaFeatureMCRF;
 			#endif
 
 			if YEP_LIKELY(auxHwcapVectors[0] & PPC_FEATURE_HAS_FPU) {
 				isaFeatures |= YepPowerPCIsaFeatureFPU;
+
+				const Yep32u probeGPOptResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFSQRT);
+				if YEP_LIKELY(probeGPOptResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureGPOpt;
+				}
+
+				const Yep32u probeFRESResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFRES);
+				if YEP_LIKELY(probeFRESResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureGfxOpt;
+					const Yep32u probeFREResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFRE);
+					if YEP_LIKELY(probeFREResult == 0) {
+						isaFeatures |= YepPowerPCIsaFeatureGfxOpt202;
+					}
+				}
+
+				const Yep32u probeFRINResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFRIN);
+				if YEP_LIKELY(probeFRINResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureFRI;
+				}
+
+				const Yep32u probeFCPSGNResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFCPSGN);
+				if YEP_LIKELY(probeFCPSGNResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureFPU205;
+				}
+
+				const Yep32u probeFCTIWUResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFCTIWU);
+				if YEP_LIKELY(probeFCTIWUResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureFCTIWU;
+				}
+
+				const Yep32u probeFTDIVResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeFTDIV);
+				if YEP_LIKELY(probeFTDIVResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureFTDIV;
+				}
+
+				const Yep32u probeLFIWZXResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeLFIWZX);
+				if YEP_LIKELY(probeLFIWZXResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureLFIWZX;
+				}
+
 				if YEP_LIKELY(auxHwcapVectors[0] & PPC_FEATURE_HAS_DFP) {
 					isaFeatures |= YepPowerPCIsaFeatureDFP;
 				}
@@ -172,8 +216,63 @@
 				isaFeatures |= YepPowerPCIsaFeatureMAC;
 			}
 
-			if YEP_LIKELY(auxHwcapVectors[0] & PPC_FEATURE2_ISEL) {
+			const Yep32u probePOPCNTBResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbePOPCNTB);
+			if YEP_LIKELY(probePOPCNTBResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeaturePOPCNTB;
+			}
+
+			const Yep32u probePOPCNTWResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbePOPCNTW);
+			if YEP_LIKELY(probePOPCNTWResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeaturePOPCNTW;
+			}
+
+			const Yep32u probePRTYWResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbePRTYW);
+			if YEP_LIKELY(probePRTYWResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureISA205;
+			}
+
+			const Yep32u probeBPERMDResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeBPERMD);
+			if YEP_LIKELY(probeBPERMDResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureBPERMD;
+			}
+
+			const Yep32u probeDIVWEResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeDIVWE);
+			if YEP_LIKELY(probeDIVWEResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureDIVWE;
+			}
+
+			const Yep32u probeLFDPResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeLFDP);
+			if YEP_LIKELY(probeLFDPResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureLFDP;
+			}
+
+			const Yep32u probeLDBRXResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeLDBRX);
+			if YEP_LIKELY(probeLDBRXResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureISA206;
+			}
+
+			const Yep32u probeLBARXResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeLBARX);
+			if YEP_LIKELY(probeLBARXResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureLBARX;
+			}
+
+			const Yep32u probeLQARXResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeLQARX);
+			if YEP_LIKELY(probeLQARXResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureLQARX;
+			}
+
+			const Yep32u probeLQResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeLQ);
+			if YEP_LIKELY(probeLQResult == 0) {
+				isaFeatures |= YepPowerPCIsaFeatureLQ;
+			}
+
+			if YEP_LIKELY(auxHwcapVectors[1] & PPC_FEATURE2_ISEL) {
 				isaFeatures |= YepPowerPCIsaFeatureISEL;
+			} else {
+				const Yep32u probeISELResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeISEL);
+				if YEP_LIKELY(probeISELResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureISEL;
+				}
 			}
 
 			if YEP_LIKELY(auxHwcapVectors[1] & PPC_FEATURE2_HTM) {
@@ -182,29 +281,33 @@
 
 			if YEP_LIKELY(auxHwcapVectors[0] & PPC_FEATURE_HAS_ALTIVEC) {
 				simdFeatures |= YepPowerPCSimdFeatureVMX;
-				if YEP_LIKELY(auxHwcapVectors[1] & PPC_FEATURE2_ARCH_2_07) {
+
+				const Yep32u probeVMX207Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVADDUDM);
+				if YEP_LIKELY(probeVMX207Result == 0) {
 					simdFeatures |= YepPowerPCSimdFeatureVMX207;
-					if (microarchitecture == YepCpuMicroarchitecturePOWER8) {
-						isaFeatures |= YepPowerPCIsaFeatureVMXCrypto;
-						simdFeatures |= YepPowerPCSimdFeatureVMXRAID;
-					}
+				}
+
+				const Yep32u probeVMXRAIDResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVPERMXOR);
+				if YEP_LIKELY(probeVMXRAIDResult == 0) {
+					simdFeatures |= YepPowerPCSimdFeatureVMXRAID;
+				}
+
+				const Yep32u probeVMXCryptoResult = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeVCIPHER);
+				if YEP_LIKELY(probeVMXCryptoResult == 0) {
+					isaFeatures |= YepPowerPCIsaFeatureVMXCrypto;
 				}
 			}
 			if YEP_LIKELY(auxHwcapVectors[0] & PPC_FEATURE_HAS_VSX) {
 				simdFeatures |= YepPowerPCSimdFeatureVSX;
-				if YEP_LIKELY(auxHwcapVectors[1] & PPC_FEATURE2_ARCH_2_07) {
+
+				const Yep32u probeVSX207Result = _yepLibrary_ProbeInstruction(&_yepLibrary_ProbeXSADDSP);
+				if YEP_LIKELY(probeVSX207Result == 0) {
 					simdFeatures |= YepPowerPCSimdFeatureVSX207;
 				}
 			}
 			if YEP_LIKELY(auxHwcapVectors[0] & PPC_FEATURE_HAS_SPE) {
 				simdFeatures |= YepPowerPCSimdFeatureSPE;
 			}
-			
-			#if defined(YEP_BLUEGENE_Q_MACHINE)
-				simdFeatures |= YepPowerPCSimdFeatureQPX;
-			#elif defined(YEP_BLUEGENE_P_MACHINE)
-				simdFeatures |= YepPowerPCSimdFeatureDoubleHummer;
-			#endif
 		}
 	#endif
 

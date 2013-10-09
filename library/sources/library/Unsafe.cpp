@@ -20,7 +20,7 @@
 	#include <fcntl.h>
 	#include <sys/syscall.h>
 	#include <linux/unistd.h>
-	#if defined(__ANDROID__)
+	#if defined(YEP_ANDROID_LINUX_OS)
 		#include <signal.h>
 		#include <sys/ioctl.h>
 		#if defined(YEP_ARM_CPU)
@@ -64,7 +64,7 @@
 	#error "The functions in this file should only be used in and compiled for Linux"
 #endif
 
-#if (defined(YEP_ARM_CPU) || defined(YEP_MIPS_CPU)) && defined(YEP_LINUX_OS)
+#if (defined(YEP_ARM_CPU) || defined(YEP_MIPS_CPU) || defined(YEP_POWERPC_CPU)) && defined(YEP_LINUX_OS)
 	#if defined(YEP_ARM_CPU)
 		static void _yepLibrary_ProbeSignalHandler(int, siginfo_t *, void* ptr) {
 			ucontext_t* ctx = (ucontext_t*)ptr;
@@ -82,6 +82,12 @@
 			ucontext_t* ctx = (ucontext_t*)ptr;
 			ctx->uc_mcontext.sc_pc += 4; // Skip unsupported instruction
 			ctx->uc_mcontext.sc_regs[2] = 1; // Change $2 = $v0 to 1 to indicate that the signal handler was called
+		}
+	#elif defined(YEP_POWERPC_CPU)
+		static void _yepLibrary_ProbeSignalHandler(int, siginfo_t *, void* ptr) {
+			ucontext_t* ctx = (ucontext_t*)ptr;
+			ctx->uc_mcontext.regs->nip += 4; // Skip unsupported instruction
+			ctx->uc_mcontext.regs->gpr[PT_R3] = 1; // Change r3 to 1 to indicate that the signal handler was called
 		}
 	#endif
 

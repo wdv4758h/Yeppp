@@ -79,7 +79,7 @@
 		#endif
 	#endif
 	
-	#if defined(YEP_EABI_ARM_ABI)
+	#if defined(YEP_EABI_ARM_ABI) || defined(YEP_POWERPC64_ABI)
 		#define KERNEL_NSIG 64
 		struct kernel_sigset_t {
 			Yep32u sig[KERNEL_NSIG / 32];
@@ -97,12 +97,11 @@
 				void (*sa_handler)(int);
 				void (*sa_sigaction)(int, siginfo_t*, void *);
 			};
-			Yep32u sa_flags;
+			YepSize sa_flags;
 			void (*sa_restorer)(void);
 			struct kernel_sigset_t sa_mask;
 		};
-	#endif
-	#if defined(YEP_O32_MIPS_ABI)
+	#elif defined(YEP_O32_MIPS_ABI)
 		#define KERNEL_NSIG 128
 		struct kernel_sigset_t {
 			Yep32u sig[KERNEL_NSIG / 32];
@@ -116,7 +115,7 @@
 		#endif
 
 		struct kernel_sigaction {
-			Yep32u sa_flags;
+			YepSize sa_flags;
 			union {
 				void (*sa_handler)(int);
 				void (*sa_sigaction) (int, siginfo_t*, void *);
@@ -1650,6 +1649,33 @@
 		static YEP_INLINE int yepSyscall_close(int file) {
 			register Yep64u r0 asm ("r0") = __NR_close;
 			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(file);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3)
+				:
+				: "cr0", "ctr", "memory", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_rt_sigaction(int signalNumber, const struct kernel_sigaction *newAction, struct kernel_sigaction *oldAction, size_t sigsetsize) {
+			register Yep64u r0 asm ("r0") = __NR_rt_sigaction;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(signalNumber);
+			register Yep64u r4 asm ("r4") = reinterpret_cast<Yep64u>(newAction);
+			register Yep64u r5 asm ("r5") = reinterpret_cast<Yep64u>(oldAction);
+			register Yep64u r6 asm ("r6") = static_cast<Yep64u>(sigsetsize);
+			asm volatile (
+				"sc;"
+				: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6)
+				:
+				: "cr0", "ctr", "memory", "r7", "r8", "r9", "r10", "r11", "r12"
+			);
+			return static_cast<int>(r3);
+		}
+
+		static YEP_INLINE int yepSyscall_rt_sigreturn(unsigned long reserved) {
+			register Yep64u r0 asm ("r0") = __NR_rt_sigreturn;
+			register Yep64u r3 asm ("r3") = static_cast<Yep64u>(reserved);
 			asm volatile (
 				"sc;"
 				: "+r" (r0), "+r" (r3)
