@@ -93,16 +93,18 @@ where platform is
 *    **x86-windows-default-i586** to build Yeppp! for Windows/x86
 *    **x64-windows-ms-default** to build runtime library for Windows/x86-64
 *    **x86-macosx-pic-default** to build Yeppp! for Mac OS X/x86
-*    **x64-macosx-sysv-default** to build runtime library for Mac OS X/x86-64
-*    **x86-linux-pic-i586** to build runtime library for Linux/x86
-*    **x64-linux-sysv-default** to build runtime library for Linux/x86-64
-*    **x64-linux-k1om-default** to build runtime library for Linux/k1om (Xeon Phi)
-*    **arm-linux-softeabi-v5t** to build runtime library for Linux/armel
-*    **arm-linux-hardeabi-v7a** to build runtime library for Linux/armhf
-*    **x86-linux-pic-android** to build runtime library for Android (x86 ABI)
-*    **arm-linux-softeabi-android** to build runtime library for Android (ARMEABI ABI)
-*    **arm-linux-softeabi-androidv7a** to build runtime library for Android (ARMEABI-V7A ABI)
-*    **mips-linux-o32-android** to build runtime library for Android (MIPS ABI)
+*    **x64-macosx-sysv-default** to build Yeppp! for Mac OS X/x86-64
+*    **x86-linux-pic-i586** to build Yeppp! for Linux/x86
+*    **x64-linux-sysv-default** to build Yeppp! for Linux/x86-64
+*    **x64-linux-k1om-default** to build Yeppp! for Linux/k1om (Xeon Phi)
+*    **arm-linux-softeabi-v5t** to build Yeppp! for Linux/armel
+*    **arm-linux-hardeabi-v7a** to build Yeppp! for Linux/armhf
+*    **ppc64-linux-sysv-default** to build Yeppp! for Linux/ppc64
+*    **ppc64-linux-sysv-bgq** to build Yeppp! for Blue Gene/Q
+*    **x86-linux-pic-android** to build Yeppp! for Android (x86 ABI)
+*    **arm-linux-softeabi-android** to build Yeppp! for Android (ARMEABI ABI)
+*    **arm-linux-softeabi-androidv7a** to build Yeppp! for Android (ARMEABI-V7A ABI)
+*    **mips-linux-o32-android** to build Yeppp! for Android (MIPS ABI)
 
 The build system will put the compiled binaries into *binaries* directory in Yeppp! tree.
 
