@@ -4,7 +4,7 @@ Yeppp! F.A.Q
 What is Yeppp!?
 --------------
 
-Yeppp! is a high-performance SIMD-optimized mathematical library for x86, ARM, and MIPS processors on Windows, Android, Mac OS X, and GNU/Linux systems. Yeppp! contains versions of its functions for multiple architectures and instruction sets and chooses the optimal implementation during initialization to guarantee the best performance on the host machine.
+Yeppp! is a high-performance SIMD-optimized mathematical library for x86, ARM, PowerPC, and MIPS processors on Windows, Android, Mac OS X, and GNU/Linux systems. Yeppp! contains versions of its functions for multiple architectures and instruction sets and chooses the optimal implementation during initialization to guarantee the best performance on the host machine.
 
 Which vector operations are supported?
 -------------------------------------
@@ -39,7 +39,7 @@ No. Yeppp! functions can be called from C, C++, C#, Java, FORTRAN.
 Which architectures and operating systems are supported?
 -----------------------------
 
-As of Yeppp! 1.0, the library supports 13 platforms:
+As of Yeppp! 1.0.1, the library supports 15 platforms:
 
 *   Windows on x86 (32-bit) architecture
 *   Windows on x86-64 (64-bit) architecture
@@ -50,6 +50,8 @@ As of Yeppp! 1.0, the library supports 13 platforms:
 *   Linux on armel ABI (ARMv5T architecture, Soft-Float EABI)
 *   Linux on armhf ABI (ARMv7-A architecture, Hard-Float EABI)
 *   Linux on k1om architecture (Xeon Phi)
+*   Linux on PowerPC 64 architecture
+*   Linux on Blue Gene/Q architecture
 *   Android "armeabi" ABI (ARMv5TE architecture)
 *   Android "armeabi-v7a" ABI (ARMv7-A architecture)
 *   Android "x86" ABI
