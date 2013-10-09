@@ -79,7 +79,7 @@ public class PowerPCCpuIsaFeature extends CpuIsaFeature {
 	 */
 	public static final PowerPCCpuIsaFeature FRI        = new PowerPCCpuIsaFeature(10);
 	/**
-	 * FPCPSGN and LFIWAX instructions.
+	 * FCPSGN and LFIWAX instructions.
 	 *
 	 * These instruction is defined in Power ISA 2.05 in Floating-Point category.
 	 */
