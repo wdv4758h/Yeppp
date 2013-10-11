@@ -69,6 +69,18 @@
 									<File Id="LinuxARMHFBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\armhf\libyeppp.dbg" />
 								</Component>
 							</Directory>
+							<Directory Id="Binaries.Linux.PPC64" Name="ppc64">
+								<Component Id="LinuxPPC64Binaries" Guid="2F11F1D2-2A7E-47A9-BF99-BCC84E7A075C">
+									<File Id="LinuxPPC64Binaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\linux\ppc64\libyeppp.so" KeyPath="yes" />
+									<File Id="LinuxPPC64Binaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\ppc64\libyeppp.dbg" />
+								</Component>
+							</Directory>
+							<Directory Id="Binaries.Linux.BGQ" Name="bgq">
+								<Component Id="LinuxBGQBinaries" Guid="A386EDCA-CF06-4DED-824E-571E1E3077E6">
+									<File Id="LinuxBGQBinaries.DynamicLibrary" Name="libyeppp.so" DiskId="1" Source="binaries\linux\bgq\libyeppp.so" KeyPath="yes" />
+									<File Id="LinuxBGQBinaries.DebugDatabase" Name="libyeppp.dbg" DiskId="1" Source="binaries\linux\bgq\libyeppp.dbg" />
+								</Component>
+							</Directory>
 						</Directory>
 						<Directory Id="Binaries.MacOSX" Name="macosx">
 							<Directory Id="Binaries.MacOSX.X86" Name="x86">
@@ -209,6 +221,12 @@
 					</Feature>
 					<Feature Id="LinuxBinaries.ARMHF" Title="armhf (ARM Hard-Float)" Description="Pre-built library binaries for armhf (ARM Little-Endian Hard-Float) GNU/Linux" Level="2" AllowAdvertise="no" InstallDefault="local">
 						<ComponentRef Id="LinuxARMHFBinaries" />
+					</Feature>
+					<Feature Id="LinuxBinaries.PPC64" Title="ppc64 (PowerPC 64)" Description="Pre-built library binaries for ppc64 (PowerPC 64) GNU/Linux" Level="2" AllowAdvertise="no" InstallDefault="local">
+						<ComponentRef Id="LinuxPPC64Binaries" />
+					</Feature>
+					<Feature Id="LinuxBinaries.BGQ" Title="bgq (Blue Gene/Q)" Description="Pre-built library binaries for Blue Gene/Q compute nodes" Level="2" AllowAdvertise="no" InstallDefault="local">
+						<ComponentRef Id="LinuxBGQBinaries" />
 					</Feature>
 				</Feature>
 				<Feature Id="AndroidBinaries" Title="Android" Description="Pre-built library binaries for Android" Level="1" AllowAdvertise="no" InstallDefault="local">
