@@ -1770,7 +1770,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 #endif
 
 #if defined(YEP_POWERPC_CPU)
-	#if defined(YEP_GCC_COMPATIBLE_COMPILER)
+	#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_IBM_COMPILER)
 		static YEP_INLINE Yep64u yepBuiltin_PPC_ReadTimeBase_64u() {
 			register Yep64u timebase;
 			asm volatile (
