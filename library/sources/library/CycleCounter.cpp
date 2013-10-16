@@ -153,57 +153,16 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesAcquire(Yep64u *statePointer) {
 			return YepStatusUnsupportedHardware;
 		}
 	#endif
-	#if defined(YEP_MICROSOFT_COMPILER)
-		Yep64u state;
-		do {
-			int registers[4];
-			__cpuid(registers, 0);
-			_ReadWriteBarrier(); // Prevent compiler from reordering CPUID and RDTSC
-			state = __rdtsc();
-		} while (state == 0);
-		*statePointer = state;
-		return YepStatusOk;
-	#else
-		Yep64u state;
-		do {
-			Yep32u lo, hi;
-			#if defined(YEP_X64_ABI)
-				asm volatile (
-					"xorl %%eax,%%eax;"
-					"cpuid;"
-					"rdtsc;"
-					: "=a" (lo), "=d" (hi)
-					:
-					: "%rbx", "%rcx"
-				);
-			#else
-				#if defined(YEP_PIC)
-					asm volatile (
-						"xorl %%eax,%%eax;"
-						"movl %%ebx, %%esi;"
-						"cpuid;"
-						"rdtsc;"
-						"movl %%esi, %%ebx;"
-						: "=a" (lo), "=d" (hi)
-						:
-						: "%esi", "%ecx"
-					);
-				#else
-					asm volatile (
-						"xorl %%eax,%%eax;"
-						"cpuid;"
-						"rdtsc;"
-						: "=a" (lo), "=d" (hi)
-						:
-						: "%ebx", "%ecx"
-					);
-				#endif
-			#endif
-			state = yepBuiltin_CombineParts_32u32u_64u(hi, lo);
-		} while (state == 0);
-		*statePointer = state;
-		return YepStatusOk;
-	#endif
+	Yep64u state;
+	do {
+		#if defined(YEP_X64_K1OM_ABI)
+			state = yepBuiltin_X86_ReadCycleCounter_RDTSC_64u();
+		#else
+			state = yepBuiltin_X86_ReadCycleCounter_CPUID_RDTSC_64u();
+		#endif
+	} while (state == 0);
+	*statePointer = state;
+	return YepStatusOk;
 #elif defined(YEP_IA64_CPU)
 	#if defined(YEP_MICROSOFT_COMPILER)
 		Yep64u state;
@@ -291,11 +250,20 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 		return YepStatusNullPointer;
 	}
 #if defined(YEP_X86_CPU)
-	#if defined(YEP_MICROSOFT_COMPILER)
+	#if defined(YEP_K1OM_X64_ABI)
+		const Yep64u endTicks = yepBuiltin_X86_ReadCycleCounter_RDTSC_64u();
+		const Yep64u startTicks = *statePointer;
+		*statePointer = 0;
+		if YEP_LIKELY(startTicks != 0) {
+			const Yep64u elapsedTicks = endTicks - startTicks;
+			*ticksPointer = elapsedTicks;
+			return YepStatusOk;
+		} else {
+			return YepStatusInvalidState;
+		}
+	#else
 		if YEP_LIKELY(_isaFeatures & YepX86IsaFeatureRdtscp) {
-			unsigned int aux;
-			const Yep64u endTicks = __rdtscp(&aux);
-			_ReadWriteBarrier(); // Prevent compiler from reordering RDTSCP and reading the state
+			const Yep64u endTicks = yepBuiltin_X86_ReadCycleCounter_RDTSCP_64u();
 			const Yep64u startTicks = *statePointer;
 			*statePointer = 0;
 			if YEP_LIKELY(startTicks != 0) {
@@ -309,11 +277,7 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 			#if defined(YEP_X86_ABI)
 			if YEP_LIKELY(_systemFeatures & YepSystemFeatureCycleCounter) {
 			#endif
-				int registers[4];
-				__cpuid(registers, 0);
-				_ReadWriteBarrier(); // Prevent compiler from reordering CPUID and RDTSC
-				const Yep64u endTicks = __rdtsc();
-				_ReadWriteBarrier(); // Prevent compiler from reordering RDTSC and reading the state
+				const Yep64u endTicks = yepBuiltin_X86_ReadCycleCounter_CPUID_RDTSC_64u();
 				const Yep64u startTicks = *statePointer;
 				*statePointer = 0;
 				if YEP_LIKELY(startTicks != 0) {
@@ -328,76 +292,6 @@ YepStatus YEPABI yepLibrary_GetCpuCyclesRelease(Yep64u* statePointer, Yep64u* ti
 				return YepStatusUnsupportedHardware;
 			}
 			#endif
-		}
-	#else
-		Yep32u lo, hi;
-		#if !defined(YEP_K1OM_X64_ABI)
-			if YEP_LIKELY(_isaFeatures & YepX86IsaFeatureRdtscp) {
-				#if defined(YEP_X64_ABI)
-					asm volatile (
-						"rdtscp;"
-						: "=a" (lo), "=d" (hi)
-						:
-						: "%rcx"
-					);
-				#else
-					asm volatile (
-						"rdtscp;"
-						: "=a" (lo), "=d" (hi)
-						:
-						: "%ecx"
-					);
-				#endif
-			} else {
-		#else
-			{
-		#endif
-			#if defined(YEP_X64_ABI)
-				asm volatile (
-					"xorl %%eax,%%eax;"
-					"cpuid;"
-					"rdtsc;"
-					: "=a" (lo), "=d" (hi)
-					:
-					: "%rbx", "%rcx"
-				);
-			#else
-				if YEP_LIKELY(_systemFeatures & YepSystemFeatureCycleCounter) {
-					#if defined(YEP_PIC)
-						asm volatile (
-							"xorl %%eax,%%eax;"
-							"movl %%ebx, %%esi;"
-							"cpuid;"
-							"rdtsc;"
-							"movl %%esi, %%ebx;"
-							: "=a" (lo), "=d" (hi)
-							:
-							: "%esi", "%ecx"
-						);
-					#else
-						asm volatile (
-							"xorl %%eax,%%eax;"
-							"cpuid;"
-							"rdtsc;"
-							: "=a" (lo), "=d" (hi)
-							:
-							: "%ebx", "%ecx"
-						);
-					#endif
-				} else {
-					return YepStatusUnsupportedHardware;
-				}
-			#endif
-		}
-		const Yep64u endTicks = yepBuiltin_CombineParts_32u32u_64u(hi, lo);
-		const Yep64u startTicks = *statePointer;
-		*statePointer = 0;
-		if YEP_LIKELY(startTicks != 0) {
-			const Yep64u elapsedTicks = endTicks - startTicks;
-			*ticksPointer = elapsedTicks;
-			return YepStatusOk;
-		} else {
-			return YepStatusInvalidState;
 		}
 	#endif
 #elif defined(YEP_IA64_CPU)
