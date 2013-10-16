@@ -1769,7 +1769,129 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 	#endif
 #endif
 
-#if defined(YEP_POWERPC_CPU)
+#if defined(YEP_X86_CPU)
+	#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
+		static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+			_ReadWriteBarrier(); /* Prevent compiler from moving instructions before RDTSC after it */
+			const Yep64u cycleCounter = __rdtsc();
+			_ReadWriteBarrier(); /* Prevent compiler from moving instructions after RDTSC before it */
+			return cycleCounter;
+		}
+
+		static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_CPUID_RDTSC_64u() {
+			_ReadWriteBarrier(); /* Prevent compiler from moveing instructions before CPUID after it */
+			int registers[4];
+			__cpuid(registers, 0);
+			_ReadWriteBarrier(); /* Prevent compiler from reordering CPUID and RDTSC */
+			const Yep64u cycleCounter = __rdtsc();
+			_ReadWriteBarrier(); /* Prevent compiler from reordering RDTSC and reading the state */
+			return cycleCounter;
+		}
+
+		static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSCP_64u() {
+			unsigned int aux;
+			_ReadWriteBarrier(); /* Prevent compiler from moving instructions before RDTSCP after it */
+			const Yep64u cycleCounter = __rdtscp(&aux);
+			_ReadWriteBarrier(); /* Prevent compiler from moving instructions after RDTSCP before it */
+			return cycleCounter;
+		}
+	#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
+		#if defined(YEP_X64_ABI)
+			static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+				register Yep32u cycleCounterLow, cycleCounterHigh;
+				asm volatile (
+					"RDTSC;"
+					: "=a" (cycleCounterLow), "=d" (cycleCounterHigh)
+					:
+					:
+				);
+				return yepBuiltin_CombineParts_32u32u_64u(cycleCounterHigh, cycleCounterLow);
+			}
+		#elif defined(YEP_X86_ABI)
+			static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+				register Yep64u cycleCounter;
+				asm volatile (
+					"RDTSC;"
+					: "=A" (cycleCounter)
+					:
+					:
+				);
+				return cycleCounter;
+			}
+		#endif
+
+		#if defined(YEP_X64_ABI)
+			static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_CPUID_RDTSC_64u() {
+				register Yep32u cycleCounterLow, cycleCounterHigh;
+				asm volatile (
+					"XORL %%eax,%%eax;"
+					"CPUID;"
+					"RDTSC;"
+					: "=a" (cycleCounterLow), "=d" (cycleCounterHigh)
+					:
+					: "%rbx", "%rcx"
+				);
+				return yepBuiltin_CombineParts_32u32u_64u(cycleCounterHigh, cycleCounterLow);
+			}
+		#elif defined(YEP_X86_ABI)
+			#if defined(YEP_PIC)
+				static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+					register Yep64u cycleCounter;
+					register Yep32u temp;
+					asm volatile (
+						"XORL %%eax,%%eax;"
+						"MOVL %%ebx, %[temp];"
+						"CPUID;"
+						"RDTSC;"
+						"MOVL %[temp], %%ebx;"
+						: "=A" (cycleCounter), [temp] "=r" (temp)
+						:
+						: "%ecx"
+					);
+					return cycleCounter;
+				}
+			#else
+				static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+					register Yep64u cycleCounter;
+					asm volatile (
+						"XORL %%eax,%%eax;"
+						"CPUID;"
+						"RDTSC;"
+						: "=A" (cycleCounter)
+						:
+						: "%ebx", "%ecx"
+					);
+					return cycleCounter;
+				}
+			#endif
+		#endif
+
+		#if defined(YEP_MICROSOFT_X64_ABI) || defined(YEP_SYSTEMV_X64_ABI)
+			/* This instruction is not supported on Xeon Phi */
+			static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSCP_64u() {
+				register Yep32u cycleCounterLow, cycleCounterHigh;
+				asm volatile (
+					"RDTSCP;"
+					: "=a" (cycleCounterLow), "=d" (cycleCounterHigh)
+					:
+					: "%rcx"
+				);
+				return yepBuiltin_CombineParts_32u32u_64u(cycleCounterHigh, cycleCounterLow);
+			}
+		#elif defined(YEP_X86_ABI)
+			static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSCP_64u() {
+				register Yep64u cycleCounter;
+				asm volatile (
+					"RDTSCP;"
+					: "=A" (cycleCounter)
+					:
+					: "%ecx"
+				);
+				return cycleCounter;
+			}
+		#endif
+	#endif
+#elif defined(YEP_POWERPC_CPU)
 	#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_IBM_COMPILER)
 		static YEP_INLINE Yep64u yepBuiltin_PPC_ReadTimeBase_64u() {
 			register Yep64u timebase;
