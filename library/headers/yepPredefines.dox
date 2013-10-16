@@ -117,6 +117,25 @@
 #define YEP_ANDROID_LINUX_OS
 /**@}*/
 
+/** @name	Target Object Format */
+/**@{*/
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target object format is COFF (Common Object File Format).
+ */
+#define YEP_COFF_OBJECT_FORMAT
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target object format is ELF (Executable and Linkable Format).
+ */
+#define YEP_ELF_OBJECT_FORMAT
+/**
+ * @ingroup yepPredefines
+ * @brief	Defined only when the target object format is Mach-O (Mach Object).
+ */
+#define YEP_MACH_OBJECT_FORMAT
+/**@}*/
+
 /** @name	Target Architecture Identification */
 /**@{*/
 /**

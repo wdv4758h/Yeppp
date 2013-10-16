@@ -51,6 +51,14 @@
 	#define YEP_MACOSX_OS
 #endif
 
+#if defined(_WIN32)
+	#define YEP_COFF_OBJECT_FORMAT
+#elif defined(__ELF__)
+	#define YEP_ELF_OBJECT_FORMAT
+#elif defined(__MACH__)
+	#define YEP_MACH_OBJECT_FORMAT
+#endif
+
 #define YEP_PREPROCESSOR_CONVERT_TO_STRING_HELPER(text) #text
 #define YEP_PREPROCESSOR_CONVERT_TO_STRING(text) YEP_PREPROCESSOR_CONVERT_TO_STRING_HELPER(text)
 
