@@ -934,7 +934,7 @@
 	#define YEP_ALIGN_OF(type) __alignof__(type)
 #elif defined(YEP_IBM_COMPILER)
 	#define YEP_ALIGN_OF(type) __alignof__(type)
-#elif defined(YE_ARM_COMPILER)
+#elif defined(YEP_ARM_COMPILER)
 	#define YEP_ALIGN_OF(type) __ALIGNOF__(type)
 #else
 	/* Do nothing. Let the use of YEP_ALIGN_OF generate compiler error. */
