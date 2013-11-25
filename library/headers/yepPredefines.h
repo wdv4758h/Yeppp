@@ -110,7 +110,10 @@
 	#endif
 #endif
 
-#if defined(_M_IX86) || defined(i386) || defined(__i386) || defined(__i386__) || defined(_X86_) || defined(__X86__) || defined(__I86__) || defined(__INTEL__) || defined(__THW_INTEL__)
+/* CUDA targets must be detected first as nvcc also predefined gcc macros for CPU architecture */
+#if defined(__CUDA_ARCH__)
+	#define YEP_CUDA_GPU
+#elif defined(_M_IX86) || defined(i386) || defined(__i386) || defined(__i386__) || defined(_X86_) || defined(__X86__) || defined(__I86__) || defined(__INTEL__) || defined(__THW_INTEL__)
 	#define YEP_X86_CPU
 	#define YEP_X86_ABI
 #elif defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
@@ -138,8 +141,6 @@
 #elif defined(_M_PPC) || defined(__powerpc) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc__)
 	#define YEP_POWERPC_CPU
 	#define YEP_POWERPC_ABI
-#elif defined(__CUDA_ARCH__)
-	#define YEP_CUDA_GPU
 #elif defined(__OPENCL_VERSION__)
 	#define YEP_OPENCL_DEVICE
 	#if defined(__CPU__)
