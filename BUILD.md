@@ -33,17 +33,20 @@ Generating auto-generated parts
 
 **This step is needed only if you use sources from a Yeppp! repository.** Yeppp! release distributions already include auto-generated files.
 
-Check out [Peach-Py](https://bitbucket.org/MDukhan/peachpy) and add its directory to environment variable PYTHONPATH.
+Install [Peach-Py](https://bitbucket.org/MDukhan/peachpy) from Python Package Index (run this command as Administrator/root):
+```
+pip install PeachPy
+```
 
 Change directory to Yeppp! root and run `python codegen/core.py` to generate yepCore module. This will generate the files:
 
 *    library/headers/yepCore.h
-*    library/sources/core/
-*    bindings/java/sources-jni/core/
+*    library/sources/core/*
+*    bindings/java/sources-jni/core/*.c
 *    bindings/java/sources-java/info/yeppp/Core.java
-*    bindings/clr/sources-csharp/core/
+*    bindings/clr/sources-csharp/core/*.cs
 *    bindings/fortran/sources/yepCore.f90
-*    unit-tests/sources/core/
+*    unit-tests/sources/core/*.cpp
 
 Similarly generate yepMath module by executing `python codegen/math.py`.
 
