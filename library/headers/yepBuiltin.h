@@ -1835,7 +1835,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 			}
 		#elif defined(YEP_X86_ABI)
 			#if defined(YEP_PIC)
-				static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+				static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_CPUID_RDTSC_64u() {
 					register Yep64u cycleCounter;
 					register Yep32u temp;
 					asm volatile (
@@ -1851,7 +1851,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep128s yepBuiltin_Multiply_64s64s_128s(Ye
 					return cycleCounter;
 				}
 			#else
-				static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_RDTSC_64u() {
+				static YEP_INLINE Yep64u yepBuiltin_X86_ReadCycleCounter_CPUID_RDTSC_64u() {
 					register Yep64u cycleCounter;
 					asm volatile (
 						"XORL %%eax,%%eax;"
