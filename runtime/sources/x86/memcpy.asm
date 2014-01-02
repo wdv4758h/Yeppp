@@ -20,7 +20,6 @@
 		memcpy:
 %endif
 
-memcpy:
 	PUSH edi
 	PUSH esi
 	CLD

@@ -20,7 +20,6 @@
 		memcmp:
 %endif
 
-memcmp:
 	PUSH edi
 	PUSH esi
 	CLD
