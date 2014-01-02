@@ -11,11 +11,10 @@ Prerequisites
 
 You will need the following tools to build Yeppp!
 
-*   Python 2.x to regenerate auto-generated parts of Yeppp! If you use sources from Yeppp! release, you can skip this requirement as Yeppp! releases already include all auto-generated files. 
-*   Java Runtime Environment version 1.6 or later. Yeppp! build system is written in Java, so there is no way around it.
+*   CMake 2.8 or later and [Ninja](http://martine.github.io/ninja/) build system.
+*   Python 2.7 to regenerate auto-generated parts of Yeppp! If you use sources from Yeppp! release, you can skip this requirement as Yeppp! releases already include all auto-generated files. 
 *   Java Development Kit version 1.6 or later. You can use either Open JDK or Oracle JDK. JDK is required even if you don't plan to develop with Yeppp! in Java.
-*   Intellij IDEA to build the build system. If you use source from Yeppp! release, you can skip this requirement as Yeppp! releases already include pre-built build system.
-*   Microsoft Visual Studio 2008, 2010, or 2012 to build Windows binaries. Note that some parts (runtime) of the library can not be built with Visual Studio 2012. We use Visual Studio 2012 to compile most part of Yeppp!, and Visual Studio 2010 where required.
+*   Microsoft Visual Studio 2008, 2010, or 2012 to build Windows binaries.
 *   Intel C/C++ Compilers to build Linux/Xeon Phi binaries. We use 13.1.3 version.
 *   GNU C/C++ Compilers to build Linux binaries (except Xeon Phi). We use 4.8 version.
 *   Clang C/C++ Compilers to build Mac OS X binaries. We use trunk 3.4 version.
@@ -38,7 +37,7 @@ Install [Peach-Py](https://bitbucket.org/MDukhan/peachpy) from Python Package In
 pip install PeachPy
 ```
 
-Change directory to Yeppp! root and run `python codegen/core.py` to generate yepCore module. This will generate the files:
+Change directory to Yeppp! root and run `make generate-core` to generate yepCore module. This will generate the files:
 
 *    library/headers/yepCore.h
 *    library/sources/core/*
@@ -48,39 +47,30 @@ Change directory to Yeppp! root and run `python codegen/core.py` to generate yep
 *    bindings/fortran/sources/yepCore.f90
 *    unit-tests/sources/core/*.cpp
 
-Similarly generate yepMath module by executing `python codegen/math.py`.
-
-Building the build system
--------------------------
-
-**This step is needed only if you use sources from a Yeppp! repository.** Yeppp! release distributions already include pre-built build system (CLIBuild.jar).
-
-Check out [EBUILDA](https://bitbucket.org/MDukhan/ebuilda), open its project file in Intellij IDEA, and build the EBUILDA.jar artifact.
-
-Open the Yeppp! build system project in the *build* directory in Yeppp! tree in Intellij IDEA. Specify where to find EBUILDA.jar dependency, and build the CLIBuild.jar artifact. The CLIBuild.jar will appear in the root directory of Yeppp!
+Similarly generate yepMath module by executing `make generate-math`. There is also `generate` target to generate both modules.
 
 Building the runtime library
 ----------------------------
 
-In order to maintain high degree of binary compatibility across target platforms, Yeppp! uses its own runtime library (in part based on compiler-rt from Clang project). Navigate to *runtime* directory in Yeppp! tree.
+In order to maintain high degree of binary compatibility across target platforms, Yeppp! uses its own runtime library (in part based on compiler-rt from Clang project).
 
-To build runtime library for Windows, use Visual Studio Command Prompt and run `x86-windows-default-i586.cmd` (to build runtime library for x86/32-bit architecture; requires Visual Studio x86 Command Prompt) or `x64-windows-ms-default.cmd` (to build runtime library for x86-64/64-bit architecture; requires Visual Studio x64 Command Prompt). Note: the runtime library can not be build with Visual Studio 2012.
-
-To build runtime library for Linux or Android, use the provided Makefile. On a system with GNU Make run
+Open the command prompt or terminal and navigate to *runtime* directory in Yeppp! tree. To build the runtime library, run
 ```
 make <platform>
 ```
 where platform can be:
 
-*    **x86-linux-pic-i586** to build runtime library for Linux/x86
-*    **x64-linux-sysv-default** to build runtime library for Linux/x86-64
-*    **x64-linux-k1om-default** to build runtime library for Linux/k1om (Xeon Phi)
-*    **arm-linux-softeabi-v5t** to build runtime library for Linux/armel
-*    **arm-linux-hardeabi-v7a** to build runtime library for Linux/armhf
-*    **x86-linux-pic-android** to build runtime library for Android (x86 ABI)
-*    **arm-linux-softeabi-android** to build runtime library for Android (ARMEABI ABI)
-*    **arm-linux-softeabi-androidv7a** to build runtime library for Android (ARMEABI-V7A ABI)
-*    **mips-linux-o32-android** to build runtime library for Android (MIPS ABI)
+*    **windows-x86** to build runtime library for Windows/x86
+*    **windows-x86_64** to build runtime library for Windows/x86-64
+*    **linux-x86** to build runtime library for Linux/x86
+*    **linux-x86_64** to build runtime library for Linux/x86-64
+*    **linux-k1om** to build runtime library for Linux/k1om (Xeon Phi)
+*    **linux-armel** to build runtime library for Linux/armel
+*    **linux-armhf** to build runtime library for Linux/armhf
+*    **android-x86** to build runtime library for Android/x86 (x86 ABI)
+*    **android-armeabi** to build runtime library for Android/ARM (ARMEABI ABI)
+*    **android-armeabiv7a** to build runtime library for Android/ARM (ARMEABI-V7A ABI)
+*    **android-mips** to build runtime library for Android/MIPS (MIPS ABI)
 
 On Mac OS X Yeppp! uses the default runtime library, so nothing needs to be built.
 
@@ -89,25 +79,25 @@ Building Yeppp!
 
 To build Yeppp! navigate to the root of Yeppp! tree and execute
 ```
-java -jar CLIBuild.jar <platform>
+make <platform>
 ```
 where platform is
 
-*    **x86-windows-default-i586** to build Yeppp! for Windows/x86
-*    **x64-windows-ms-default** to build runtime library for Windows/x86-64
-*    **x86-macosx-pic-default** to build Yeppp! for Mac OS X/x86
-*    **x64-macosx-sysv-default** to build Yeppp! for Mac OS X/x86-64
-*    **x86-linux-pic-i586** to build Yeppp! for Linux/x86
-*    **x64-linux-sysv-default** to build Yeppp! for Linux/x86-64
-*    **x64-linux-k1om-default** to build Yeppp! for Linux/k1om (Xeon Phi)
-*    **arm-linux-softeabi-v5t** to build Yeppp! for Linux/armel
-*    **arm-linux-hardeabi-v7a** to build Yeppp! for Linux/armhf
-*    **ppc64-linux-sysv-default** to build Yeppp! for Linux/ppc64
-*    **ppc64-linux-sysv-bgq** to build Yeppp! for Blue Gene/Q
-*    **x86-linux-pic-android** to build Yeppp! for Android (x86 ABI)
-*    **arm-linux-softeabi-android** to build Yeppp! for Android (ARMEABI ABI)
-*    **arm-linux-softeabi-androidv7a** to build Yeppp! for Android (ARMEABI-V7A ABI)
-*    **mips-linux-o32-android** to build Yeppp! for Android (MIPS ABI)
+*    **windows-x86** to build Yeppp! for Windows/x86
+*    **windows-x86_64** to build runtime library for Windows/x86-64
+*    **macosx-x86** to build Yeppp! for Mac OS X/x86
+*    **macosx-x86_64** to build Yeppp! for Mac OS X/x86-64
+*    **linux-x86** to build Yeppp! for Linux/x86
+*    **linux-x86_64** to build Yeppp! for Linux/x86-64
+*    **linux-k1om** to build Yeppp! for Linux/k1om (Xeon Phi)
+*    **linux-armel** to build Yeppp! for Linux/armel
+*    **linux-armhf** to build Yeppp! for Linux/armhf
+*    **linux-ppc64** to build Yeppp! for Linux/ppc64
+*    **linux-bgq** to build Yeppp! for Blue Gene/Q
+*    **android-x86** to build Yeppp! for Android (x86 ABI)
+*    **android-armeabi** to build Yeppp! for Android (ARMEABI ABI)
+*    **android-armeabiv7a** to build Yeppp! for Android (ARMEABI-V7A ABI)
+*    **android-mips** to build Yeppp! for Android (MIPS ABI)
 
 The build system will put the compiled binaries into *binaries* directory in Yeppp! tree.
 
