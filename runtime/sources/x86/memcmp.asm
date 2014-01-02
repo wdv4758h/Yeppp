@@ -7,11 +7,17 @@
 ;
 
 %ifidn __OUTPUT_FORMAT__,elf32
-section .text.memcmp align=32
-global memcmp:function internal
-%else
-section .text
-global memcmp
+	section .text.memcmp align=32
+		global memcmp:function internal
+		memcmp:
+%elifidn __OUTPUT_FORMAT__,win32
+	section .text align=32
+		global _memcmp
+		_memcmp:
+%elifidn __OUTPUT_FORMAT__,macho32
+	section .text
+		global memcmp
+		memcmp:
 %endif
 
 memcmp:

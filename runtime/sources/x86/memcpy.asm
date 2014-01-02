@@ -7,11 +7,17 @@
 ;
 
 %ifidn __OUTPUT_FORMAT__,elf32
-section .text.memcpy align=32
-global memcpy:function internal
-%else
-section .text
-global memcpy
+	section .text.memcpy align=32
+		global memcpy:function internal
+		memcpy:
+%elifidn __OUTPUT_FORMAT__,win32
+	section .text align=32
+		global _memcpy
+		_memcpy:
+%elifidn __OUTPUT_FORMAT__,macho32
+	section .text
+		global memcpy
+		memcpy:
 %endif
 
 memcpy:

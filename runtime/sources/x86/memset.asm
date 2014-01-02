@@ -7,14 +7,19 @@
 ;
 
 %ifidn __OUTPUT_FORMAT__,elf32
-section .text.memset align=32
-global memset:function internal
-%else
-section .text
-global memset
+	section .text.memset align=32
+		global memset:function internal
+		memset:
+%elifidn __OUTPUT_FORMAT__,win32
+	section .text align=32
+		global _memset
+		_memset:
+%elifidn __OUTPUT_FORMAT__,macho32
+	section .text
+		global memset
+		memset:
 %endif
 
-memset:
 	PUSH edi
 	PUSH esi
 	CLD
