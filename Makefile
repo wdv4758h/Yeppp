@@ -32,7 +32,7 @@ config-linux-armhf: build/linux-armhf/rules.ninja
 config-linux-ppc64: build/linux-ppc64/rules.ninja
 config-linux-bgq: build/linux-bgq/rules.ninja
 config-android-armeabi: build/android-armeabi/rules.ninja
-config-android-armeabiv7a: build/android-armeabiv7/rules.ninja
+config-android-armeabiv7a: build/android-armeabiv7a/rules.ninja
 config-android-x86: build/android-x86/rules.ninja
 config-android-mips: build/android-mips/rules.ninja
 config-macosx-x86: build/macosx-x86/rules.ninja
