@@ -24,8 +24,8 @@ set(YEPRT_ARMV5T_GCC_SOURCES
 	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_dcmplt.asm
 	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_dadd.c
 	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_dsub.c
-	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_dmul.asm
-	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_ddiv.asm
+	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_dmul.c
+	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_ddiv.c
 	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_fcmpeq.asm
 	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_fcmpne.asm
 	${CMAKE_SOURCE_DIR}/sources/arm/gcc/eabi/aeabi_fcmpge.asm
@@ -95,23 +95,27 @@ set(YEPRT_X64_MSVC_SOURCES
 
 if(YEPPP_TARGET_NAME STREQUAL "linux-armel")
 	enable_language(ASM-ATT)
-	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm")
+	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm/gcc")
+	set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> ${CMAKE_ASM-ATT_FLAGS} -o <OBJECT> <SOURCE>")
 	set(YEPRT_SOURCES "${YEPRT_ARMV5T_GCC_SOURCES}")
 elseif(YEPPP_TARGET_NAME STREQUAL "linux-armhf")
 	enable_language(ASM-ATT)
-	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm")
+	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm/gcc")
+	set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> ${CMAKE_ASM-ATT_FLAGS} -o <OBJECT> <SOURCE>")
 	set(YEPRT_SOURCES "${YEPRT_ARMV7A_GCC_SOURCES}")
 elseif(YEPPP_TARGET_NAME STREQUAL "android-armeabi")
 	enable_language(ASM-ATT)
-	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm")
+	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm/gcc")
+	set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> ${CMAKE_ASM-ATT_FLAGS} -o <OBJECT> <SOURCE>")
 	set(YEPRT_SOURCES "${YEPRT_ARMV5T_GCC_SOURCES}")
 elseif(YEPPP_TARGET_NAME STREQUAL "android-armeabiv7a")
 	enable_language(ASM-ATT)
-	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm")
+	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/arm/gcc")
+	set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> ${CMAKE_ASM-ATT_FLAGS} -o <OBJECT> <SOURCE>")
 	set(YEPRT_SOURCES "${YEPRT_ARMV7A_GCC_SOURCES}")
 elseif(YEPPP_TARGET_NAME STREQUAL "android-mips")
 	enable_language(ASM-ATT)
-	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/mips")
+	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/mips/gcc")
 	set(YEPRT_SOURCES "${YEPRT_MIPS_GCC_SOURCES}")
 elseif(YEPPP_TARGET_NAME STREQUAL "linux-x86")
 	set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)

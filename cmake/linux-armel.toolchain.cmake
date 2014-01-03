@@ -52,7 +52,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions" CACHE STRING ""
 # Target-specific options
 set(CMAKE_ASM-ATT_FLAGS "-march=armv5t")
 # Code-generation options
-set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM_FLAGS} -Wa,--noexecstack" CACHE STRING "")
+set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} --noexecstack")
 
 # Linker options
 set(CMAKE_SHARED_LINKER_FLAGS "-fPIC -nostdlib --sysroot=${ANDROID_SYSROOT} -Wl,-z,noexecstack -Wl,--no-undefined -Wl,--gc-sections" CACHE STRING "")

@@ -54,7 +54,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions" CACHE STRING ""
 # Target-specific options
 SET(CMAKE_ASM-ATT_FLAGS "-march=armv7-a")
 # Code-generation options
-SET(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -Wa,--noexecstack" CACHE STRING "")
+SET(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} --noexecstack")
 
 # Linked options
 set(CMAKE_SHARED_LINKER_FLAGS "-fPIC -nostdlib -Wl,-z,noexecstack -Wl,--no-undefined -Wl,--gc-sections" CACHE STRING "")
