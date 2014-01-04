@@ -20,6 +20,11 @@ linux-x86:
 	cd binaries/linux-x86 && cmake -DCMAKE_TOOLCHAIN_FILE=$(PWD)/../cmake/linux-x86.toolchain.cmake -DCMAKE_MODULE_PATH=$(PWD)/../cmake -G Ninja ../..
 	cmake --build binaries/linux-x86
 
+linux-k1om:
+	-mkdir -p binaries/linux-k1om
+	cd binaries/linux-k1om && cmake -DCMAKE_TOOLCHAIN_FILE=$(PWD)/../cmake/linux-k1om.toolchain.cmake -DCMAKE_MODULE_PATH=$(PWD)/../cmake -G Ninja ../..
+	cmake --build binaries/linux-k1om
+
 linux-armhf:
 	-mkdir -p binaries/linux-armhf
 	cd binaries/linux-armhf && cmake -DCMAKE_TOOLCHAIN_FILE=$(PWD)/../cmake/linux-armhf.toolchain.cmake -DCMAKE_MODULE_PATH=$(PWD)/../cmake -G Ninja ../..

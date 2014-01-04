@@ -75,6 +75,12 @@ set(YEPRT_X64_GCC_SOURCES
 	${CMAKE_SOURCE_DIR}/sources/x86-64/gcc/memset.asm
 )
 
+set(YEPRT_K1OM_GCC_SOURCES
+	${CMAKE_SOURCE_DIR}/sources/k1om/gcc/memcmp.asm
+	${CMAKE_SOURCE_DIR}/sources/k1om/gcc/memcpy.asm
+	${CMAKE_SOURCE_DIR}/sources/k1om/gcc/memset.asm
+)
+
 set(YEPRT_X86_MSVC_SOURCES
 	${CMAKE_SOURCE_DIR}/sources/x86/msvc/alldiv.asm
 	${CMAKE_SOURCE_DIR}/sources/x86/msvc/aulldiv.asm
@@ -130,6 +136,11 @@ elseif(YEPPP_TARGET_NAME STREQUAL "linux-x86_64")
 	set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 	enable_language(ASM_NASM)
 	set(YEPRT_SOURCES "${YEPRT_X64_GCC_SOURCES}")
+elseif(YEPPP_TARGET_NAME STREQUAL "linux-k1om")
+	enable_language(ASM-ATT)
+	set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} -I${CMAKE_SOURCE_DIR}/sources/k1om/gcc")
+	set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> ${CMAKE_ASM-ATT_FLAGS} -o <OBJECT> <SOURCE>")
+	set(YEPRT_SOURCES "${YEPRT_K1OM_GCC_SOURCES}")
 elseif(YEPPP_TARGET_NAME STREQUAL "windows-x86")
 	set(CMAKE_ASM_NASM_OBJECT_FORMAT win32)
 	enable_language(ASM_NASM)
