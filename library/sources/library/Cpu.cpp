@@ -99,7 +99,7 @@ YepStatus YEPABI yepLibrary_GetCpuDataCacheSize(Yep32u level, Yep32u *cacheSizeP
 	if YEP_UNLIKELY(cacheSizePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(cacheSizePointer, sizeof(Yep32u))) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(cacheSizePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 	switch (level) {
@@ -125,7 +125,7 @@ YepStatus YEPABI yepLibrary_GetCpuInstructionCacheSize(Yep32u level, Yep32u *cac
 	if YEP_UNLIKELY(cacheSizePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(cacheSizePointer, sizeof(Yep32u))) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(cacheSizePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 	switch (level) {

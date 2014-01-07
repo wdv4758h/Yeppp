@@ -225,7 +225,7 @@ YepStatus YEPABI yepLibrary_GetEnergyCounterRelease(YepEnergyCounter *energyCoun
 	if YEP_UNLIKELY(measurement == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(measurement, sizeof(Yep64f)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64f(measurement)) {
 		return YepStatusMisalignedPointer;
 	}
 #if defined(YEP_X86_CPU)
