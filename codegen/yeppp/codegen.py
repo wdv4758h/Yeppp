@@ -564,7 +564,7 @@ class FunctionSpecialization:
 				default_cpp_implementation_generator.dedent()
 				default_cpp_implementation_generator.add_line("}")
 				if argument.get_c_private_type().get_primitive_type().get_size() != 1:
-					default_cpp_implementation_generator.add_line("if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment({0}, sizeof({1})) != 0) {{".format(argument.get_c_private_name(), argument.get_c_private_type().get_primitive_type()))
+					default_cpp_implementation_generator.add_line("if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_{1}({0})) {{".format(argument.get_c_private_name(), str(argument.get_c_private_type().get_primitive_type())[3:]))
 					default_cpp_implementation_generator.indent()
 					default_cpp_implementation_generator.add_line("return YepStatusMisalignedPointer;")
 					default_cpp_implementation_generator.dedent()
