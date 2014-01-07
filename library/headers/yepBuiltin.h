@@ -80,6 +80,94 @@ YEP_NATIVE_FUNCTION static YEP_INLINE YepSize yepBuiltin_GetPointerMisalignment(
 	return YepSize(pointer) % alignment;
 }
 
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_16u(const Yep16u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_16u(const Yep16u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_16s(const Yep16s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_16s(const Yep16s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_32u(const Yep32u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_32u(const Yep32u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_32s(const Yep32s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_32s(const Yep32s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_32f(const Yep32f* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_32f(const Yep32f* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_64u(const Yep64u* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) == 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_64u(const Yep64u* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) != 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_64s(const Yep64s* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) == 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_64s(const Yep64s* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) != 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_64f(const Yep64f* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) == 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_64f(const Yep64f* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) != 0;
+#endif
+}
+
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_CombineParts_32u32u_64u(Yep32u hi, Yep32u lo) {
 	return (Yep64u(hi) << 32) | Yep64u(lo);
 }
