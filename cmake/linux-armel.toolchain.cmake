@@ -55,4 +55,4 @@ set(CMAKE_ASM-ATT_FLAGS "-march=armv5t")
 set(CMAKE_ASM-ATT_FLAGS "${CMAKE_ASM-ATT_FLAGS} --noexecstack")
 
 # Linker options
-set(CMAKE_SHARED_LINKER_FLAGS "-fPIC -nostdlib --sysroot=${ANDROID_SYSROOT} -Wl,-z,noexecstack -Wl,--no-undefined -Wl,--gc-sections" CACHE STRING "")
+set(CMAKE_SHARED_LINKER_FLAGS "-fPIC -nostdlib -Wl,-z,noexecstack -Wl,--no-undefined -Wl,--gc-sections" CACHE STRING "")
