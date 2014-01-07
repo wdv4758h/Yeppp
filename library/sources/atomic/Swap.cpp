@@ -16,13 +16,13 @@ YepStatus YEPABI yepAtomic_Swap_Relaxed_S32uS32u_S32u(volatile Yep32u *valuePoin
 	if YEP_UNLIKELY(valuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment((void*)valuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u((const Yep32u*)valuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(oldValuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(oldValuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(oldValuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
@@ -132,13 +132,13 @@ YepStatus YEPABI yepAtomic_Swap_Acquire_S32uS32u_S32u(volatile Yep32u *valuePoin
 	if YEP_UNLIKELY(valuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment((void*)valuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u((const Yep32u*)valuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(oldValuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(oldValuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(oldValuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
@@ -269,13 +269,13 @@ YepStatus YEPABI yepAtomic_Swap_Release_S32uS32u_S32u(volatile Yep32u *valuePoin
 	if YEP_UNLIKELY(valuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment((void*)valuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u((const Yep32u*)valuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(oldValuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(oldValuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(oldValuePointer) != 0) {
 		return YepStatusMisalignedPointer;
 	}
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
@@ -408,13 +408,13 @@ YepStatus YEPABI yepAtomic_Swap_Ordered_S32uS32u_S32u(volatile Yep32u *valuePoin
 	if YEP_UNLIKELY(valuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment((void*)valuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u((const Yep32u*)valuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(oldValuePointer == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(oldValuePointer, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(oldValuePointer)) {
 		return YepStatusMisalignedPointer;
 	}
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)

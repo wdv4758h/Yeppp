@@ -36,7 +36,7 @@ YepStatus YEPABI yepRandom_WELL1024a_Init_V32u(YepRandom_WELL1024a *YEP_RESTRICT
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(seed, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(seed)) {
 		return YepStatusMisalignedPointer;
 	}
 	for (YepSize i = 0; i < 32u; i++) {
@@ -86,7 +86,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V16u(YepRandom_WEL
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep16u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_16u(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 
@@ -119,7 +119,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V32u(YepRandom_WEL
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 
@@ -152,7 +152,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform__V64u(YepRandom_WEL
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64u(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 
@@ -263,7 +263,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S16sS16s_V16s(YepRa
 	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep16s)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_16s(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if (supportMin >= supportMax) {
@@ -327,7 +327,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32sS32s_V32s(YepRa
 	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep32s)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32s(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if (supportMin >= supportMax) {
@@ -392,7 +392,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S64sS64s_V64s(YepRa
 	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64s)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64s(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if (supportMin >= supportMax) {
@@ -552,7 +552,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S16uS16u_V16u(YepRa
 	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep16u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_16u(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if (supportMin >= supportMax) {
@@ -616,7 +616,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u(YepRa
 	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep32u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32u(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if (supportMin >= supportMax) {
@@ -681,7 +681,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateDiscreteUniform_S64uS64u_V64u(YepRa
 	if YEP_UNLIKELY(samples == YEP_NULL_POINTER) {
 		return YepStatusNullPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64u)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64u(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if (supportMin >= supportMax) {
@@ -780,7 +780,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32(YepRand
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep32f)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32f(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(supportMin >= supportMax) {
@@ -828,7 +828,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S32fS32f_V32f(YepRandom_W
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep32f)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_32f(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(supportMin >= supportMax) {
@@ -905,7 +905,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc32(YepRand
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64f)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64f(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(supportMin >= supportMax) {
@@ -953,7 +953,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64(YepRand
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64f)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64f(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(supportMin >= supportMax) {
@@ -1019,7 +1019,7 @@ YepStatus YEPABI yepRandom_WELL1024a_GenerateFPUniform_S64fS64f_V64f(YepRandom_W
 	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(rng, sizeof(Yep32u)) != 0) {
 		return YepStatusMisalignedPointer;
 	}
-	if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment(samples, sizeof(Yep64f)) != 0) {
+	if YEP_UNLIKELY(yepBuiltin_IsMisalignedPointer_64f(samples)) {
 		return YepStatusMisalignedPointer;
 	}
 	if YEP_UNLIKELY(supportMin >= supportMax) {
