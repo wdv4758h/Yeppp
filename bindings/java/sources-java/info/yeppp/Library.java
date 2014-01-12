@@ -267,7 +267,7 @@ public class Library {
 	private static final int Tag_ABI_VFP_args = 28;
 	private static final int Tag_compatibility = 32;
 
-	private static boolean isTabNTBS(int tag) {
+	private static boolean isTagNTBS(int tag) {
 		switch (tag) {
 			case Tag_CPU_raw_name:
 			case Tag_CPU_name:
@@ -411,7 +411,7 @@ public class Library {
 																								tagByte = section[tagOffset++];
 																								tag = (tag << 7) | (tagByte & 0x7F);
 																							}
-																							if (isTabNTBS(tag)) {
+																							if (isTagNTBS(tag)) {
 																								/* Null-terminated string. Skip. */
 																								while (section[tagOffset++] != 0);
 																							} else {
