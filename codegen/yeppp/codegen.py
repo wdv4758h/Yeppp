@@ -807,9 +807,18 @@ class FunctionSpecialization:
 		fortran_module_generator.dedent()
 		fortran_module_generator.add_line("END FUNCTION {0}".format(self.c_function_signature))
 
+	def generate_csharp_delegate_method(self, csharp_delegate_method_generator):
+		named_arguments_list = map(str, self.csharp_dllimport_arguments)
+		csharp_delegate_method_generator.add_line("[UnmanagedFunctionPointer(CallingConvention.Cdecl)]")
+		csharp_delegate_method_generator.add_line("private unsafe delegate Status {DelegateName}({Arguments});"
+			.format(DelegateName = self.c_function_signature + "_Delegate", Arguments = ", ".join(named_arguments_list)))
+		csharp_delegate_method_generator.add_line("private static {DelegateName} {FunctionName};"
+			.format(DelegateName = self.c_function_signature + "_Delegate", FunctionName = self.c_function_signature))
+		csharp_delegate_method_generator.add_line()
+
 	def generate_csharp_dllimport_method(self, csharp_dllimport_method_generator):
 		named_arguments_list = map(str, self.csharp_dllimport_arguments)
-		csharp_dllimport_method_generator.add_line("[DllImport(\"yeppp\", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint=\"{0}\")]".format(self.c_function_signature))
+		csharp_dllimport_method_generator.add_line("[DllImport(\"yeppp\", CallingConvention=CallingConvention.Cdecl)]".format(self.c_function_signature))
 		csharp_dllimport_method_generator.add_line("private static unsafe extern Status {0}({1});".format(self.c_function_signature, ", ".join(named_arguments_list)))
 		csharp_dllimport_method_generator.add_line()
 
@@ -966,6 +975,16 @@ class FunctionSpecialization:
 
 		csharp_safe_method_generator.dedent().add_line("}")
 		csharp_safe_method_generator.add_empty_lines(2)
+
+	def generate_csharp_bind_code(self, csharp_init_code_generator):
+		csharp_init_code_generator.add_line("{ModuleName}.{FunctionName} = ({DelegateName})nativeLibrary.GetFunction(\"{FunctionName}\", typeof({DelegateName}));"
+			.format(ModuleName = self.module_name,
+				FunctionName = self.c_function_signature,
+				DelegateName = self.c_function_signature + "_Delegate"))
+
+	def generate_csharp_unbind_code(self, csharp_release_code_generator):
+		csharp_release_code_generator.add_line("{ModuleName}.{FunctionName} = null;"
+			.format(ModuleName = self.module_name, FunctionName = self.c_function_signature))
 
 	def generate_cpp_unit_test(self, cpp_unit_test_generator, unit_test, cpp_units_tests):
 		if isinstance(unit_test, yeppp.test.ReferenceUnitTest):
@@ -1237,6 +1256,9 @@ class FunctionGenerator:
 		self.csharp_safe_method_generator = None
 		self.csharp_unsafe_method_generator = None
 		self.csharp_extern_method_generator = None
+		self.csharp_delegate_method_generator = None
+		self.csharp_bind_code_generator = None
+		self.csharp_unbind_code_generator = None
 		self.cpp_unit_test_generator = None
 		self.assembly_implementation_generators = dict()
 		self.assembly_cache = dict()
@@ -1389,8 +1411,15 @@ class FunctionGenerator:
 		self.csharp_unsafe_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_unsafe_method_generator.add_line().indent().indent()
 
+		self.csharp_delegate_method_generator = peachpy.codegen.CodeGenerator()
+		self.csharp_delegate_method_generator.add_line().indent().indent()
+		self.csharp_delegate_method_generator.add_line("#if YEP_BUNDLE_LIBRARY").indent()
+		self.csharp_delegate_method_generator.add_line()
+
 		self.csharp_dllimport_method_generator = peachpy.codegen.CodeGenerator()
 		self.csharp_dllimport_method_generator.add_line().indent().indent()
+		self.csharp_dllimport_method_generator.add_line("#else").indent()
+		self.csharp_dllimport_method_generator.add_line()
 
 		self.fortran_module_generator.add_fortran90_comment(["@ingroup yep{0}".format(module_name),
 															 "@defgroup yep{0}_{1}	{2}".format(module_name, group_name, group_comment)], doxygen = True)
@@ -1507,8 +1536,11 @@ class FunctionGenerator:
 		self.dispatch_function_generator.indent().add_line("#pragma code_seg( pop )").dedent()
 		self.dispatch_function_generator.add_line("#endif")
 
+		self.csharp_dllimport_method_generator.dedent().add_line("#endif")
+		self.csharp_dllimport_method_generator.add_line()
 		self.csharp_dllimport_method_generator.dedent().add_line("}")
-		self.csharp_dllimport_method_generator.add_line().dedent().add_line("}")
+		self.csharp_dllimport_method_generator.add_line()
+		self.csharp_dllimport_method_generator.dedent().add_line("}")
 		self.csharp_dllimport_method_generator.add_line()
 
 		self.cpp_unit_test_generator.add_line("int main(int argc, char** argv) {").indent()
@@ -1577,6 +1609,7 @@ class FunctionGenerator:
 		with open("bindings/clr/sources-csharp/{0}/{1}.cs".format(module_name.lower(), group_name), "w+") as csharp_implementation_file:
 			csharp_implementation_file.write(self.csharp_safe_method_generator.get_code())
 			csharp_implementation_file.write(self.csharp_unsafe_method_generator.get_code())
+			csharp_implementation_file.write(self.csharp_delegate_method_generator.get_code())
 			csharp_implementation_file.write(self.csharp_dllimport_method_generator.get_code())
 
 		for assembly_implementation_generator in self.assembly_implementation_generators:
@@ -1603,9 +1636,12 @@ class FunctionGenerator:
 		specialization.generate_jni_function(self.jni_implementation_generator)
 		specialization.generate_java_method(self.java_class_generator, self.java_documentation)
 		specialization.generate_fortran_interface(self.fortran_module_generator, self.c_documentation)
+		specialization.generate_csharp_delegate_method(self.csharp_delegate_method_generator)
 		specialization.generate_csharp_dllimport_method(self.csharp_dllimport_method_generator)
 		specialization.generate_csharp_unsafe_method(self.csharp_unsafe_method_generator, self.c_documentation, self.java_documentation)
 		specialization.generate_csharp_safe_method(self.csharp_safe_method_generator, self.java_documentation)
+		specialization.generate_csharp_bind_code(self.csharp_bind_generator)
+		specialization.generate_csharp_unbind_code(self.csharp_unbind_generator)
 
 		if self.unit_test:
 			specialization.generate_cpp_unit_test(self.cpp_unit_test_generator, self.unit_test, self.cpp_unit_tests)

@@ -71,9 +71,62 @@ namespace Yeppp
 	/// <summary>Non-computational functions for checking library version, quering information about processor, and benchmarking.</summary>
 	public class Library
 	{
+		private static ABI processABI = ABI.Unknown;
+
+		#if YEP_BUNDLE_LIBRARY
+			private static NativeLibrary nativeLibrary = null;
+
+			internal static void Bind(NativeLibrary nativeLibrary)
+			{
+				Library.yepLibrary_Init = (yepLibrary_Init_Delegate)nativeLibrary.GetFunction("yepLibrary_Init", typeof(yepLibrary_Init_Delegate));
+				Library.yepLibrary_Release = (yepLibrary_Release_Delegate)nativeLibrary.GetFunction("yepLibrary_Release", typeof(yepLibrary_Release_Delegate));
+				Library.yepLibrary_GetVersion = (yepLibrary_GetVersion_Delegate)nativeLibrary.GetFunction("yepLibrary_GetVersion", typeof(yepLibrary_GetVersion_Delegate));
+				Library.yepLibrary_GetCpuIsaFeatures = (yepLibrary_GetCpuIsaFeatures_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuIsaFeatures", typeof(yepLibrary_GetCpuIsaFeatures_Delegate));
+				Library.yepLibrary_GetCpuSimdFeatures = (yepLibrary_GetCpuSimdFeatures_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuSimdFeatures", typeof(yepLibrary_GetCpuSimdFeatures_Delegate));
+				Library.yepLibrary_GetCpuSystemFeatures = (yepLibrary_GetCpuSystemFeatures_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuSystemFeatures", typeof(yepLibrary_GetCpuSystemFeatures_Delegate));
+				Library.yepLibrary_GetCpuVendor = (yepLibrary_GetCpuVendor_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuVendor", typeof(yepLibrary_GetCpuVendor_Delegate));
+				Library.yepLibrary_GetCpuArchitecture = (yepLibrary_GetCpuArchitecture_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuArchitecture", typeof(yepLibrary_GetCpuArchitecture_Delegate));
+				Library.yepLibrary_GetCpuMicroarchitecture = (yepLibrary_GetCpuMicroarchitecture_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuMicroarchitecture", typeof(yepLibrary_GetCpuMicroarchitecture_Delegate));
+				Library.yepLibrary_GetCpuCyclesAcquire = (yepLibrary_GetCpuCyclesAcquire_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuCyclesAcquire", typeof(yepLibrary_GetCpuCyclesAcquire_Delegate));
+				Library.yepLibrary_GetCpuCyclesRelease = (yepLibrary_GetCpuCyclesRelease_Delegate)nativeLibrary.GetFunction("yepLibrary_GetCpuCyclesRelease", typeof(yepLibrary_GetCpuCyclesRelease_Delegate));
+				Library.yepLibrary_GetTimerTicks = (yepLibrary_GetTimerTicks_Delegate)nativeLibrary.GetFunction("yepLibrary_GetTimerTicks", typeof(yepLibrary_GetTimerTicks_Delegate));
+				Library.yepLibrary_GetTimerFrequency = (yepLibrary_GetTimerFrequency_Delegate)nativeLibrary.GetFunction("yepLibrary_GetTimerFrequency", typeof(yepLibrary_GetTimerFrequency_Delegate));
+				Library.yepLibrary_GetTimerAccuracy = (yepLibrary_GetTimerAccuracy_Delegate)nativeLibrary.GetFunction("yepLibrary_GetTimerAccuracy", typeof(yepLibrary_GetTimerAccuracy_Delegate));
+				Library.yepLibrary_GetString = (yepLibrary_GetString_Delegate)nativeLibrary.GetFunction("yepLibrary_GetString", typeof(yepLibrary_GetString_Delegate));
+			}
+
+			internal static void Unbind()
+			{
+				Library.yepLibrary_Init = null;
+				Library.yepLibrary_Release = null;
+				Library.yepLibrary_GetVersion = null;
+				Library.yepLibrary_GetCpuIsaFeatures = null;
+				Library.yepLibrary_GetCpuSimdFeatures = null;
+				Library.yepLibrary_GetCpuSystemFeatures = null;
+				Library.yepLibrary_GetCpuVendor = null;
+				Library.yepLibrary_GetCpuArchitecture = null;
+				Library.yepLibrary_GetCpuMicroarchitecture = null;
+				Library.yepLibrary_GetCpuCyclesAcquire = null;
+				Library.yepLibrary_GetCpuCyclesRelease = null;
+				Library.yepLibrary_GetTimerTicks = null;
+				Library.yepLibrary_GetTimerFrequency = null;
+				Library.yepLibrary_GetTimerAccuracy = null;
+				Library.yepLibrary_GetString = null;
+				Library.nativeLibrary.Dispose();
+				Library.nativeLibrary = null;
+			}
+		#endif
 
 		internal static void Init()
 		{
+			Library.processABI = Process.DetectABI();
+
+			#if YEP_BUNDLE_LIBRARY
+				Library.nativeLibrary = Loader.LoadNativeLibrary();
+				Library.Bind(nativeLibrary);
+				Core.Bind(nativeLibrary);
+				Math.Bind(nativeLibrary);
+			#endif
 			Status status = yepLibrary_Init();
 			if (status != Status.Ok)
 				throw new System.SystemException("Failed to initialize Yeppp! library");
@@ -89,6 +142,12 @@ namespace Yeppp
 			Status status = yepLibrary_Release();
 			if (status != Status.Ok)
 				throw GetException(status);
+
+			#if YEP_BUNDLE_LIBRARY
+				Math.Unbind();
+				Core.Unbind();
+				Library.Unbind();
+			#endif
 		}
 
 		/// <summary>Provides information about Yeppp! library version.</summary>
@@ -168,6 +227,14 @@ namespace Yeppp
 				throw GetException(status);
 
 			return (unchecked((long)systemFeaturesMask) & (1L << unchecked((int)systemFeature.Id))) != 0;
+		}
+
+		/// <summary>Provides information about the ABI of the running process.</summary>
+		/// <returns>An ABI object with information about the application binary interface (ABI) of the running process.</returns>
+		/// <seealso cref="ABI" />
+		public static ABI GetProcessABI()
+		{
+			return Library.processABI;
 		}
 
 		/// <summary>Provides information about the vendor of the processor.</summary>
@@ -337,51 +404,118 @@ namespace Yeppp
 			}
 		}
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_Init")]
-		private static extern Status yepLibrary_Init();
+		#if YEP_BUNDLE_LIBRARY
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_Release")]
-		private static extern Status yepLibrary_Release();
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_Init_Delegate();
+			private static yepLibrary_Init_Delegate yepLibrary_Init;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetVersion")]
-		[return : MarshalAs(UnmanagedType.SysInt)]
-		private static extern System.IntPtr yepLibrary_GetVersion();
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_Release_Delegate();
+			private static yepLibrary_Release_Delegate yepLibrary_Release;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuIsaFeatures")]
-		private static extern Status yepLibrary_GetCpuIsaFeatures(out ulong isaFeatures);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			[return : MarshalAs(UnmanagedType.SysInt)]
+			private delegate System.IntPtr yepLibrary_GetVersion_Delegate();
+			private static yepLibrary_GetVersion_Delegate yepLibrary_GetVersion;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuSimdFeatures")]
-		private static extern Status yepLibrary_GetCpuSimdFeatures(out ulong simdFeatures);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuIsaFeatures_Delegate(out ulong isaFeatures);
+			private static yepLibrary_GetCpuIsaFeatures_Delegate yepLibrary_GetCpuIsaFeatures;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuSystemFeatures")]
-		private static extern Status yepLibrary_GetCpuSystemFeatures(out ulong systemFeatures);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuSimdFeatures_Delegate(out ulong simdFeatures);
+			private static yepLibrary_GetCpuSimdFeatures_Delegate yepLibrary_GetCpuSimdFeatures;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuVendor")]
-		private static extern Status yepLibrary_GetCpuVendor(out uint vendor);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuSystemFeatures_Delegate(out ulong systemFeatures);
+			private static yepLibrary_GetCpuSystemFeatures_Delegate yepLibrary_GetCpuSystemFeatures;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuArchitecture")]
-		private static extern Status yepLibrary_GetCpuArchitecture(out uint architecture);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuVendor_Delegate(out uint vendor);
+			private static yepLibrary_GetCpuVendor_Delegate yepLibrary_GetCpuVendor;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuMicroarchitecture")]
-		private static extern Status yepLibrary_GetCpuMicroarchitecture(out uint vendor);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuArchitecture_Delegate(out uint architecture);
+			private static yepLibrary_GetCpuArchitecture_Delegate yepLibrary_GetCpuArchitecture;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuCyclesAcquire")]
-		private static extern Status yepLibrary_GetCpuCyclesAcquire(out ulong state);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuMicroarchitecture_Delegate(out uint vendor);
+			private static yepLibrary_GetCpuMicroarchitecture_Delegate yepLibrary_GetCpuMicroarchitecture;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetCpuCyclesRelease")]
-		private static extern Status yepLibrary_GetCpuCyclesRelease(ref ulong state, out ulong cycles);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuCyclesAcquire_Delegate(out ulong state);
+			private static yepLibrary_GetCpuCyclesAcquire_Delegate yepLibrary_GetCpuCyclesAcquire;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetTimerTicks")]
-		private static extern Status yepLibrary_GetTimerTicks(out ulong ticks);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetCpuCyclesRelease_Delegate(ref ulong state, out ulong cycles);
+			private static yepLibrary_GetCpuCyclesRelease_Delegate yepLibrary_GetCpuCyclesRelease;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetTimerFrequency")]
-		private static extern Status yepLibrary_GetTimerFrequency(out ulong frequency);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetTimerTicks_Delegate(out ulong ticks);
+			private static yepLibrary_GetTimerTicks_Delegate yepLibrary_GetTimerTicks;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetTimerAccuracy")]
-		private static extern Status yepLibrary_GetTimerAccuracy(out ulong accuracy);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetTimerFrequency_Delegate(out ulong frequency);
+			private static yepLibrary_GetTimerFrequency_Delegate yepLibrary_GetTimerFrequency;
 
-		[DllImport("yeppp", ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, EntryPoint="yepLibrary_GetString")]
-		private static extern Status yepLibrary_GetString(Enumeration enumeration, uint value, StringType stringType, System.IntPtr buffer, ref System.UIntPtr length);
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetTimerAccuracy_Delegate(out ulong accuracy);
+			private static yepLibrary_GetTimerAccuracy_Delegate yepLibrary_GetTimerAccuracy;
+
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			private delegate Status yepLibrary_GetString_Delegate(Enumeration enumeration, uint value, StringType stringType, System.IntPtr buffer, ref System.UIntPtr length);
+			private static yepLibrary_GetString_Delegate yepLibrary_GetString;
+
+		#else
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_Init();
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_Release();
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			[return : MarshalAs(UnmanagedType.SysInt)]
+			private static extern System.IntPtr yepLibrary_GetVersion();
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuIsaFeatures(out ulong isaFeatures);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuSimdFeatures(out ulong simdFeatures);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuSystemFeatures(out ulong systemFeatures);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuVendor(out uint vendor);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuArchitecture(out uint architecture);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuMicroarchitecture(out uint vendor);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuCyclesAcquire(out ulong state);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetCpuCyclesRelease(ref ulong state, out ulong cycles);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetTimerTicks(out ulong ticks);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetTimerFrequency(out ulong frequency);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetTimerAccuracy(out ulong accuracy);
+
+			[DllImport("yeppp", CallingConvention=CallingConvention.Cdecl)]
+			private static extern Status yepLibrary_GetString(Enumeration enumeration, uint value, StringType stringType, System.IntPtr buffer, ref System.UIntPtr length);
+
+		#endif
 
 	}
 
