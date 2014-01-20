@@ -11,13 +11,13 @@
 		<CpuCyclesSource Include="sources\CpuCycles.cs" />
 	</ItemGroup>
 	<ItemGroup> 
-		<YepppReference Include="$(YEPROOT)\binaries\clr-2.0\yeppp-clr.dll" />
+		<YepppReference Include="$(YEPROOT)\binaries\clr-2.0\Yeppp.CLR.Bundle.dll" />
 	</ItemGroup> 
 	<Target Name="CreateBuildDirectory">
 		<MakeDir Directories="$(BuildDirectory)" />
 	</Target>
 	<Target Name="CopyYepppAssembly">
-		<Copy SourceFiles="$(YEPROOT)\binaries\clr-2.0\yeppp-clr.dll"
+		<Copy SourceFiles="$(YEPROOT)\binaries\clr-2.0\Yeppp.CLR.Bundle.dll"
 			DestinationFolder="$(BuildDirectory)" />
 	</Target>
 	<Target Name="Entropy" DependsOnTargets="CreateBuildDirectory;CopyYepppAssembly">
