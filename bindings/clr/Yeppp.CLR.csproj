@@ -83,9 +83,9 @@
 			<VersionInfo Include="[assembly: System.Reflection.AssemblyVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion).$(BuildVersion)&quot;)]"></VersionInfo>
 			<VersionInfo Include="[assembly: System.Reflection.AssemblyFileVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion).$(BuildVersion)&quot;)]"></VersionInfo>
 			<VersionInfo Include="#pragma warning disable 1607"></VersionInfo>
-			<VersionInfo Include="[assembly: System.Reflection.AssemblyInformationalVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion).$(BuildVersion) $(ReleaseName)&quot;)]"></VersionInfo>
+			<VersionInfo Include="[assembly: System.Reflection.AssemblyInformationalVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion) $(ReleaseName)&quot;)]"></VersionInfo>
 		</ItemGroup>
-		<WriteLinesToFile File="sources-csharp/VersionInfo.cs" Overwrite="True" Lines="@(VersionInfo)" /> 
+		<WriteLinesToFile File="sources-csharp/VersionInfo.cs" Overwrite="True" Lines="@(VersionInfo)" />
 	</Target>
 	<Target Name="BuildLibrary" DependsOnTargets="GenerateVersionInfo;CompileLibraryVersion">
 		<Csc Sources="@(LibrarySource)"
