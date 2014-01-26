@@ -93,8 +93,10 @@
 			TargetType="library"
 			OutputAssembly="$(BuildDirectory)\Yeppp.CLR.dll"
 			DocumentationFile="$(BuildDirectory)\Yeppp.CLR.xml"
+			PdbFile="$(BuildDirectory)\Yeppp.CLR.pdb"
 			NoLogo="true"
 			DisabledWarnings="1607"
+			EmitDebugInformation="true"
 			AllowUnsafeBlocks="true"
 			Optimize="true">
 		</Csc>
@@ -108,15 +110,17 @@
 			DefineConstants="YEP_BUNDLE_LIBRARY"
 			OutputAssembly="$(BuildDirectory)\Yeppp.CLR.Bundle.dll"
 			DocumentationFile="$(BuildDirectory)\Yeppp.CLR.Bundle.xml"
+			PdbFile="$(BuildDirectory)\Yeppp.CLR.Bundle.pdb"
 			NoLogo="true"
 			DisabledWarnings="1607"
+			EmitDebugInformation="true"
 			AllowUnsafeBlocks="true"
 			Optimize="true">
 		</Csc>
 		<Exec Command="InjectModuleInitializer.exe /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
 	</Target>
 	<Target Name="Clean">
-		<Delete Files="$(BuildDirectory)\Version.res;sources-csharp/VersionInfo.cs;$(BuildDirectory)\Yeppp.CLR.dll;$(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
+		<Delete Files="$(BuildDirectory)\LibraryVersion.res;$(BuildDirectory)\BundleVersion.res;sources-csharp/VersionInfo.cs;$(BuildDirectory)\Yeppp.CLR.dll;$(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
 	</Target>
 	<Target Name="Rebuild" DependsOnTargets="Clean;BuildBundle;BuildLibrary" />
 	<Target Name="Package" DependsOnTargets="Rebuild">
