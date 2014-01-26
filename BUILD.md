@@ -11,7 +11,7 @@ Prerequisites
 
 You will need the following tools to build Yeppp!
 
-*   Python 2.x to regenerate auto-generated parts of Yeppp! If you use sources from Yeppp! release, you can skip this requirement as Yeppp! releases already include all auto-generated files. 
+*   Python 2.7 to regenerate auto-generated parts of Yeppp! If you use sources from Yeppp! release, you can skip this requirement as Yeppp! releases already include all auto-generated files. 
 *   Java Runtime Environment version 1.6 or later. Yeppp! build system is written in Java, so there is no way around it.
 *   Java Development Kit version 1.6 or later. You can use either Open JDK or Oracle JDK. JDK is required even if you don't plan to develop with Yeppp! in Java.
 *   Intellij IDEA to build the build system. If you use source from Yeppp! release, you can skip this requirement as Yeppp! releases already include pre-built build system.
