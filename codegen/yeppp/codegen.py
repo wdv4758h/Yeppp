@@ -15,6 +15,8 @@ import peachpy.doxygen
 import string
 import copy
 import re
+import os
+import errno
 import yeppp.test
 
 def format_or_list(elements, prefix = "", suffix = ""):
@@ -1588,6 +1590,12 @@ class FunctionGenerator:
 		self.cpp_unit_test_generator.dedent().add_line("}")
 		self.cpp_unit_test_generator.add_line()
 
+		try:
+			os.makedirs("library/sources/{0}/".format(module_name.lower()))
+		except OSError as exception:
+			if exception.errno != errno.EEXIST:
+				raise
+
 		with open("library/sources/{0}/{1}.disp.h".format(module_name.lower(), group_name), "w+") as dispatch_header_file:
 			dispatch_header_file.write(self.dispatch_table_header_generator.get_code())
 			dispatch_header_file.write(self.dispatch_pointer_header_generator.get_code())
@@ -1603,8 +1611,20 @@ class FunctionGenerator:
 		with open("library/sources/{0}/{1}.impl.cpp".format(module_name.lower(), group_name), "w+") as default_cpp_implementation_file:
 			default_cpp_implementation_file.write(self.default_cpp_implementation_generator.get_code())
 
+		try:
+			os.makedirs("bindings/java/sources-jni/{0}/".format(module_name.lower()))
+		except OSError as exception:
+			if exception.errno != errno.EEXIST:
+				raise
+
 		with open("bindings/java/sources-jni/{0}/{1}.c".format(module_name.lower(), group_name), "w+") as jni_implementation_file:
 			jni_implementation_file.write(self.jni_implementation_generator.get_code())
+
+		try:
+			os.makedirs("bindings/clr/sources-csharp/{0}/".format(module_name.lower()))
+		except OSError as exception:
+			if exception.errno != errno.EEXIST:
+				raise
 
 		with open("bindings/clr/sources-csharp/{0}/{1}.cs".format(module_name.lower(), group_name), "w+") as csharp_implementation_file:
 			csharp_implementation_file.write(self.csharp_safe_method_generator.get_code())
@@ -1615,6 +1635,12 @@ class FunctionGenerator:
 		for assembly_implementation_generator in self.assembly_implementation_generators:
 			with open('library/sources/{0}/{1}.{2}.asm'.format(module_name.lower(), group_name, assembly_implementation_generator.abi.get_name()), "w+") as assembly_implementation_file:
 				assembly_implementation_file.write(str(assembly_implementation_generator))
+
+		try:
+			os.makedirs("unit-tests/sources/{0}/".format(module_name.lower()))
+		except OSError as exception:
+			if exception.errno != errno.EEXIST:
+				raise
 
 		if self.unit_test:
 			with open("unit-tests/sources/{0}/{1}.cpp".format(module_name.lower(), group_name), "w+") as cpp_unit_test_file:
