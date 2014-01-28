@@ -153,24 +153,12 @@ class Module:
 			with open("library/headers/yep{0}.h".format(self.name), "w+") as public_header_file:
 				public_header_file.write(self.public_header_generator.get_code())
 		
-			try:
-				os.makedirs("bindings/clr/sources-csharp/{0}/".format(self.name))
-			except OSError as exception:
-				if exception.errno != errno.EEXIST:
-					raise
-
-			with open("bindings/clr/sources-csharp/{0}/Bind.cs".format(self.name), "w+") as csharp_init_file:
+			with open("bindings/clr/sources-csharp/{0}/Bind.cs".format(self.name.lower()), "w+") as csharp_init_file:
 				csharp_init_file.write(self.csharp_bind_generator.get_code())
 		
-			with open("bindings/clr/sources-csharp/{0}/Unbind.cs".format(self.name), "w+") as csharp_release_file:
+			with open("bindings/clr/sources-csharp/{0}/Unbind.cs".format(self.name.lower()), "w+") as csharp_release_file:
 				csharp_release_file.write(self.csharp_unbind_generator.get_code())
 		
-			try:
-				os.makedirs("bindings/java/sources-java/{0}/".format(self.name))
-			except OSError as exception:
-				if exception.errno != errno.EEXIST:
-					raise
-
 			with open("bindings/java/sources-java/info/yeppp/{0}.java".format(self.name), "w+") as java_class_file:
 				java_class_file.write(self.java_class_generator.get_code())
 		
