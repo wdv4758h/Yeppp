@@ -366,6 +366,12 @@ extern "C" {
 		YepCpuMicroarchitectureCortexA9      = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x0007,
 		/** @brief ARM Cortex-A15. */
 		YepCpuMicroarchitectureCortexA15     = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x0008,
+		/** @brief ARM Cortex-A12. */
+		YepCpuMicroarchitectureCortexA12     = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x0009,
+		/** @brief ARM Cortex-A53. */
+		YepCpuMicroarchitectureCortexA53     = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x000A,
+		/** @brief ARM Cortex-A57. */
+		YepCpuMicroarchitectureCortexA57     = (YepCpuArchitectureARM << 24) + (YepCpuVendorARM     << 16) + 0x000B,
 
 		/** @brief Qualcomm Scorpion. */
 		YepCpuMicroarchitectureScorpion      = (YepCpuArchitectureARM << 24) + (YepCpuVendorQualcomm << 16) + 0x0001,
