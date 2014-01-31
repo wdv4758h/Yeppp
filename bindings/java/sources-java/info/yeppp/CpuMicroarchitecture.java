@@ -179,9 +179,21 @@ public final class CpuMicroarchitecture {
 	 */
 	public static final CpuMicroarchitecture CortexA9          = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.ARM.getId()      << 16) + 0x0007);
 	/**
+	 * ARM Cortex-A12.
+	 */
+	public static final CpuMicroarchitecture CortexA12         = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.ARM.getId()      << 16) + 0x0009);
+	/**
 	 * ARM Cortex-A15.
 	 */
 	public static final CpuMicroarchitecture CortexA15         = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.ARM.getId()      << 16) + 0x0008);
+	/**
+	 * ARM Cortex-A53.
+	 */
+	public static final CpuMicroarchitecture CortexA53         = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.ARM.getId()      << 16) + 0x000A);
+	/**
+	 * ARM Cortex-A57.
+	 */
+	public static final CpuMicroarchitecture CortexA57         = new CpuMicroarchitecture((CpuArchitecture.ARM.getId() << 24) + (CpuVendor.ARM.getId()      << 16) + 0x000B);
 
 	/**
 	 * Qualcomm Scorpion.
