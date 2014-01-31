@@ -314,6 +314,116 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_ByteSwap_64u_64u(Yep64u 
 #endif
 }
 
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep8u yepBuiltin_RotateRight_8u8u_8u(Yep8u x, Yep8u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
+	return _rotr8(x, n);
+#else
+	n = n % 8;
+	return (x >> n) | (x << (8 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep8u yepBuiltin_RotateLeft_8u8u_8u(Yep8u x, Yep8u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
+	return _rotl8(x, n);
+#else
+	n = n % 8;
+	return (x << n) | (x >> (8 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_RotateRight_16u16u_16u(Yep16u x, Yep16u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _rotwr(x, n);
+#elif defined(YEP_MICROSOFT_COMPILER)
+	return _rotr16(x, n);
+#else
+	n = n % 16;
+	return (x >> n) | (x << (16 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_RotateLeft_16u16u_16u(Yep16u x, Yep16u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _rotwl(x, n);
+#elif defined(YEP_MICROSOFT_COMPILER)
+	return _rotl16(x, n);
+#else
+	n = n % 16;
+	return (x << n) | (x >> (16 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_RotateRight_32u32u_32u(Yep32u x, Yep32u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) | defined(YEP_INTEL_COMPILER)
+	return _rotr(x, n);
+#else
+	n = n % 32;
+	return (x >> n) | (x << (32 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_RotateLeft_32u32u_32u(Yep32u x, Yep32u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) | defined(YEP_INTEL_COMPILER)
+	return _rotl(x, n);
+#else
+	n = n % 32;
+	return (x << n) | (x >> (32 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateRight_64u32u_64u(Yep64u x, Yep32u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _lrotr(x, n);
+#if defined(YEP_MICROSOFT_COMPILER)
+	#if defined(YEP_X86_ABI)
+		if ((n & 32) != 0) {
+			/* Rotate by 32: exchange low and high parts */
+			const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
+			const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
+			x = yepBuiltin_CombineParts_32u32u_64u(xLo, xHi);
+		}
+		if ((n & 0x1F) == 0) {
+			return x;
+		} else {
+			const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
+			return __ull_rshift(x, n) | yepBuiltin_CombineParts_32u32u_64u(xLo << (-n), 0);
+		}
+	#else
+		return _rotr64(x, n);
+	#endif
+#else
+	n = n % 64;
+	return (x >> n) | (x << (64 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateLeft_64u32u_64u(Yep64u x, Yep32u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _lrotl(x, n);
+#if defined(YEP_MICROSOFT_COMPILER)
+	#if defined(YEP_X86_ABI)
+		if ((n & 32) != 0) {
+			/* Rotate by 32: exchange low and high parts */
+			const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
+			const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
+			x = yepBuiltin_CombineParts_32u32u_64u(xLo, xHi);
+		}
+		if ((n % 32) == 0) {
+			return x;
+		} else {
+			const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
+			return __ll_lshift(x, n) | Yep64u(xHi >> (-n));
+		}
+	#else
+		return _rotl64(x, n);
+	#endif
+#else
+	n = n % 64;
+	return (x << n) | (x >> (64 - n));
+#endif
+}
+
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Abs_32f_32f(Yep32f x) {
 #if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	return abs(x);
