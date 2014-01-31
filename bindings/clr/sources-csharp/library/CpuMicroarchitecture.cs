@@ -98,6 +98,12 @@ namespace Yeppp
 		public static readonly CpuMicroarchitecture CortexA9          = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x0007);
 		/// <summary>ARM Cortex-A15.</summary>
 		public static readonly CpuMicroarchitecture CortexA15         = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x0008);
+		/// <summary>ARM Cortex-A12.</summary>
+		public static readonly CpuMicroarchitecture CortexA12         = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x0009);
+		/// <summary>ARM Cortex-A53.</summary>
+		public static readonly CpuMicroarchitecture CortexA53         = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x000A);
+		/// <summary>ARM Cortex-A57.</summary>
+		public static readonly CpuMicroarchitecture CortexA57         = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.ARM.Id      << 16) + 0x000B);
 
 		/// <summary>Qualcomm Scorpion.</summary>
 		public static readonly CpuMicroarchitecture Scorpion          = new CpuMicroarchitecture((CpuArchitecture.ARM.Id << 24) + (CpuVendor.Qualcomm.Id << 16) + 0x0001);
