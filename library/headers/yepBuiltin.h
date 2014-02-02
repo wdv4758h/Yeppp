@@ -80,6 +80,94 @@ YEP_NATIVE_FUNCTION static YEP_INLINE YepSize yepBuiltin_GetPointerMisalignment(
 	return YepSize(pointer) % alignment;
 }
 
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_16u(const Yep16u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_16u(const Yep16u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_16s(const Yep16s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_16s(const Yep16s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 2) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_32u(const Yep32u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_32u(const Yep32u* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_32s(const Yep32s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_32s(const Yep32s* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_32f(const Yep32f* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_32f(const Yep32f* pointer) {
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_64u(const Yep64u* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) == 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_64u(const Yep64u* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) != 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_64s(const Yep64s* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) == 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_64s(const Yep64s* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) != 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsAlignedPointer_64f(const Yep64f* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) == 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) == 0;
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsMisalignedPointer_64f(const Yep64f* pointer) {
+#if defined(YEP_WINDOWS_OS) && defined(YEP_X86_ABI)
+	return yepBuiltin_GetPointerMisalignment(pointer, 4) != 0;
+#else
+	return yepBuiltin_GetPointerMisalignment(pointer, 8) != 0;
+#endif
+}
+
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_CombineParts_32u32u_64u(Yep32u hi, Yep32u lo) {
 	return (Yep64u(hi) << 32) | Yep64u(lo);
 }
@@ -201,9 +289,9 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_ByteSwap_16u_16u(Yep16u 
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_ByteSwap_32u_32u(Yep32u n) {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_LINUX)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return __builtin_bswap32(n);
-#elif defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)
+#elif defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	return _byteswap_ulong(n);
 #elif defined(YEP_NVIDIA_COMPILER)
 	return __byte_perm(n, n, 0x3210);
@@ -213,9 +301,9 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_ByteSwap_32u_32u(Yep32u 
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_ByteSwap_64u_64u(Yep64u n) {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_LINUX)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return __builtin_bswap64(n);
-#elif defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)
+#elif defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	return _byteswap_uint64(n);
 #else
 	const Yep32u nLo = yepBuiltin_GetLowPart_64u_32u(n);
@@ -226,14 +314,122 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_ByteSwap_64u_64u(Yep64u 
 #endif
 }
 
-YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Abs_32f_32f(Yep32f x) {
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep8u yepBuiltin_RotateRight_8u8u_8u(Yep8u x, Yep8u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
+	return _rotr8(x, n);
+#else
+	n = n % 8;
+	return (x >> n) | (x << (8 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep8u yepBuiltin_RotateLeft_8u8u_8u(Yep8u x, Yep8u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
+	return _rotl8(x, n);
+#else
+	n = n % 8;
+	return (x << n) | (x >> (8 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_RotateRight_16u16u_16u(Yep16u x, Yep16u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _rotwr(x, n);
+#elif defined(YEP_MICROSOFT_COMPILER)
+	return _rotr16(x, n);
+#else
+	n = n % 16;
+	return (x >> n) | (x << (16 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep16u yepBuiltin_RotateLeft_16u16u_16u(Yep16u x, Yep16u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _rotwl(x, n);
+#elif defined(YEP_MICROSOFT_COMPILER)
+	return _rotl16(x, n);
+#else
+	n = n % 16;
+	return (x << n) | (x >> (16 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_RotateRight_32u32u_32u(Yep32u x, Yep32u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) | defined(YEP_INTEL_COMPILER)
+	return _rotr(x, n);
+#else
+	n = n % 32;
+	return (x >> n) | (x << (32 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_RotateLeft_32u32u_32u(Yep32u x, Yep32u n) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) | defined(YEP_INTEL_COMPILER)
+	return _rotl(x, n);
+#else
+	n = n % 32;
+	return (x << n) | (x >> (32 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateRight_64u32u_64u(Yep64u x, Yep32u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _lrotr(x, n);
 #if defined(YEP_MICROSOFT_COMPILER)
+	#if defined(YEP_X86_ABI)
+		if ((n & 32) != 0) {
+			/* Rotate by 32: exchange low and high parts */
+			const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
+			const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
+			x = yepBuiltin_CombineParts_32u32u_64u(xLo, xHi);
+		}
+		if ((n & 0x1F) == 0) {
+			return x;
+		} else {
+			const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
+			return __ull_rshift(x, n) | yepBuiltin_CombineParts_32u32u_64u(xLo << (-n), 0);
+		}
+	#else
+		return _rotr64(x, n);
+	#endif
+#else
+	n = n % 64;
+	return (x >> n) | (x << (64 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateLeft_64u32u_64u(Yep64u x, Yep32u n) {
+#if defined(YEP_INTEL_COMPILER)
+	return _lrotl(x, n);
+#if defined(YEP_MICROSOFT_COMPILER)
+	#if defined(YEP_X86_ABI)
+		if ((n & 32) != 0) {
+			/* Rotate by 32: exchange low and high parts */
+			const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
+			const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
+			x = yepBuiltin_CombineParts_32u32u_64u(xLo, xHi);
+		}
+		if ((n % 32) == 0) {
+			return x;
+		} else {
+			const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
+			return __ll_lshift(x, n) | Yep64u(xHi >> (-n));
+		}
+	#else
+		return _rotl64(x, n);
+	#endif
+#else
+	n = n % 64;
+	return (x << n) | (x >> (64 - n));
+#endif
+}
+
+YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Abs_32f_32f(Yep32f x) {
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	return abs(x);
-#elif defined(YEP_INTEL_COMPILER)
-	return fabsf(x);
 #elif defined(YEP_ARM_COMPILER)
 	return __fabsf(x);
-#elif defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return __builtin_fabsf(x);
 #elif defined(YEP_NVIDIA_COMPILER)
 	return fabsf(x);
@@ -243,13 +439,11 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_Abs_32f_32f(Yep32f x) {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_Abs_64f_64f(Yep64f x) {
-#if defined(YEP_MICROSOFT_COMPILER)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER)
 	return abs(x);
-#elif defined(YEP_INTEL_COMPILER)
-	return fabs(x);
 #elif defined(YEP_ARM_COMPILER)
 	return __fabs(x);
-#elif defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER)
+#elif defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return __builtin_fabs(x);
 #elif defined(YEP_NVIDIA_COMPILER)
 	return fabs(x);
@@ -561,7 +755,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE YepBoolean yepBuiltin_IsNaN_32f(Yep32f n) 
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_PositiveInfinity_32f() {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_NVIDIA_COMPILER)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_NVIDIA_COMPILER)
 	return __builtin_inff();
 #else
 	const static Yep64f one = 1.0f;
@@ -571,7 +765,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_PositiveInfinity_32f() {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_PositiveInfinity_64f() {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_NVIDIA_COMPILER)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_NVIDIA_COMPILER)
 	return __builtin_inf();
 #else
 	const static Yep64f one = 1.0;
@@ -589,7 +783,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_NegativeInfinity_64f() {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_NaN_32f() {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_NVIDIA_COMPILER)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_NVIDIA_COMPILER)
 	return __builtin_nanf("");
 #else
 	const static Yep32f zero = 0.0f;
@@ -598,7 +792,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32f yepBuiltin_NaN_32f() {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_NaN_64f() {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_NVIDIA_COMPILER)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER) || defined(YEP_NVIDIA_COMPILER)
 	return __builtin_nan("");
 #else
 	const static Yep64f zero = 0.0;
@@ -607,9 +801,9 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_NaN_64f() {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Nlz_64u_32u(Yep64u x) {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_UNIX)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return __builtin_clzl(x);
-#elif (defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)) && (defined(YEP_IA64_ABI) || defined(YEP_X64_ABI))
+#elif (defined(YEP_MSVC_COMPATIBLE_COMPILER)) && (defined(YEP_IA64_ABI) || defined(YEP_X64_ABI))
 	if (x == 0ull) {
 		return 64u;
 	} else {
@@ -617,7 +811,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Nlz_64u_32u(Yep64u x) {
 		_BitScanReverse64(&bitPosition, x);
 		return 63u - bitPosition;
 	}
-#elif (defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS)) && defined(YEP_X86_CPU)
+#elif (defined(YEP_MSVC_COMPATIBLE_COMPILER)) && defined(YEP_X86_CPU)
 	const Yep32u xHi = yepBuiltin_GetHighPart_64u_32u(x);
 	const Yep32u xLo = yepBuiltin_GetLowPart_64u_32u(x);
 	unsigned long bitPositionHi, bitPositionLo;
@@ -640,9 +834,9 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Nlz_64u_32u(Yep64u x) {
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_Nlz_32u_32u(Yep64u x) {
-#if defined(YEP_GNU_COMPILER) || defined(YEP_CLANG_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_UNIX)
+#if defined(YEP_GCC_COMPATIBLE_COMPILER)
 	return __builtin_clz(x);
-#elif (defined(YEP_MICROSOFT_COMPILER) || defined(YEP_INTEL_COMPILER_FOR_WINDOWS))
+#elif (defined(YEP_MSVC_COMPATIBLE_COMPILER))
 	if (x == 0ull) {
 		return 64u;
 	} else {
@@ -1566,7 +1760,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64f yepBuiltin_ArcSin_64f_64f(Yep64f x)
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Multiply_32u32u_64u(Yep32u x, Yep32u y) {
-#if defined(YEP_MICROSOFT_COMPILER) && defined(YEP_X86_CPU)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && defined(YEP_X86_CPU)
 	return __emulu(x, y);
 #else
 	return Yep64u(x) * Yep64u(y);
@@ -1574,7 +1768,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_Multiply_32u32u_64u(Yep3
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64s yepBuiltin_Multiply_32s32s_64s(Yep32s x, Yep32s y) {
-#if defined(YEP_MICROSOFT_COMPILER) && defined(YEP_X86_CPU)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && defined(YEP_X86_CPU)
 	return __emul(x, y);
 #else
 	return Yep64s(x) * Yep64s(y);
@@ -1582,7 +1776,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64s yepBuiltin_Multiply_32s32s_64s(Yep3
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_MultiplyHigh_32u32u_32u(Yep32u x, Yep32u y) {
-#if defined(YEP_MICROSOFT_COMPILER) && defined(YEP_X86_CPU)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && defined(YEP_X86_CPU)
 	return Yep32u(__emulu(x, y) >> 32);
 #elif defined(YEP_NVIDIA_COMPILER)
 	return __umulhi(x, y);
@@ -1592,7 +1786,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_MultiplyHigh_32u32u_32u(
 }
 
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep32s yepBuiltin_MultiplyHigh_32s32s_32s(Yep32s x, Yep32s y) {
-#if defined(YEP_MICROSOFT_COMPILER) && defined(YEP_X86_CPU)
+#if defined(YEP_MSVC_COMPATIBLE_COMPILER) && defined(YEP_X86_CPU)
 	return Yep32s(Yep32u(Yep64u(__emul(x, y)) >> 32));
 #elif defined(YEP_NVIDIA_COMPILER)
 	return __mulhi(x, y);

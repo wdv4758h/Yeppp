@@ -335,8 +335,14 @@ ConstantString _yepLibrary_GetCpuMicroarchitectureDescription(YepCpuMicroarchite
 			YEP_RETURN_CONSTANT_STRING("Cortex-A8");
 		case YepCpuMicroarchitectureCortexA9:
 			YEP_RETURN_CONSTANT_STRING("Cortex-A9");
+		case YepCpuMicroarchitectureCortexA12:
+			YEP_RETURN_CONSTANT_STRING("Cortex-A12");
 		case YepCpuMicroarchitectureCortexA15:
 			YEP_RETURN_CONSTANT_STRING("Cortex-A15");
+		case YepCpuMicroarchitectureCortexA53:
+			YEP_RETURN_CONSTANT_STRING("Cortex-A53");
+		case YepCpuMicroarchitectureCortexA57:
+			YEP_RETURN_CONSTANT_STRING("Cortex-A57");
 		case YepCpuMicroarchitectureScorpion:
 			YEP_RETURN_CONSTANT_STRING("Scorpion");
 		case YepCpuMicroarchitectureKrait:
@@ -462,8 +468,14 @@ static ConstantString _yepLibrary_GetCpuMicroarchitectureID(YepCpuMicroarchitect
 			YEP_RETURN_CONSTANT_STRING("CortexA8");
 		case YepCpuMicroarchitectureCortexA9:
 			YEP_RETURN_CONSTANT_STRING("CortexA9");
+		case YepCpuMicroarchitectureCortexA12:
+			YEP_RETURN_CONSTANT_STRING("CortexA12");
 		case YepCpuMicroarchitectureCortexA15:
 			YEP_RETURN_CONSTANT_STRING("CortexA15");
+		case YepCpuMicroarchitectureCortexA53:
+			YEP_RETURN_CONSTANT_STRING("CortexA53");
+		case YepCpuMicroarchitectureCortexA57:
+			YEP_RETURN_CONSTANT_STRING("CortexA57");
 		case YepCpuMicroarchitectureScorpion:
 			YEP_RETURN_CONSTANT_STRING("Scorpion");
 		case YepCpuMicroarchitectureKrait:

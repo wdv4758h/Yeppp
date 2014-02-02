@@ -1,0 +1,136 @@
+<Project DefaultTargets="Package" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+		<BuildDirectory>binaries</BuildDirectory>
+	</PropertyGroup>
+	<ItemGroup>
+		<LoaderSource Include="sources-csharp\library\Loader.cs" />
+		<LoaderSource Include="sources-csharp\library\NativeLibrary.cs" />
+		<LoaderSource Include="sources-csharp\**\Bind.cs" />
+		<LoaderSource Include="sources-csharp\**\Unbind.cs" />
+		<LibrarySource Include="sources-csharp\**\*.cs" Exclude="@(LoaderSource);sources-csharp\VersionInfo.cs" />
+		<LibrarySource Include="sources-csharp\VersionInfo.cs" />
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="..\..\binaries\windows\amd64\yeppp.dll.deflate">
+			<LogicalName>windows/x86_64/yeppp.dll</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\windows\x86\yeppp.dll.deflate">
+			<LogicalName>windows/x86/yeppp.dll</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\linux\x86_64\libyeppp.so.deflate">
+			<LogicalName>linux/x86_64/libyeppp.so</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\linux\i586\libyeppp.so.deflate">
+			<LogicalName>linux/x86/libyeppp.so</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\linux\armel\libyeppp.so.deflate">
+			<LogicalName>linux/armel/libyeppp.so</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\linux\armhf\libyeppp.so.deflate">
+			<LogicalName>linux/armhf/libyeppp.so</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\macosx\x86\libyeppp.dylib.deflate">
+			<LogicalName>osx/x86/libyeppp.dylib</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+		<EmbeddedResource Include="..\..\binaries\macosx\x86_64\libyeppp.dylib.deflate">
+			<LogicalName>osx/x86_64/libyeppp.dylib</LogicalName>
+			<Access>private</Access>
+		</EmbeddedResource>
+	</ItemGroup>
+	<Target Name="CreateDirectories">
+		<MakeDir Directories="$(BuildDirectory)"/>
+	</Target>
+	<Target Name="CompileLibraryVersion" DependsOnTargets="CreateDirectories" Inputs="sources-csharp/Version.rc" Outputs="$(BuildDirectory)\LibraryVersion.res">
+		<Exec Command="rc.exe /I../../library/headers /Fobinaries/LibraryVersion.res sources-csharp/Version.rc" />
+	</Target>
+	<Target Name="CompileBundleVersion" DependsOnTargets="CreateDirectories" Inputs="sources-csharp/Version.rc" Outputs="$(BuildDirectory)\BundleVersion.res">
+		<Exec Command="rc.exe /DYEP_BUNDLE_LIBRARY /I../../library/headers /Fobinaries/BundleVersion.res sources-csharp/Version.rc" />
+	</Target>
+	<Target Name="GenerateVersionInfo" DependsOnTargets="CreateDirectories" Inputs="../../library/headers/yepVersion.h" Outputs="sources-csharp/VersionInfo.cs">
+		<ReadLinesFromFile File="../../library/headers/yepVersion.h" >
+			<Output TaskParameter="Lines" ItemName="VersionLines"/>
+		</ReadLinesFromFile>
+		<ItemGroup>
+			<DefineMajorVersionItem Include="%(VersionLines.Identity)" Condition="'@(VersionLines->Contains(&quot;#define YEP_MAJOR_VERSION &quot;))'=='True'" />
+			<DefineMinorVersionItem Include="%(VersionLines.Identity)" Condition="'@(VersionLines->Contains(&quot;#define YEP_MINOR_VERSION &quot;))'=='True'" />
+			<DefinePatchVersionItem Include="%(VersionLines.Identity)" Condition="'@(VersionLines->Contains(&quot;#define YEP_PATCH_VERSION &quot;))'=='True'" />
+			<DefineBuildVersionItem Include="%(VersionLines.Identity)" Condition="'@(VersionLines->Contains(&quot;#define YEP_BUILD_VERSION &quot;))'=='True'" />
+			<DefineReleaseNameItem Include="%(VersionLines.Identity)" Condition="'@(VersionLines->Contains(&quot;#define YEP_RELEASE_NAME &quot;))'=='True'" />
+		</ItemGroup>
+		<PropertyGroup>
+			<DefineMajorVersionString>%(DefineMajorVersionItem.Identity)</DefineMajorVersionString>
+			<DefineMinorVersionString>%(DefineMinorVersionItem.Identity)</DefineMinorVersionString>
+			<DefinePatchVersionString>%(DefinePatchVersionItem.Identity)</DefinePatchVersionString>
+			<DefineBuildVersionString>%(DefineBuildVersionItem.Identity)</DefineBuildVersionString>
+			<DefineReleaseNameString>%(DefineReleaseNameItem.Identity)</DefineReleaseNameString>
+			<MajorVersion>$(DefineMajorVersionString.Replace("#define YEP_MAJOR_VERSION ",""))</MajorVersion>
+			<MinorVersion>$(DefineMinorVersionString.Replace("#define YEP_MINOR_VERSION ",""))</MinorVersion>
+			<PatchVersion>$(DefinePatchVersionString.Replace("#define YEP_PATCH_VERSION ",""))</PatchVersion>
+			<BuildVersion>$(DefineBuildVersionString.Replace("#define YEP_BUILD_VERSION ",""))</BuildVersion>
+			<ReleaseNameString>$(DefineReleaseNameString.Replace("#define YEP_RELEASE_NAME ",""))</ReleaseNameString>
+			<ReleaseName>$(ReleaseNameString.Replace('"',""))</ReleaseName>
+		</PropertyGroup>
+		<ItemGroup>
+			<VersionInfo Include="// Auto-generated by $(MSBuildProjectFile)"></VersionInfo>
+			<VersionInfo Include="[assembly: System.Reflection.AssemblyVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion).$(BuildVersion)&quot;)]"></VersionInfo>
+			<VersionInfo Include="[assembly: System.Reflection.AssemblyFileVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion).$(BuildVersion)&quot;)]"></VersionInfo>
+			<VersionInfo Include="#pragma warning disable 1607"></VersionInfo>
+			<VersionInfo Include="[assembly: System.Reflection.AssemblyInformationalVersion(&quot;$(MajorVersion).$(MinorVersion).$(PatchVersion) $(ReleaseName)&quot;)]"></VersionInfo>
+		</ItemGroup>
+		<WriteLinesToFile File="sources-csharp/VersionInfo.cs" Overwrite="True" Lines="@(VersionInfo)" />
+	</Target>
+	<Target Name="BuildLibrary" DependsOnTargets="GenerateVersionInfo;CompileLibraryVersion">
+		<Csc Sources="@(LibrarySource)"
+			Win32Resource="$(BuildDirectory)\LibraryVersion.res"
+			TargetType="library"
+			OutputAssembly="$(BuildDirectory)\Yeppp.CLR.dll"
+			DocumentationFile="$(BuildDirectory)\Yeppp.CLR.xml"
+			PdbFile="$(BuildDirectory)\Yeppp.CLR.pdb"
+			NoLogo="true"
+			DisabledWarnings="1607"
+			EmitDebugInformation="true"
+			AllowUnsafeBlocks="true"
+			Optimize="true">
+		</Csc>
+		<Exec Command="InjectModuleInitializer.exe /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.dll" />
+	</Target>
+	<Target Name="BuildBundle" DependsOnTargets="GenerateVersionInfo;CompileBundleVersion">
+		<Csc Sources="@(LibrarySource);@(LoaderSource)"
+			Win32Resource="$(BuildDirectory)\BundleVersion.res"
+			Resources="@(EmbeddedResource)"
+			TargetType="library"
+			DefineConstants="YEP_BUNDLE_LIBRARY"
+			OutputAssembly="$(BuildDirectory)\Yeppp.CLR.Bundle.dll"
+			DocumentationFile="$(BuildDirectory)\Yeppp.CLR.Bundle.xml"
+			PdbFile="$(BuildDirectory)\Yeppp.CLR.Bundle.pdb"
+			NoLogo="true"
+			DisabledWarnings="1607"
+			EmitDebugInformation="true"
+			AllowUnsafeBlocks="true"
+			Optimize="true">
+		</Csc>
+		<Exec Command="InjectModuleInitializer.exe /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
+	</Target>
+	<Target Name="Clean">
+		<Delete Files="$(BuildDirectory)\LibraryVersion.res;$(BuildDirectory)\BundleVersion.res;sources-csharp/VersionInfo.cs;$(BuildDirectory)\Yeppp.CLR.dll;$(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
+	</Target>
+	<Target Name="Rebuild" DependsOnTargets="Clean;BuildBundle;BuildLibrary" />
+	<Target Name="Package" DependsOnTargets="Rebuild">
+		<Copy SourceFiles="$(BuildDirectory)\Yeppp.CLR.dll"
+			DestinationFolder="..\..\binaries\clr-2.0\" />
+		<Copy SourceFiles="$(BuildDirectory)\Yeppp.CLR.xml"
+			DestinationFolder="..\..\binaries\clr-2.0\" />
+		<Copy SourceFiles="$(BuildDirectory)\Yeppp.CLR.Bundle.dll"
+			DestinationFolder="..\..\binaries\clr-2.0\" />
+		<Copy SourceFiles="$(BuildDirectory)\Yeppp.CLR.Bundle.xml"
+			DestinationFolder="..\..\binaries\clr-2.0\" />
+	</Target>
+</Project>

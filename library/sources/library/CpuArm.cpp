@@ -600,8 +600,17 @@
 					case 0xC09:
 						microarchitecture = YepCpuMicroarchitectureCortexA9;
 						break;
+					case 0xC0C:
+						microarchitecture = YepCpuMicroarchitectureCortexA12;
+						break;
 					case 0xC0F:
 						microarchitecture = YepCpuMicroarchitectureCortexA15;
+						break;
+					case 0xD03:
+						microarchitecture = YepCpuMicroarchitectureCortexA53;
+						break;
+					case 0xD07:
+						microarchitecture = YepCpuMicroarchitectureCortexA57;
 						break;
 					default:
 						if ((cpuInfo.cpuPart & 0xF00) == 0x700) {
@@ -662,6 +671,7 @@
 						microarchitecture = YepCpuMicroarchitecturePJ1;
 						break;
 					case 0x581: // Armada 510
+					case 0x584: // Armada XP
 						microarchitecture = YepCpuMicroarchitecturePJ4;
 						break;
 				}

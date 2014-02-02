@@ -34,9 +34,19 @@ IF "%INCLUDE%" == "" (
 	SET "INCLUDE=%YEPROOT%library\headers;%INCLUDE%"
 )
 IF "%LIB%" == "" (
-	SET "LIB=%YEPROOT%library\headers"
+	SET "LIB=%YEPBINARIES%"
 ) ELSE (
-	SET "LIB=%YEPROOT%library\headers;%LIB%"
+	SET "LIB=%YEPBINARIES%;%LIB%"
+)
+IF "%CPATH%" == "" (
+	SET "CPATH=%YEPROOT%library\headers"
+) ELSE (
+	SET "CPATH=%YEPROOT%library\headers;%CPATH%"
+)
+IF "%LIBRARY_PATH%" == "" (
+	SET "LIBRARY_PATH=%YEPBINARIES%"
+) ELSE (
+	SET "LIBRARY_PATH=%YEPBINARIES%;%LIBRARY_PATH%"
 )
 IF EXIST "%YEPROOT%binaries\android\yeppp\Android.mk" (
 	IF "%NDK_MODULE_PATH%" == "" (

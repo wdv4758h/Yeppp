@@ -1,5 +1,7 @@
 import peachpy.codegen
 import yeppp.codegen
+import os
+import errno
 import marshal
 
 class Module:
@@ -11,7 +13,8 @@ class Module:
 		self.module_initialization_generator = None
 		self.java_class_generator = None
 		self.fortran_module_generator = None
-		self.csharp_namespace_generator = None
+		self.csharp_init_generator = None
+		self.csharp_release_generator = None
 		self.assembly_cache = {
 			peachpy.c.ABI('x64-ms')       : dict(),
 			peachpy.c.ABI('x64-sysv')     : dict(),
@@ -63,6 +66,30 @@ class Module:
 		self.java_class_generator.add_line("Library.load();")
 		self.java_class_generator.dedent()
 		self.java_class_generator.add_line("}")
+
+		self.csharp_bind_generator = peachpy.codegen.CodeGenerator()
+		self.csharp_bind_generator.add_c_comment(yeppp.License.source_license)
+		self.csharp_bind_generator.add_line()
+		self.csharp_bind_generator.add_line("namespace Yeppp")
+		self.csharp_bind_generator.add_line("{").indent()
+		self.csharp_bind_generator.add_line()
+		self.csharp_bind_generator.add_line("public partial class %s" % self.name)
+		self.csharp_bind_generator.add_line("{").indent()
+		self.csharp_bind_generator.add_line()
+		self.csharp_bind_generator.add_line("internal static void Bind(NativeLibrary nativeLibrary)")
+		self.csharp_bind_generator.add_line("{").indent()
+		
+		self.csharp_unbind_generator = peachpy.codegen.CodeGenerator()
+		self.csharp_unbind_generator.add_c_comment(yeppp.License.source_license)
+		self.csharp_unbind_generator.add_line()
+		self.csharp_unbind_generator.add_line("namespace Yeppp")
+		self.csharp_unbind_generator.add_line("{").indent()
+		self.csharp_unbind_generator.add_line()
+		self.csharp_unbind_generator.add_line("public partial class %s" % self.name)
+		self.csharp_unbind_generator.add_line("{").indent()
+		self.csharp_unbind_generator.add_line()
+		self.csharp_unbind_generator.add_line("internal static void Unbind()")
+		self.csharp_unbind_generator.add_line("{").indent()
 		
 		self.fortran_module_generator = peachpy.codegen.CodeGenerator(use_tabs = False)
 		self.fortran_module_generator.add_fortran90_comment(yeppp.License.source_license)
@@ -99,6 +126,20 @@ class Module:
 			self.java_class_generator.add_line("}")
 			self.java_class_generator.add_line()
 
+			self.csharp_bind_generator.dedent().add_line("}") # Init method scope
+			self.csharp_bind_generator.add_line()
+			self.csharp_bind_generator.dedent().add_line("}") # Class scope
+			self.csharp_bind_generator.add_line()
+			self.csharp_bind_generator.dedent().add_line("}") # Namespace scope
+			self.csharp_bind_generator.add_line()
+
+			self.csharp_unbind_generator.dedent().add_line("}") # Init method scope
+			self.csharp_unbind_generator.add_line()
+			self.csharp_unbind_generator.dedent().add_line("}") # Class scope
+			self.csharp_unbind_generator.add_line()
+			self.csharp_unbind_generator.dedent().add_line("}") # Namespace scope
+			self.csharp_unbind_generator.add_line()
+
 			self.fortran_module_generator.dedent()
 			self.fortran_module_generator.add_line("END INTERFACE")
 			self.fortran_module_generator.dedent()
@@ -111,6 +152,12 @@ class Module:
 		
 			with open("library/headers/yep{0}.h".format(self.name), "w+") as public_header_file:
 				public_header_file.write(self.public_header_generator.get_code())
+		
+			with open("bindings/clr/sources-csharp/{0}/Bind.cs".format(self.name.lower()), "w+") as csharp_init_file:
+				csharp_init_file.write(self.csharp_bind_generator.get_code())
+		
+			with open("bindings/clr/sources-csharp/{0}/Unbind.cs".format(self.name.lower()), "w+") as csharp_release_file:
+				csharp_release_file.write(self.csharp_unbind_generator.get_code())
 		
 			with open("bindings/java/sources-java/info/yeppp/{0}.java".format(self.name), "w+") as java_class_file:
 				java_class_file.write(self.java_class_generator.get_code())
@@ -148,6 +195,8 @@ class Function:
 		self.function_generator.module_header_generator = self.module.module_header_generator
 		self.function_generator.module_initialization_generator = self.module.module_initialization_generator
 		self.function_generator.java_class_generator = self.module.java_class_generator
+		self.function_generator.csharp_bind_generator = self.module.csharp_bind_generator
+		self.function_generator.csharp_unbind_generator = self.module.csharp_unbind_generator
 		self.function_generator.fortran_module_generator = self.module.fortran_module_generator
 		self.function_generator.generate_group_prolog(str(self.module), self.module.description, self.name, self.description, yeppp.License.header_license, yeppp.License.source_license)
 		return self

@@ -14,7 +14,7 @@ You will need the following tools to build Yeppp!
 *   CMake 2.8 or later and [Ninja](http://martine.github.io/ninja/) build system.
 *   Python 2.7 to regenerate auto-generated parts of Yeppp! If you use sources from Yeppp! release, you can skip this requirement as Yeppp! releases already include all auto-generated files. 
 *   Java Development Kit version 1.6 or later. You can use either Open JDK or Oracle JDK. JDK is required even if you don't plan to develop with Yeppp! in Java.
-*   Microsoft Visual Studio 2008, 2010, or 2012 to build Windows binaries.
+*   Microsoft Visual Studio 2008, 2010, 2012, or 2013 to build Windows binaries.
 *   Intel C/C++ Compilers to build Linux/Xeon Phi binaries. We use 13.1.3 version.
 *   GNU C/C++ Compilers to build Linux binaries (except Xeon Phi). We use 4.8 version.
 *   Clang C/C++ Compilers to build Mac OS X binaries. We use trunk 3.4 version.
