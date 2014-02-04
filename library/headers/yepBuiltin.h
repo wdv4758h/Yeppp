@@ -375,7 +375,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep32u yepBuiltin_RotateLeft_32u32u_32u(Ye
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateRight_64u32u_64u(Yep64u x, Yep32u n) {
 #if defined(YEP_INTEL_COMPILER)
 	return _lrotr(x, n);
-#if defined(YEP_MICROSOFT_COMPILER)
+#elif defined(YEP_MICROSOFT_COMPILER)
 	#if defined(YEP_X86_ABI)
 		if ((n & 32) != 0) {
 			/* Rotate by 32: exchange low and high parts */
@@ -401,7 +401,7 @@ YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateRight_64u32u_64u(Y
 YEP_NATIVE_FUNCTION static YEP_INLINE Yep64u yepBuiltin_RotateLeft_64u32u_64u(Yep64u x, Yep32u n) {
 #if defined(YEP_INTEL_COMPILER)
 	return _lrotl(x, n);
-#if defined(YEP_MICROSOFT_COMPILER)
+#elif defined(YEP_MICROSOFT_COMPILER)
 	#if defined(YEP_X86_ABI)
 		if ((n & 32) != 0) {
 			/* Rotate by 32: exchange low and high parts */
