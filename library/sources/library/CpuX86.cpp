@@ -219,6 +219,16 @@
 							case 0x46: // Haswell with eDRAM
 								microarchitecture = YepCpuMicroarchitectureHaswell;
 								break;
+							case 0x3D:
+								microarchitecture = YepCpuMicroarchitectureBroadwell;
+								break;
+							case 0x4E:
+								microarchitecture = YepCpuMicroarchitectureSkyLake;
+								break;
+							case 0x5A: // Moorefield
+							case 0x5D: // Denverton
+								microarchitecture = YepCpuMicroarchitectureAirmont;
+								break;
 						}
 						break;
 					case 0x0B:
