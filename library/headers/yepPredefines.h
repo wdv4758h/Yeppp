@@ -842,6 +842,42 @@
 	#define YEP_COMPILER_SUPPORTS_HEXADECIMAL_FLOATING_POINT_CONSTANTS
 #endif
 
+#if defined(_OPENMP)
+	#define YEP_COMPILER_SUPPORTS_OPENMP 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP 0
+#endif
+#if defined(_OPENMP) && (_OPENMP >= 199810)
+	#define YEP_COMPILER_SUPPORTS_OPENMP_1_0 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP_1_0 0
+#endif
+#if defined(_OPENMP) && (_OPENMP >= 200203)
+	#define YEP_COMPILER_SUPPORTS_OPENMP_2_0 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP_2_0 0
+#endif
+#if defined(_OPENMP) && (_OPENMP >= 200505)
+	#define YEP_COMPILER_SUPPORTS_OPENMP_2_5 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP_2_5 0
+#endif
+#if defined(_OPENMP) && (_OPENMP >= 200805)
+	#define YEP_COMPILER_SUPPORTS_OPENMP_3_0 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP_3_0 0
+#endif
+#if defined(_OPENMP) && (_OPENMP >= 201107)
+	#define YEP_COMPILER_SUPPORTS_OPENMP_3_1 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP_3_1 0
+#endif
+#if defined(_OPENMP) && (_OPENMP >= 201307)
+	#define YEP_COMPILER_SUPPORTS_OPENMP_4_0 1
+#else
+	#define YEP_COMPILER_SUPPORTS_OPENMP_4_0 0
+#endif
+
 #if defined(__cplusplus) && (__cplusplus >= 201103L)
 	#define YEP_NULL_POINTER nullptr
 #else
