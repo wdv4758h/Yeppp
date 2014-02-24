@@ -316,6 +316,12 @@ extern "C" {
 		YepCpuMicroarchitectureHaswell       = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x000E,
 		/** @brief Intel Silvermont microarchitecture (22 nm out-of-order Atom). */
 		YepCpuMicroarchitectureSilvermont    = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x000F,
+		/** @brief Intel Broadwell microarchitecture. */
+		YepCpuMicroarchitectureBroadwell     = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0010,
+		/** @brief Intel Sky Lake microarchitecture. */
+		YepCpuMicroarchitectureSkyLake       = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0011,
+		/** @brief Intel Airmont microarchitecture. */
+		YepCpuMicroarchitectureAirmont       = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0012,
 
 		/** @brief Intel Knights Ferry HPC boards. */
 		YepCpuMicroarchitectureKnightsFerry  = (YepCpuArchitectureX86 << 24) + (YepCpuVendorIntel << 16) + 0x0100,
