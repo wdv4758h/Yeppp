@@ -308,12 +308,12 @@ public class Library {
 					if ((sunDataModel != null) && (sunDataModel.equals("64"))) {
 						return "/windows/amd64/yeppp.dll";
 					} else {
-						return "/windows/i586/yeppp.dll";
+						return "/windows/x86/yeppp.dll";
 					}
 				} else if (osArch.equals("amd64")) {
 					final String sunDataModel = System.getProperty("sun.arch.data.model");
 					if ((sunDataModel != null) && (sunDataModel.equals("32"))) {
-						return "/windows/i586/yeppp.dll";
+						return "/windows/x86/yeppp.dll";
 					} else {
 						return "/windows/amd64/yeppp.dll";
 					}
