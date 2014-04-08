@@ -1,7 +1,9 @@
 <Project DefaultTargets="Package" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
 		<TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-		<BuildDirectory>binaries</BuildDirectory>
+		<BuildDirectory>$(MSBuildProjectDirectory)\binaries</BuildDirectory>
+		<YepppDirectory>$(MSBuildProjectDirectory)\..\..</YepppDirectory>
+		<SNKeyFile>$(YepppDirectory)\..\yeppp.snk</SNKeyFile>
 	</PropertyGroup>
 	<ItemGroup>
 		<LoaderSource Include="sources-csharp\library\Loader.cs" />
@@ -91,6 +93,8 @@
 		<Csc Sources="@(LibrarySource)"
 			Win32Resource="$(BuildDirectory)\LibraryVersion.res"
 			TargetType="library"
+			KeyFile="$(SNKeyFile)"
+			DelaySign="true"
 			OutputAssembly="$(BuildDirectory)\Yeppp.CLR.dll"
 			DocumentationFile="$(BuildDirectory)\Yeppp.CLR.xml"
 			PdbFile="$(BuildDirectory)\Yeppp.CLR.pdb"
@@ -100,13 +104,15 @@
 			AllowUnsafeBlocks="true"
 			Optimize="true">
 		</Csc>
-		<Exec Command="InjectModuleInitializer.exe /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.dll" />
+		<Exec Command="InjectModuleInitializer.exe /k:$(SNKeyFile) /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.dll" />
 	</Target>
 	<Target Name="BuildBundle" DependsOnTargets="GenerateVersionInfo;CompileBundleVersion">
 		<Csc Sources="@(LibrarySource);@(LoaderSource)"
 			Win32Resource="$(BuildDirectory)\BundleVersion.res"
 			Resources="@(EmbeddedResource)"
 			TargetType="library"
+			KeyFile="$(SNKeyFile)"
+			DelaySign="true"
 			DefineConstants="YEP_BUNDLE_LIBRARY"
 			OutputAssembly="$(BuildDirectory)\Yeppp.CLR.Bundle.dll"
 			DocumentationFile="$(BuildDirectory)\Yeppp.CLR.Bundle.xml"
@@ -117,7 +123,7 @@
 			AllowUnsafeBlocks="true"
 			Optimize="true">
 		</Csc>
-		<Exec Command="InjectModuleInitializer.exe /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
+		<Exec Command="InjectModuleInitializer.exe /k:$(SNKeyFile) /moduleinitializer:Yeppp.Library::Init $(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
 	</Target>
 	<Target Name="Clean">
 		<Delete Files="$(BuildDirectory)\LibraryVersion.res;$(BuildDirectory)\BundleVersion.res;sources-csharp/VersionInfo.cs;$(BuildDirectory)\Yeppp.CLR.dll;$(BuildDirectory)\Yeppp.CLR.Bundle.dll" />
