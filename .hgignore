@@ -1,0 +1,41 @@
+syntax: glob
+
+# System files
+.DS_Store
+*.swp
+*.orig
+
+# Ninja files
+.ninja_deps
+.ninja_log
+build.ninja
+
+# Generated library sources
+library/headers/yepCore.h
+library/headers/yepMath.h
+library/sources/core/*
+library/sources/math/*
+
+# Generated bindings
+bindings/fortran/sources/*.f90
+bindings/java/sources-java/info/yeppp/Core.java
+bindings/java/sources-java/info/yeppp/Math.java
+bindings/java/sources-jni/core/*.c
+bindings/java/sources-jni/math/*.c
+bindings/clr/sources-csharp/core/*.cs
+bindings/clr/sources-csharp/math/*.cs
+
+# Generated unit tests
+unit-tests/sources/core/
+unit-tests/sources/math/
+
+# Other auto-generated files
+bindings/clr/sources-csharp/VersionInfo.cs
+
+# Pre-compiled Python files
+*.pyc
+
+# Build objects
+library/build/
+bindings/java/build/
+bindings/clr/build/

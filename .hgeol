@@ -1,0 +1,13 @@
+[patterns]
+*.sh = LF
+*.cmd = CRLF
+*.bat = CRLF
+*.csproj = CRLF
+*.ico = BIN
+*.bmp = BIN
+*.png = BIN
+** = native
+
+[repository]
+native = LF
+
