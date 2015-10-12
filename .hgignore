@@ -32,8 +32,10 @@ unit-tests/sources/math/
 # Other auto-generated files
 bindings/clr/sources-csharp/VersionInfo.cs
 
-# Pre-compiled Python files
+# Pre-compiled objects
 *.pyc
+*.obj
+*.o
 
 # Build objects
 library/build/
