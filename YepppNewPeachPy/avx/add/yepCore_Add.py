@@ -1,6 +1,8 @@
 from peachpy.x86_64 import *
 from peachpy import *
 from add_generic import add_generic
+# Load functions in the unit test not here  TODO
+
 
 ##
 # Adds vectors of 8-bit signed integers
@@ -16,7 +18,7 @@ with Function("yepCore_Add_V8sV8s_V8s",
         int32_t) as Add_V8sV8s_V8s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V8sV8s_V8s = Add_V8sV8s_V8s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V8sV8s_V8s = Add_V8sV8s_V8s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -33,7 +35,7 @@ with Function("yepCore_Add_V8sV8s_V16s",
         int32_t) as Add_V8sV8s_V16s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V8sV8s_V16s = Add_V8sV8s_V16s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V8sV8s_V16s = Add_V8sV8s_V16s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -50,7 +52,7 @@ with Function("yepCore_Add_V8uV8u_V16u",
         int32_t) as Add_V8uV8u_V16u:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V8uV8u_V16u = Add_V8uV8u_V16u.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V8uV8u_V16u = Add_V8uV8u_V16u.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -67,7 +69,7 @@ with Function("yepCore_Add_V16sV16s_V16s",
         int32_t) as Add_V16sV16s_V16s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V16sV16s_V16s = Add_V16sV16s_V16s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V16sV16s_V16s = Add_V16sV16s_V16s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -84,7 +86,7 @@ with Function("yepCore_Add_V16sV16s_V32s",
         int32_t) as Add_V16sV16s_V32s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V16sV16s_V32s = Add_V16sV16s_V32s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V16sV16s_V32s = Add_V16sV16s_V32s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -101,7 +103,7 @@ with Function("yepCore_Add_V16uV16u_V32u",
         int32_t) as Add_V16uV16u_V32u:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V16uV16u_V32u = Add_V16uV16u_V32u.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V16uV16u_V32u = Add_V16uV16u_V32u.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -118,7 +120,7 @@ with Function("yepCore_Add_V32sV32s_V32s",
         int32_t) as Add_V32sV32s_V32s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V32sV32s_V32s = Add_V32sV32s_V32s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V32sV32s_V32s = Add_V32sV32s_V32s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -135,7 +137,7 @@ with Function("yepCore_Add_V32sV32s_V64s",
         int64_t) as Add_V32sV32s_V64s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V32sV32s_V64s = Add_V32sV32s_V64s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V32sV32s_V64s = Add_V32sV32s_V64s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -152,7 +154,7 @@ with Function("yepCore_Add_V32uV32u_V64u",
         int64_t) as Add_V32uV32u_V64u:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V32uV32u_V64u = Add_V32uV32u_V64u.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V32uV32u_V64u = Add_V32uV32u_V64u.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -169,7 +171,7 @@ with Function("yepCore_Add_V64sV64s_V64s",
         int64_t) as Add_V64sV64s_V64s:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V64sV64s_V64s = Add_V64sV64s_V64s.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V64sV64s_V64s = Add_V64sV64s_V64s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -186,7 +188,7 @@ with Function("yepCore_Add_V32fV32f_V32f",
         int32_t) as Add_V32fV32f_V32f:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V32fV32f_V32f = Add_V32fV32f_V32f.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V32fV32f_V32f = Add_V32fV32f_V32f.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
 ##
@@ -203,5 +205,5 @@ with Function("yepCore_Add_V64fV64f_V64f",
         int64_t) as Add_V64fV64f_V64f:
     add_generic(arg_x, arg_y, arg_z, arg_n)
 
-yepCore_Add_V64fV64f_V64f = Add_V64fV64f_V64f.finalize(peachpy.x86_64.abi.detect()).encode().load()
+yepCore_Add_V64fV64f_V64f = Add_V64fV64f_V64f.finalize(peachpy.x86_64.abi.detect()).encode()
 

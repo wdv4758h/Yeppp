@@ -29,9 +29,9 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     ret_ok = Label()
     ret_null_pointer = Label()
     ret_misaligned_pointer = Label()
-##
-# Load args and test for null pointers and invalid arguments
-# make python enum for erro codes
+
+    # Load args and test for null pointers and invalid arguments
+    # make python enum for erro codes
     reg_length = GeneralPurposeRegister64() # Keeps track of how many elements are left to process
     LOAD.ARGUMENT(reg_length, arg_n)
     TEST(reg_length, reg_length)
@@ -50,7 +50,7 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     LOAD.ARGUMENT(reg_z_addr, arg_z)
     TEST(reg_z_addr, reg_z_addr)
     JZ(ret_null_pointer)
-    TEST(reg_z_addr, 8 * arg_z.ctype.base.size - 1)
+    TEST(reg_z_addr, arg_z.ctype.base.size - 1)
     JNZ(ret_misaligned_pointer)
 
     unroll_factor = 6
@@ -62,10 +62,10 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
 
     align_loop = Loop() # Loop to align one of the addresses
     scalar_loop = Loop() # Processes remainder elements (if n % 8 != 0)
-##
-# Aligning on Z addr
-# Process elements 1 at a time until x is aligned
-    TEST(reg_z_addr, 8 * arg_z.ctype.base.size - 1)
+
+    # Aligning on Z addr
+    # Process elements 1 at a time until x is aligned on YMMRegister.size boundary
+    TEST(reg_z_addr, YMMRegister.size - 1)
     JZ(align_loop.end)
     with align_loop:
         scalar_mov_instr_select(reg_x_scalar, [reg_x_addr], arg_x.ctype.base, arg_z.ctype.base)
@@ -77,10 +77,10 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
         ADD(reg_z_addr, arg_z.ctype.base.size)
         SUB(reg_length, 1)
         JZ(ret_ok)
-        TEST(reg_z_addr, 8 * arg_z.ctype.base.size - 1)
+        TEST(reg_z_addr, YMMRegister.size - 1)
         JNZ(align_loop.begin)
-##
-# Batch loop prologue
+
+    # Batch loop prologue
     instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()]
     instruction_offsets = (0, 1, 1, 1)
     for i in range(unroll_factor):

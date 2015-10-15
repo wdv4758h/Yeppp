@@ -51,14 +51,14 @@ with Function("yepCore_Multiply_V16sV16s_V32s",
     CMP(reg_length, XMMRegister.size / arg_x.ctype.base.size) # Not enough elements to use SIMD instructions
     JB(vector_loop.end)
     with vector_loop:
-        VMOVDQU(vector_x_reg, [reg_x_addr])
-        VMOVDQU(vector_y_reg, [reg_y_addr])
+        VMOVDQA(vector_x_reg, [reg_x_addr])
+        VMOVDQA(vector_y_reg, [reg_y_addr])
         VPMULLW(vector_low_res, vector_x_reg, vector_y_reg)
         VPMULHW(vector_high_res, vector_x_reg, vector_y_reg)
         VPUNPCKHWD(vector_x_reg, vector_low_res, vector_high_res)
         VPUNPCKLWD(vector_y_reg, vector_low_res, vector_high_res)
-        VMOVDQU([reg_z_addr], vector_x_reg)
-        VMOVDQU([reg_z_addr + XMMRegister.size], vector_y_reg)
+        VMOVDQA([reg_z_addr], vector_x_reg)
+        VMOVDQA([reg_z_addr + XMMRegister.size], vector_y_reg)
         ADD(reg_x_addr, XMMRegister.size)
         ADD(reg_y_addr, XMMRegister.size)
         ADD(reg_z_addr, 2 * XMMRegister.size)
