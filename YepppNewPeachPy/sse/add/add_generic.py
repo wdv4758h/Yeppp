@@ -1,51 +1,64 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from pipeline import software_pipelined_loop
-from instruction_maps import *
-from YepStatus import YepStatus
+from sse_add_instruction_maps import *
+from common.pipeline import software_pipelined_loop
+from common.YepStatus import YepStatus
+
 # Write AVX 512 and SSE2 versions of the addition kernels.
 # Complex conjugate multiplication and pairwise complex of vectors
 # Tutorial for peachpy assembly
 
 def scalar_mov_instr_select(reg, addr, input_type, output_type):
+    """
+    Selects the correct move instruction depending on operand type.
+    Chooses SX / ZX instructions if necessary
+    """
     if input_type.size == output_type.size:
         return scalar_move_map[input_type](reg, addr)
     else: # Must sign-extend on the move, TODO map this
         return MOVSX(reg, addr)
 
 def packed_mov_instr_select(reg, addr, input_type, output_type):
+    """
+    Selects the correct move instruction for packed unaligned operands.
+    Chooses SX / ZX instructions if necessary
+    """
     if input_type.size == output_type.size:
         return packed_unaligned_move_map[input_type](reg, addr)
     else:
         return packed_movsx_map[(input_type, output_type)](reg, addr)
 
 def add_generic(arg_x, arg_y, arg_z, arg_n):
+    """
+    Uses sse_add_instruction_maps to execute the addition
+    kernel on any type operand
+    """
 
     ret_ok = Label()
     ret_null_pointer = Label()
     ret_misaligned_pointer = Label()
-##
-# Load args and test for null pointers and invalid arguments
-# make python enum for erro codes
+
+    # Load args and test for null pointers and invalid arguments
     reg_length = GeneralPurposeRegister64() # Keeps track of how many elements are left to process
     LOAD.ARGUMENT(reg_length, arg_n)
     TEST(reg_length, reg_length)
     JZ(ret_ok) # Check there is at least 1 element to process
+
     reg_x_addr = GeneralPurposeRegister64()
     LOAD.ARGUMENT(reg_x_addr, arg_x)
-    TEST(reg_x_addr, reg_x_addr)
+    TEST(reg_x_addr, reg_x_addr) # Make sure arg_x is not null
     JZ(ret_null_pointer)
 
     reg_y_addr = GeneralPurposeRegister64()
     LOAD.ARGUMENT(reg_y_addr, arg_y)
-    TEST(reg_y_addr, reg_y_addr)
+    TEST(reg_y_addr, reg_y_addr) # Make sure arg_y is not null
     JZ(ret_null_pointer)
 
     reg_z_addr = GeneralPurposeRegister64()
     LOAD.ARGUMENT(reg_z_addr, arg_z)
     TEST(reg_z_addr, reg_z_addr)
     JZ(ret_null_pointer)
-    TEST(reg_z_addr, arg_z.ctype.base.size - 1)
+    TEST(reg_z_addr, arg_z.ctype.base.size - 1) # Make sure arg_z is aligned
     JNZ(ret_misaligned_pointer)
 
     unroll_factor = 6
