@@ -70,9 +70,9 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
 
     align_loop = Loop() # Loop to align one of the addresses
     scalar_loop = Loop() # Processes remainder elements (if n % 8 != 0)
-##
-# Aligning on Z addr
-# Process elements 1 at a time until x is aligned
+
+    # Aligning on Z addr
+    # Process elements 1 at a time until x is aligned
     TEST(reg_z_addr, XMMRegister.size - 1)
     JZ(align_loop.end)
     with align_loop:
@@ -87,8 +87,8 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
         JZ(ret_ok)
         TEST(reg_z_addr, XMMRegister.size - 1)
         JNZ(align_loop.begin)
-##
-# Batch loop prologue
+
+    # Batch loop prologue
     instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()]
     instruction_offsets = (0, 1, 1, 1)
     for i in range(unroll_factor):
