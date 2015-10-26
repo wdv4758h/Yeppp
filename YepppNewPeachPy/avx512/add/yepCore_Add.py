@@ -8,7 +8,7 @@ arg_z = Argument(ptr(Yep32f), name="zPointer")
 arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32fV32f_V32f",
         (arg_x, arg_y, arg_z, arg_n),
-        int32_t, target=uarch.default + isa.avx512f + isa.avx512bw) as yepCore_Add_V32fV32f_V32f:
+        int32_t, target=uarch.default + isa.avx512f + isa.avx512bw) as Add_V32fV32f_V32f:
 
     ret_ok = Label()
     ret_null_pointer = Label()
@@ -43,20 +43,20 @@ with Function("yepCore_Add_V32fV32f_V32f",
     scalar_x = XMMRegister()
     scalar_y = XMMRegister()
 
-    TEST(reg_z_addr, ZMMRegister.size - 1)
-    JZ(align_loop.end)
-    with align_loop:
-        VMOVSS(scalar_x, [reg_x_addr])
-        VMOVSS(scalar_y, [reg_y_addr])
-        VADDSS(scalar_x, scalar_x, scalar_y)
-        VMOVSS([reg_z_addr], scalar_x)
-        ADD(reg_x_addr, 4)
-        ADD(reg_y_addr, 4)
-        ADD(reg_z_addr, 4)
-        SUB(reg_length, 1)
-        JZ(ret_ok)
-        TEST(reg_z_addr, ZMMRegister.size - 1)
-        JNZ(align_loop.begin)
+    # TEST(reg_z_addr, ZMMRegister.size - 1)
+    # JZ(align_loop.end)
+    # with align_loop:
+    #     VMOVSS(scalar_x, [reg_x_addr])
+    #     VMOVSS(scalar_y, [reg_y_addr])
+    #     VADDSS(scalar_x, scalar_x, scalar_y)
+    #     VMOVSS([reg_z_addr], scalar_x)
+    #     ADD(reg_x_addr, 4)
+    #     ADD(reg_y_addr, 4)
+    #     ADD(reg_z_addr, 4)
+    #     SUB(reg_length, 1)
+    #     JZ(ret_ok)
+    #     TEST(reg_z_addr, ZMMRegister.size - 1)
+    #     JNZ(align_loop.begin)
 
     vector_x = ZMMRegister()
     vector_y = ZMMRegister()
@@ -95,34 +95,4 @@ with Function("yepCore_Add_V32fV32f_V32f",
     with LABEL(ret_misaligned_pointer):
         RETURN(2)
 
-
-# if __name__ == "__main__":
-#     yepCore_Add_V32fV32f_V32f = yepCore_Add_V32fV32f_V32f.finalize(peachpy.x86_64.abi.detect()).encode().load()
-
-#     import numpy
-#     import ctypes
-
-#     n = 1024*1024*64
-#     reps = 10
-#     a = numpy.random.random([n]).astype(numpy.float32)
-#     b = numpy.random.random([n]).astype(numpy.float32)
-#     c = numpy.empty([n]).astype(numpy.float32)
-#     a_ptr = a.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-#     b_ptr = b.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-#     c_ptr = c.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-#     yepCore_Add_V32fV32f_V32f(a_ptr, b_ptr, c_ptr, n)
-
-#     print "Addition finished, checking for correctness"
-#     is_correct = True
-#     for i in range(n):
-#         if a[i] + b[i] != c[i]:
-#             is_correct = False
-#             print i
-#     if is_correct:
-#         print "Output is correct"
-#     else:
-#         print "There was an error"
-
-
-
-
+yepCore_Add_V32fV32f_V32f = Add_V32fV32f_V32f.finalize(peachpy.x86_64.abi.detect()).encode()
