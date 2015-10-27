@@ -29,7 +29,7 @@ class TestMultiplyIntegers(unittest2.TestCase):
         self.assertEqual(func(a_ptr, b_ptr, c_ptr, self.n), 0)
 
         for i in range(self.n):
-            self.assertEqual(a_tmp[i] * b_tmp[i], c[i])
+            self.assertEqual(a_tmp[i] * b_tmp[i], c[i], "Mismatch at index %d" % i)
 
     def test_multiply_V32sV32s_V64s(self):
         a_tmp = self.a.astype(numpy.int32)
@@ -43,7 +43,7 @@ class TestMultiplyIntegers(unittest2.TestCase):
         self.assertEqual(func(a_ptr, b_ptr, c_ptr, self.n), 0)
 
         for i in range(self.n):
-            self.assertEqual(a_tmp[i] * b_tmp[i], c[i])
+            self.assertEqual(a_tmp[i] * b_tmp[i], c[i], "Mismatch at index %d" % i)
 
 class TestMultiplyFloats(unittest2.TestCase):
 
