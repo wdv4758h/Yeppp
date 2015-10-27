@@ -68,7 +68,17 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
     CMP(reg_length, vec_reg_size / arg_x.ctype.base.size) # Not enough elements to use SIMD instructions
     JB(vector_loop.end)
     with vector_loop:
-        if arg_x.ctype.base == Yep16s and arg_z.ctype.base == Yep32s: # Multiplication requires unpacking the low and high results
+        if arg_x.ctype.base in [Yep16s, Yep32s, Yep64s] and arg_x.ctype.base == arg_z.ctype.base: # We are only going to keep the lower bits
+            packed_aligned_move_map[arg_x.ctype.base](vector_x_reg, [reg_x_addr])
+            packed_aligned_move_map[arg_y.ctype.base](vector_y_reg, [reg_y_addr])
+            packed_low_mult_map[arg_x.ctype.base](vector_x_reg, vector_x_reg, vector_y_reg)
+            packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr], vector_x_reg)
+            ADD(reg_z_addr, vec_reg_size)
+            ADD(reg_x_addr, vec_reg_size)
+            ADD(reg_y_addr, vec_reg_size)
+            SUB(reg_length, vec_reg_size / arg_x.ctype.base.size)
+            CMP(reg_length, vec_reg_size / arg_x.ctype.base.size)
+        elif arg_x.ctype.base == Yep16s and arg_z.ctype.base == Yep32s: # Multiplication requires unpacking the low and high results
             packed_aligned_move_map[arg_x.ctype.base](vector_x_reg, [reg_x_addr])
             packed_aligned_move_map[arg_y.ctype.base](vector_y_reg, [reg_y_addr])
             packed_low_mult_map[arg_x.ctype.base](vector_low_res, vector_x_reg, vector_y_reg)
