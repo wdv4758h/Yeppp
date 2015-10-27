@@ -14,8 +14,8 @@ class TestMultiplyIntegers(unittest2.TestCase):
 
     def setUp(self):
         self.n = 1024 * 64
-        self.a = numpy.random.random_integers(-100,100,self.n)
-        self.b = numpy.random.random_integers(-1001,100,self.n)
+        self.a = numpy.random.random_integers(-10,10,self.n)
+        self.b = numpy.random.random_integers(-10,10,self.n)
 
     def test_multiply_V16sV16s_V32s(self):
         a_tmp = self.a.astype(numpy.int16)
@@ -27,6 +27,10 @@ class TestMultiplyIntegers(unittest2.TestCase):
 
         func = avx.multiply.yepCore_Multiply.yepCore_Multiply_V16sV16s_V32s.load()
         self.assertEqual(func(a_ptr, b_ptr, c_ptr, self.n), 0)
+
+        print a_tmp[:5]
+        print b_tmp[:5]
+        print c[:5]
 
         for i in range(self.n):
             self.assertEqual(a_tmp[i] * b_tmp[i], c[i], "Mismatch at index %d" % i)
