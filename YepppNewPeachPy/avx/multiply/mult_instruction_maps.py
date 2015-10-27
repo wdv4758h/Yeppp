@@ -14,6 +14,11 @@ packed_high_mult_map = {
     Yep16u      : VPMULHUW
 }
 
+packed_mult_map = {
+    Yep32f      : VMULPS,
+    Yep64f      : VMULPD
+}
+
 high_unpack_map = {
     (Yep16s, Yep32s)    : VPUNPCKHWD,
     (Yep32s, Yep64s)    : VPUNPCKHDQ
@@ -59,6 +64,19 @@ scalar_move_map = {
     Yep64u      : MOV,
     Yep32f      : VMOVSS,
     Yep64f      : VMOVSD
+}
+
+scalar_mult_map = {
+    Yep8s       : IMUL,
+    Yep8u       : IMUL,
+    Yep16s      : IMUL,
+    Yep16u      : IMUL,
+    Yep32s      : IMUL,
+    Yep32u      : IMUL,
+    Yep64s      : IMUL,
+    Yep64u      : IMUL,
+    Yep32f      : VMULSS,
+    Yep64f      : VMULSD
 }
 
 scalar_register_map = {
