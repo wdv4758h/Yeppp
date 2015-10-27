@@ -41,7 +41,7 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
     LOAD.ARGUMENT(reg_z_addr, arg_z)
     TEST(reg_z_addr, reg_z_addr)
     JZ(ret_null_pointer)
-    TEST(reg_z_addr, YMMRegister.size - 1) # TODO: fix this
+    TEST(reg_z_addr, YMMRegister.size - 1) # TODO: fix this in case we want Z aligned on XMMsize - 1
     JNZ(ret_misaligned_pointer)
 
     vector_loop = Loop()
@@ -51,16 +51,16 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
     # For certain data types (e.g 16s -> 32s multiplication)
     # where multiplication requires unpacking, XMM implementations are simpler
     # TODO: Implement everything with YMM and test speed vs. XMM implementations
-    if arg_x.ctype.base in [Yep32f, Yep64f]:
-        vector_x_reg = YMMRegister()
-        vector_y_reg = YMMRegister()
-        vec_reg_size = YMMRegister.size
-    else:
+    if arg_x.ctype.base in [Yep16s, Yep16u] and arg_z.ctype.base in [Yep32s, Yep32u]:
         vector_x_reg = XMMRegister()
         vector_y_reg = XMMRegister()
         vector_low_res = XMMRegister()
         vector_high_res = XMMRegister()
         vec_reg_size = XMMRegister.size
+    else:
+        vector_x_reg = YMMRegister()
+        vector_y_reg = YMMRegister()
+        vec_reg_size = YMMRegister.size
 
     scalar_x_reg = scalar_register_map[arg_z.ctype.base]()
     scalar_y_reg = scalar_register_map[arg_z.ctype.base]()
@@ -78,13 +78,13 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
             ADD(reg_y_addr, vec_reg_size)
             SUB(reg_length, vec_reg_size / arg_x.ctype.base.size)
             CMP(reg_length, vec_reg_size / arg_x.ctype.base.size)
-        elif arg_x.ctype.base == Yep16s and arg_z.ctype.base == Yep32s: # Multiplication requires unpacking the low and high results
+        elif arg_x.ctype.base in [Yep16s, Yep16u] and arg_z.ctype.base in [Yep32s, Yep32u]: # Multiplication requires unpacking the low and high results
             packed_aligned_move_map[arg_x.ctype.base](vector_x_reg, [reg_x_addr])
             packed_aligned_move_map[arg_y.ctype.base](vector_y_reg, [reg_y_addr])
             packed_low_mult_map[arg_x.ctype.base](vector_low_res, vector_x_reg, vector_y_reg)
             packed_high_mult_map[arg_x.ctype.base](vector_high_res, vector_x_reg, vector_y_reg)
-            high_unpack_map[(arg_x.ctype.base, arg_z.ctype.base)](vector_x_reg, vector_low_res, vector_high_res)
-            low_unpack_map[(arg_x.ctype.base, arg_z.ctype.base)](vector_y_reg, vector_low_res, vector_high_res)
+            VPUNPCKHWD(vector_x_reg, vector_low_res, vector_high_res)
+            VPUNPCKLWD(vector_y_reg, vector_low_res, vector_high_res)
             packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr], vector_y_reg)
             packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr + vec_reg_size], vector_x_reg)
             ADD(reg_z_addr, 2 * vec_reg_size)
@@ -92,10 +92,13 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
             ADD(reg_y_addr, vec_reg_size)
             SUB(reg_length, vec_reg_size / arg_x.ctype.base.size)
             CMP(reg_length, vec_reg_size / arg_x.ctype.base.size)
-        elif arg_x.ctype.base == Yep32s and arg_z.ctype.base == Yep64s: # Multiply from 32s -> 64s using the VMULDQ instr
+        elif arg_x.ctype.base in [Yep32s, Yep32u] and arg_z.ctype.base in [Yep64s, Yep64u]: # Multiply from 32s -> 64s using the VMULDQ instr
             VPMOVZXDQ(vector_x_reg, [reg_x_addr])
             VPMOVZXDQ(vector_y_reg, [reg_y_addr])
-            VPMULDQ(vector_x_reg, vector_x_reg, vector_y_reg)
+            if arg_x.ctype.base == Yep32s:
+                VPMULDQ(vector_x_reg, vector_x_reg, vector_y_reg)
+            else:
+                VPMULUDQ(vector_x_reg, vector_x_reg, vector_y_reg)
             VMOVDQA([reg_z_addr], vector_x_reg)
             ADD(reg_z_addr, vec_reg_size)
             ADD(reg_x_addr, vec_reg_size / 2)

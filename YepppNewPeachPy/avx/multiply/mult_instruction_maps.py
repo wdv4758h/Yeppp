@@ -21,6 +21,7 @@ packed_mult_map = {
 
 high_unpack_map = {
     (Yep16s, Yep32s)    : VPUNPCKHWD,
+    (Yep16u, Yep32u)    : VPUNPCKHWD,
     (Yep32s, Yep64s)    : VPUNPCKHDQ
 }
 

@@ -29,6 +29,19 @@ with Function("yepCore_Multiply_V16sV16s_V32s",
 yepCore_Multiply_V16sV16s_V32s = Multiply_V16sV16s_V32s.finalize(peachpy.x86_64.abi.detect()).encode()
 
 
+arg_x = Argument(ptr(const_Yep16u), name="xPointer")
+arg_y = Argument(ptr(const_Yep16u), name="yPointer")
+arg_z = Argument(ptr(Yep32u), name="zPointer")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Multiply_V16uV16u_V32u",
+        (arg_x, arg_y, arg_z, arg_n),
+        int64_t, target=uarch.default + isa.avx2) as Multiply_V16uV16u_V32u:
+    multiply_generic(arg_x, arg_y, arg_z, arg_n)
+
+yepCore_Multiply_V16uV16u_V32u = Multiply_V16uV16u_V32u.finalize(peachpy.x86_64.abi.detect()).encode()
+
+
 arg_x = Argument(ptr(const_Yep32s), name="xPointer")
 arg_y = Argument(ptr(const_Yep32s), name="yPointer")
 arg_z = Argument(ptr(Yep32s), name="zPointer")
@@ -53,6 +66,25 @@ with Function("yepCore_Multiply_V32sV32s_V64s",
     multiply_generic(arg_x, arg_y, arg_z, arg_n)
 
 yepCore_Multiply_V32sV32s_V64s = Multiply_V32sV32s_V64s.finalize(peachpy.x86_64.abi.detect()).encode()
+
+
+arg_x = Argument(ptr(const_Yep32u), name="xPointer")
+arg_y = Argument(ptr(const_Yep32u), name="yPointer")
+arg_z = Argument(ptr(Yep64u), name="zPointer")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Multiply_V32uV32u_V64u",
+        (arg_x, arg_y, arg_z, arg_n),
+        int64_t, target=uarch.default + isa.avx2) as Multiply_V32uV32u_V64u:
+    multiply_generic(arg_x, arg_y, arg_z, arg_n)
+
+yepCore_Multiply_V32uV32u_V64u = Multiply_V32uV32u_V64u.finalize(peachpy.x86_64.abi.detect()).encode()
+
+
+arg_x = Argument(ptr(const_Yep32f), name="xPointer")
+arg_y = Argument(ptr(const_Yep32f), name="yPointer")
+arg_z = Argument(ptr(Yep32f), name="zPointer")
+arg_n = Argument(YepSize, name="length")
 
 arg_x = Argument(ptr(const_Yep32f), name="xPointer")
 arg_y = Argument(ptr(const_Yep32f), name="yPointer")

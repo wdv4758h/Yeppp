@@ -3,6 +3,7 @@ import numpy
 from peachpy.x86_64 import *
 from peachpy import *
 import ctypes
+import sys
 
 sys.path.append("..")
 import avx
@@ -14,8 +15,8 @@ class TestMultiplyIntegers(unittest2.TestCase):
 
     def setUp(self):
         self.n = 1024 * 64
-        self.a = numpy.random.random_integers(-10,10,self.n)
-        self.b = numpy.random.random_integers(-10,10,self.n)
+        self.a = numpy.random.random_integers(1,10,self.n)
+        self.b = numpy.random.random_integers(1,10,self.n)
 
     def test_multiply_V16sV16s_V16s(self):
         a_tmp = self.a.astype(numpy.int16)
@@ -45,6 +46,20 @@ class TestMultiplyIntegers(unittest2.TestCase):
         for i in range(self.n):
             self.assertEqual(a_tmp[i] * b_tmp[i], c[i], "Mismatch at index %d" % i)
 
+    def test_multiply_V16uV16u_V32u(self):
+        a_tmp = self.a.astype(numpy.uint16)
+        b_tmp = self.b.astype(numpy.uint16)
+        c = numpy.empty([self.n]).astype(numpy.uint32)
+        a_ptr = a_tmp.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16))
+        b_ptr = b_tmp.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16))
+        c_ptr = c.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
+
+        func = avx.multiply.yepCore_Multiply.yepCore_Multiply_V16uV16u_V32u.load()
+        self.assertEqual(func(a_ptr, b_ptr, c_ptr, self.n), 0)
+
+        for i in range(self.n):
+            self.assertEqual(a_tmp[i] * b_tmp[i], c[i], "Mismatch at index %d" % i)
+
     def test_multiply_V32sV32s_V32s(self):
         a_tmp = self.a.astype(numpy.int32)
         b_tmp = self.b.astype(numpy.int32)
@@ -68,6 +83,20 @@ class TestMultiplyIntegers(unittest2.TestCase):
         c_ptr = c.ctypes.data_as(ctypes.POINTER(ctypes.c_int64))
 
         func = avx.multiply.yepCore_Multiply.yepCore_Multiply_V32sV32s_V64s.load()
+        self.assertEqual(func(a_ptr, b_ptr, c_ptr, self.n), 0)
+
+        for i in range(self.n):
+            self.assertEqual(a_tmp[i] * b_tmp[i], c[i], "Mismatch at index %d" % i)
+
+    def test_multiply_V32uV32u_V64u(self):
+        a_tmp = self.a.astype(numpy.uint32)
+        b_tmp = self.b.astype(numpy.uint32)
+        c = numpy.empty([self.n]).astype(numpy.uint64)
+        a_ptr = a_tmp.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
+        b_ptr = b_tmp.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
+        c_ptr = c.ctypes.data_as(ctypes.POINTER(ctypes.c_uint64))
+
+        func = avx.multiply.yepCore_Multiply.yepCore_Multiply_V32uV32u_V64u.load()
         self.assertEqual(func(a_ptr, b_ptr, c_ptr, self.n), 0)
 
         for i in range(self.n):
