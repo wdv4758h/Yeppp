@@ -311,34 +311,19 @@ def main():
         source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
         for source_filename in source_filenames:
             relative_source_filename = os.path.relpath(source_filename, root_dir)
-            if relative_source_filename == "library/sources/library/CpuX86.cpp" and config.platform.arch not in {"x86", "x86-64"}:
+            if relative_source_filename == "__init__.py":
                 continue
-            if relative_source_filename == "library/sources/library/CpuPPC.cpp" and config.platform.arch not in {"ppc", "ppc64"}:
-                continue
-            if relative_source_filename == "library/sources/library/CpuMips.cpp" and config.platform.arch not in {"mips"}:
-                continue
-            if relative_source_filename == "library/sources/library/CpuArm.cpp" and config.platform.arch != "arm":
-                continue
-            if relative_source_filename == "library/sources/library/CpuLinux.cpp" and config.platform.kernel != "linux":
-                continue
-            if relative_source_filename == "library/sources/library/Unsafe.cpp" and config.platform.kernel != "linux":
-                continue
-            if relative_source_filename == "library/sources/library/CpuWindows.cpp" and config.platform.kernel not in {"nt"}:
-                continue
-            if relative_source_filename == "library/sources/library/CpuMacOSX.cpp" and config.platform.kernel not in {"mach"}:
-                continue
-
-            if source_filename.endswith(".asm"):
-                library_object_files.append(config.compile_nasm(source_filename))
+            if source_filename.endswith(".py"):
+                library_object_files.append(config.compile_peachpy(source_filename))
             else:
                 library_object_files.append(config.compile_cxx(source_filename))
-    config.source_dir = jni_source_root
-    config.build_dir = jni_build_root
-    for (source_dir, source_subdir, filenames) in os.walk(os.path.join(root_dir, "bindings", "java", "sources-jni")):
-        source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), ["*.c"]), [])
-        source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
-        for source_filename in source_filenames:
-            library_object_files.append(config.compile_c(source_filename))
+    # config.source_dir = jni_source_root
+    # config.build_dir = jni_build_root
+    # for (source_dir, source_subdir, filenames) in os.walk(os.path.join(root_dir, "bindings", "java", "sources-jni")):
+    #     source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), ["*.c"]), [])
+    #     source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
+    #     for source_filename in source_filenames:
+    #         library_object_files.append(config.compile_c(source_filename))
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root

@@ -4,10 +4,6 @@ from instruction_maps.sse_add_instruction_maps import *
 from common.pipeline import software_pipelined_loop
 from common.YepStatus import YepStatus
 
-# Write AVX 512 and SSE2 versions of the addition kernels.
-# Complex conjugate multiplication and pairwise complex of vectors
-# Tutorial for peachpy assembly
-
 def scalar_mov_instr_select(reg, addr, input_type, output_type):
     """
     Selects the correct move instruction depending on operand type.
