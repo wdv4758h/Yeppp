@@ -132,7 +132,6 @@ class Configuration:
         self.writer = ninja_syntax.Writer(self.output)
         self.source_dir = None
         self.build_dir = None
-        self.header_dir = None
         self.platform = Platform(options.platform)
 
         root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -190,9 +189,7 @@ class Configuration:
             description="AR $descpath")
         self.writer.rule("nasm", "$nasm -o $out $nasmflags $in",
             description="NASM $descpath")
-        self.writer.rule("peachpy-obj", \
-                "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_$${Name}_$${uArch}_$${ISA}\"" \
-                " -emit-json-metadata $json_file -emit-c-header $header -o $out $in")
+        self.writer.rule("peachpy-obj", "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -o $out $in")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
@@ -215,9 +212,7 @@ class Configuration:
         variables = {
             "arch": arch,
             "abi": abi,
-            "image_format": image_format,
-            "header": os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + ".h",
-            "json_file": os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + ".json"
+            "image_format": image_format
         }
         self.writer.build(object_file, "peachpy-obj", source_file, variables=variables)
         return source_file
@@ -310,51 +305,31 @@ def main():
     library_object_files = []
     config.source_dir = library_source_root
     config.build_dir = library_build_root
-    config.header_dir = library_header_root
-    source_extensions = ["*.c", "*.cpp", "*.py"]
-    if config.platform.arch == "x86-64" and config.platform.abi == "sysv":
-        source_extensions += ["*.x64-sysv.asm"]
-    if config.platform.arch == "x86-64" and config.platform.abi == "ms":
-        source_extensions += ["*.x64-ms.asm"]
+    source_extensions = ["*.py"]
     for (source_dir, source_subdir, filenames) in os.walk(library_source_root):
         source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), source_extensions), [])
         source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
         for source_filename in source_filenames:
             relative_source_filename = os.path.relpath(source_filename, root_dir)
-            if relative_source_filename == "library/sources/library/CpuX86.cpp" and config.platform.arch not in {"x86", "x86-64"}:
+            if not os.path.basename(relative_source_filename).startswith("yepCore"):
                 continue
-            if relative_source_filename == "library/sources/library/CpuPPC.cpp" and config.platform.arch not in {"ppc", "ppc64"}:
-                continue
-            if relative_source_filename == "library/sources/library/CpuMips.cpp" and config.platform.arch not in {"mips"}:
-                continue
-            if relative_source_filename == "library/sources/library/CpuArm.cpp" and config.platform.arch != "arm":
-                continue
-            if relative_source_filename == "library/sources/library/CpuLinux.cpp" and config.platform.kernel != "linux":
-                continue
-            if relative_source_filename == "library/sources/library/Unsafe.cpp" and config.platform.kernel != "linux":
-                continue
-            if relative_source_filename == "library/sources/library/CpuWindows.cpp" and config.platform.kernel not in {"nt"}:
-                continue
-            if relative_source_filename == "library/sources/library/CpuMacOSX.cpp" and config.platform.kernel not in {"mach"}:
-                continue
-
-            if source_dir.endswith("core") and not source_filename.endswith("__init__.py") and source_filename.endswith(".py"):
+            if source_filename.endswith(".py"):
                 library_object_files.append(config.compile_peachpy(source_filename))
-            elif source_filename.endswith(".cpp"):
+            else:
                 library_object_files.append(config.compile_cxx(source_filename))
-    config.source_dir = jni_source_root
-    config.build_dir = jni_build_root
-    for (source_dir, source_subdir, filenames) in os.walk(os.path.join(root_dir, "bindings", "java", "sources-jni")):
-        source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), ["*.c"]), [])
-        source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
-        for source_filename in source_filenames:
-            library_object_files.append(config.compile_c(source_filename))
+    # config.source_dir = jni_source_root
+    # config.build_dir = jni_build_root
+    # for (source_dir, source_subdir, filenames) in os.walk(os.path.join(root_dir, "bindings", "java", "sources-jni")):
+    #     source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), ["*.c"]), [])
+    #     source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
+    #     for source_filename in source_filenames:
+    #         library_object_files.append(config.compile_c(source_filename))
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root
-    libyeppp = config.link_cxx_library(library_object_files, os.path.join(library_build_root, "libyeppp.dylib"))
-    binary_dir = os.path.join(root_dir, "binaries", config.platform.os, config.platform.arch)
-    config.extract_debug_symbols(libyeppp, os.path.join(binary_dir, "libyeppp.dylib"), os.path.join(binary_dir, "libyeppp.dylib.dSYM"))
+    # libyeppp = config.link_cxx_library(library_object_files, os.path.join(library_build_root, "libyeppp.dylib"))
+    # binary_dir = os.path.join(root_dir, "binaries", config.platform.os, config.platform.arch)
+    # config.extract_debug_symbols(libyeppp, os.path.join(binary_dir, "libyeppp.dylib"), os.path.join(binary_dir, "libyeppp.dylib.dSYM"))
 
 if __name__ == "__main__":
     sys.exit(main())
