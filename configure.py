@@ -191,7 +191,7 @@ class Configuration:
         self.writer.rule("nasm", "$nasm -o $out $nasmflags $in",
             description="NASM $descpath")
         self.writer.rule("peachpy-obj", \
-                "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_$${Name}_$${uArch}_$${ISA}\"" \
+                "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
                 " -emit-json-metadata $json_file -emit-c-header $header -o $out $in")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",

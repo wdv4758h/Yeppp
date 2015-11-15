@@ -2,8 +2,8 @@ import json
 import os
 from collections import defaultdict
 
-TABLE_HEADER = "YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s *YEP_RESTRICT, " \
-        "%s *YEP_RESTRICT, %s *YEP_RESTRICT, YepSize)> _dispatchTable_%s[] = {"
+TABLE_HEADER = "YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s YEP_RESTRICT, " \
+        "%s YEP_RESTRICT, %s YEP_RESTRICT, YepSize)> __dispatchTable_%s[] = {"
 IMPLEMENTATION_DESCRIPTION = "YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(%s, %s, %s, %s, %s, \"asm\", YEP_NULL_POINTER, YEP_NULL_POINTER)"
 filename = "library/sources/core/Dispatch_Tables.cpp"
 
@@ -55,7 +55,6 @@ def write_systemv_abi(func_metadata):
         f.write('    ')
         f.write(IMPLEMENTATION_DESCRIPTION % (func_metadata["name"], isa_extensions, \
                 ' | '.join(simd_extensions), ' | '.join(system_extensions), yep_target_arch))
-        f.write('\n')
 
 def generate_includes(src_dir):
     with open(filename, "w") as f:
@@ -63,7 +62,6 @@ def generate_includes(src_dir):
         for dir_path,subdirs,build_files in os.walk(src_dir):
             for build_file in build_files:
                 if build_file.endswith(".h"):
-                    print build_file
                     f.write("#include \"%s\"\n" % build_file)
 
 if __name__ == "__main__":
@@ -79,11 +77,16 @@ if __name__ == "__main__":
             function_dict[func_name].append(func_data)
     for func,data_list in function_dict.items():
         write_table_header(data_list[0])
-        for data in data_list:
+        for i,data in enumerate(data_list):
             if data["abi"] == "ms":
                 write_microsoft_abi(data)
             if data["abi"] == "SystemV x86-64 ABI":
                 write_systemv_abi(data)
+            if i != len(data_list) - 1:
+                with open(filename, "a") as f:
+                    f.write(",")
+            with open(filename, "a") as f:
+                f.write('\n')
         with open(filename, "a") as f:
             f.write("};")
             f.write("\n")
