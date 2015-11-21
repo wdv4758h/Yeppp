@@ -192,10 +192,16 @@ class Configuration:
             description="NASM $descpath")
         self.writer.rule("peachpy-obj", \
                 "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
-                " -emit-json-metadata $json_file -emit-c-header $header -o $out $in")
+                " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in")
+        self.writer.rule("generate-dispatch-table", \
+                "python codegen_dispatch_table.py -o $out $in")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
+
+    def generate_dispatch_table(self, json_files, source_file):
+        self.writer.build(source_file, "generate-dispatch-table", json_files)
+        return source_file
 
     def compile_peachpy(self, source_file, object_file=None):
         if object_file is None:
@@ -212,15 +218,17 @@ class Configuration:
         if self.platform.name not in platform_map:
             raise ValueError("PeachPy is not supported on %s platform" % self.platform.name)
         (arch, abi, image_format) = platform_map[self.platform.name]
+        json_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + ".json"
         variables = {
             "arch": arch,
             "abi": abi,
             "image_format": image_format,
             "header": source_file[:-3] + ".h",
-            "json_file": os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + ".json"
+            "json_file": json_file,
+            "object_file": object_file
         }
-        self.writer.build(object_file, "peachpy-obj", source_file, variables=variables)
-        return object_file
+        self.writer.build([object_file, json_file], "peachpy-obj", source_file, variables=variables)
+        return object_file, json_file
 
 
     def compile_nasm(self, source_file, object_file=None):
@@ -316,6 +324,7 @@ def main():
         source_extensions += ["*.x64-sysv.asm"]
     if config.platform.arch == "x86-64" and config.platform.abi == "ms":
         source_extensions += ["*.x64-ms.asm"]
+    json_metadata_files = []
     for (source_dir, source_subdir, filenames) in os.walk(library_source_root):
         source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), source_extensions), [])
         source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
@@ -339,7 +348,9 @@ def main():
                 continue
 
             if source_dir.endswith("core") and not source_filename.endswith("__init__.py") and source_filename.endswith(".py"):
-                library_object_files.append(config.compile_peachpy(source_filename))
+                object_file, json_file = config.compile_peachpy(source_filename)
+                json_metadata_files.append(json_file)
+                library_object_files.append(object_file)
             elif source_filename.endswith(".cpp"):
                 library_object_files.append(config.compile_cxx(source_filename))
     # config.source_dir = jni_source_root
@@ -349,6 +360,10 @@ def main():
     #     source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
     #     for source_filename in source_filenames:
     #         library_object_files.append(config.compile_c(source_filename))
+
+    # Generating Dispatch Tables
+    dispatch_table = config.generate_dispatch_table(json_metadata_files, os.path.join(library_build_root, "core/Dispatch_Table.cpp"))
+    library_object_files.append(config.compile_cxx(dispatch_table))
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root

@@ -1,4 +1,5 @@
 import json
+import argparse
 import os
 from collections import defaultdict
 
@@ -7,8 +8,7 @@ TABLE_HEADER = "extern \"C\" YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescri
 IMPLEMENTATION_DESCRIPTION = "YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(%s, %s, %s, %s, %s, \"asm\", YEP_NULL_POINTER, YEP_NULL_POINTER)"
 FUNCTION_POINTER_DECLARATION = "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{name})({0}) = YEP_NULL_POINTER;"
 DISPATCH_STUB = "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {name}({0}) {{ return _{name}({1}); }}"
-filename = "library/sources/core/Dispatch_Tables.cpp"
-f = open(filename, "w")
+f = None
 
 x86_64_SIMD_EXTENSIONS = {
     "Nehalem"       : ["YepX86SimdFeatureSSE", "YepX86SimdFeatureSSE2"],
@@ -51,26 +51,29 @@ def generate_includes(src_dir):
     for dir_path,subdirs,build_files in os.walk(src_dir):
         for build_file in build_files:
             if build_file.endswith(".h"):
-                f.write("#include \"%s\"\n" % build_file)
+                f.write("#include <core/%s>\n" % build_file)
 
 if __name__ == "__main__":
-    build_dir = "library/build/x86_64-osx/core"
+    parser = argparse.ArgumentParser(description="Generates Dispatch tables for Yeppp")
+    parser.add_argument("-o", dest="output", required=True, help="Output File name")
+    parser.add_argument("input", nargs="+")
+    options = parser.parse_args()
+    f = open(options.output, "w")
+
     generate_includes("library/sources/core")
-    json_files = filter(lambda f: f.endswith(".json"), os.listdir(build_dir))
+    json_files = options.input
     decoder = json.JSONDecoder()
     function_dict = defaultdict(list)
     for json_file in json_files:
-        metadata = decoder.decode(' '.join(open(os.path.join(build_dir, json_file), "r").readlines()))
-        for func_data in metadata:
-            func_name = func_data["name"]
-            function_dict[func_name].append(func_data)
+        with open(json_file) as json_f:
+            metadata = decoder.decode(json_f.read())
+            for func_data in metadata:
+                func_name = func_data["name"]
+                function_dict[func_name].append(func_data)
     for func,data_list in function_dict.items():
         write_table_header(data_list[0])
         for i,data in enumerate(data_list):
-            if data["abi"] == "ms":
-                write_microsoft_abi(data)
-            if data["abi"] == "SystemV x86-64 ABI":
-                write_systemv_abi(data)
+            write_systemv_abi(data)
             if i != len(data_list) - 1:
                 f.write(",")
             f.write('\n')
