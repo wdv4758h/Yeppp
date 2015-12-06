@@ -7,9 +7,6 @@
 
 import yeppp.module
 
-import yeppp.library.core.x86
-import yeppp.library.core.x64
-import yeppp.library.core.arm
 from yeppp.test import *
 
 def generate_add(module):
@@ -24,13 +21,6 @@ def generate_add(module):
 @param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a sum.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_AVX)
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VXus_VFPv3)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VXus_NEON)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VYus_NEON)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -54,91 +44,86 @@ return YepStatusOk;
 		function.generate("yepCore_Add_V32fV32f_V32f(x, y, sum, YepSize length)")
 		function.generate("yepCore_Add_V64fV64f_V64f(x, y, sum, YepSize length)")
 
-		function.java_documentation = """
-@brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
-"""
-		function.c_documentation = """
-@brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
-@param[in]	x	Pointer to the addend array of %(InputType0)s elements.
-@param[in]	y	The %(InputType1)s constant to be added.
-@param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
-@param[in]	length	Length of the arrays specified by @a x and @a sum.
-"""
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusSXus_VYus_SSE) 
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusSXus_VYus_AVX)
-		function.c_implementation = """
-while (length-- != 0) {
-	const Yep%(OutputType0)s x = *xPointer++;
-	const Yep%(OutputType0)s sum = x + y;
-	*sumPointer++ = sum;
-}
-return YepStatusOk;
-"""
-		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		function.generate("yepCore_Add_V8sS8s_V8s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V8sS8s_V16s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V8uS8u_V16u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V16sS16s_V16s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V16sS16s_V32s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V16uS16u_V32u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32sS32s_V32s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32uS32u_V64u(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32sS32s_V64s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V64sS64s_V64s(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V32fS32f_V32f(x, y, sum, YepSize length)")
-		function.generate("yepCore_Add_V64fS64f_V64f(x, y, sum, YepSize length)")
+		# function.java_documentation = """
+# @brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
+# """
+		# function.c_documentation = """
+# @brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
+# @param[in]	x	Pointer to the addend array of %(InputType0)s elements.
+# @param[in]	y	The %(InputType1)s constant to be added.
+# @param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
+# @param[in]	length	Length of the arrays specified by @a x and @a sum.
+# """
+		# function.c_implementation = """
+# while (length-- != 0) {
+	# const Yep%(OutputType0)s x = *xPointer++;
+	# const Yep%(OutputType0)s sum = x + y;
+	# *sumPointer++ = sum;
+# }
+# return YepStatusOk;
+# """
+		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		# function.generate("yepCore_Add_V8sS8s_V8s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V8sS8s_V16s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V8uS8u_V16u(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V16sS16s_V16s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V16sS16s_V32s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V16uS16u_V32u(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V32sS32s_V32s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V32uS32u_V64u(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V32sS32s_V64s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V64sS64s_V64s(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V32fS32f_V32f(x, y, sum, YepSize length)")
+		# function.generate("yepCore_Add_V64fS64f_V64f(x, y, sum, YepSize length)")
 
-		function.java_documentation = """
-@brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
-"""
-		function.c_documentation = """
-@brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
-@param[in,out]	x	Pointer to the first addend array of %(InputType0)s elements.
-@param[in]	y	Pointer to the second addend array of %(InputType1)s elements.
-@param[in]	length	Length of the arrays specified by @a x and @a y.
-"""
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	const Yep%(OutputType0)s y = *yPointer++;
-	x += y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Add_IV8sV8s_IV8s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV16sV16s_IV16s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32sV32s_IV32s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64sV64s_IV64s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32fV32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64fV64f_IV64f(x, y, YepSize length)")
+		# function.java_documentation = """
+# @brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+# """
+		# function.c_documentation = """
+# @brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+# @param[in,out]	x	Pointer to the first addend array of %(InputType0)s elements.
+# @param[in]	y	Pointer to the second addend array of %(InputType1)s elements.
+# @param[in]	length	Length of the arrays specified by @a x and @a y.
+# """
+		# function.c_implementation = """
+# while (length-- != 0) {
+	# Yep%(OutputType0)s x = *xPointer;
+	# const Yep%(OutputType0)s y = *yPointer++;
+	# x += y;
+	# *xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+		# function.generate("yepCore_Add_IV8sV8s_IV8s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV16sV16s_IV16s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV32sV32s_IV32s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV64sV64s_IV64s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV32fV32f_IV32f(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV64fV64f_IV64f(x, y, YepSize length)")
 
-		function.java_documentation = """
-@brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
-"""
-		function.c_documentation = """
-@brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
-@param[in,out]	x	Pointer to the addend array of %(InputType0)s elements.
-@param[in]	y	The %(InputType1)s constant to be added.
-@param[in]	length	Length of the array specified by @a x.
-"""
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	x += y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.generate("yepCore_Add_IV8sS8s_IV8s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV16sS16s_IV16s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32sS32s_IV32s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64sS64s_IV64s(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV32fS32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Add_IV64fS64f_IV64f(x, y, YepSize length)")
+		# function.java_documentation = """
+# @brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
+# """
+		# function.c_documentation = """
+# @brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
+# @param[in,out]	x	Pointer to the addend array of %(InputType0)s elements.
+# @param[in]	y	The %(InputType1)s constant to be added.
+# @param[in]	length	Length of the array specified by @a x.
+# """
+		# function.c_implementation = """
+# while (length-- != 0) {
+	# Yep%(OutputType0)s x = *xPointer;
+	# x += y;
+	# *xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+		# function.generate("yepCore_Add_IV8sS8s_IV8s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV16sS16s_IV16s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV32sS32s_IV32s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV64sS64s_IV64s(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV32fS32f_IV32f(x, y, YepSize length)")
+		# function.generate("yepCore_Add_IV64fS64f_IV64f(x, y, YepSize length)")
 
 def generate_subtract(module):
 	with yeppp.module.Function(module, 'Subtract', 'Subtraction') as function:
@@ -152,13 +137,6 @@ def generate_subtract(module):
 @param[out]	diff	Pointer to the difference array of %(OutputType0)s elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a diff.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_SSE) 
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSub_VXusVXus_VYus_AVX)
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf) 
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VXus_VFPv3)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VXus_NEON)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VYus_NEON)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -181,7 +159,7 @@ return YepStatusOk;
 		function.generate("yepCore_Subtract_V64sV64s_V64s(x, y, diff, YepSize length)")
 		function.generate("yepCore_Subtract_V32fV32f_V32f(x, y, diff, YepSize length)")
 		function.generate("yepCore_Subtract_V64fV64f_V64f(x, y, diff, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Subtracts corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
 """
@@ -192,7 +170,6 @@ return YepStatusOk;
 @param[out]	diff	Pointer to the difference array of %(OutputType0)s elements.
 @param[in]	length	Length of the arrays specified by @a x and @a diff.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -225,7 +202,6 @@ return YepStatusOk;
 @param[out]	diff	Pointer to the difference array of %(OutputType0)s elements.
 @param[in]	length	Length of the arrays specified by @a y and @a diff.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s y = *yPointer++;
@@ -257,7 +233,6 @@ return YepStatusOk;
 @param[in]	y	Pointer to the subtrahend array of %(InputType1)s elements.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -283,7 +258,6 @@ return YepStatusOk;
 @param[in,out]	y	Pointer to the subtrahend array of %(InputType1)s elements.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -309,7 +283,6 @@ return YepStatusOk;
 @param[in]	y	The %(InputType1)s constant to be subtracted.
 @param[in]	length	Length of the array specified by @a x.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -334,7 +307,6 @@ return YepStatusOk;
 @param[in,out]	y	Pointer to the subtrahend array of %(InputType1)s elements.
 @param[in]	length	Length of the array specified by @a y.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s y = *yPointer;
@@ -361,8 +333,6 @@ def generate_negate(module):
 @param[out]	y	Pointer to the %(OutputType0)s array to store negated elements.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = []
-#		function.assembly_implementations = [yeppp.library.core.x86.Negate_Vf_Vf_implementation]
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -377,7 +347,7 @@ return YepStatusOk;
 		function.generate("yepCore_Negate_V64s_V64s(x, y, YepSize length)")
 		function.generate("yepCore_Negate_V32f_V32f(x, y, YepSize length)")
 		function.generate("yepCore_Negate_V64f_V64f(x, y, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Negates elements in %(InputType0)s array and writes the results to the same array.
 """
@@ -386,7 +356,6 @@ return YepStatusOk;
 @param[in,out]	v	Pointer to the array of %(InputType0)s elements to be negated.
 @param[in]	length	Length of the array specified by @a v.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s v = *vPointer;
@@ -401,7 +370,7 @@ return YepStatusOk;
 		function.generate("yepCore_Negate_IV64s_IV64s(v, YepSize length)")
 		function.generate("yepCore_Negate_IV32f_IV32f(v, YepSize length)")
 		function.generate("yepCore_Negate_IV64f_IV64f(v, YepSize length)")
-	
+
 def generate_multiply(module):
 	with yeppp.module.Function(module, 'Multiply', 'Multiplication') as function:
 		function.java_documentation = """
@@ -414,14 +383,6 @@ def generate_multiply(module):
 @param[out]	product	Pointer to the product array of %(OutputType0)s elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a product.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.Multiply_VXuVXu_VXu)
-		function.assembly_implementations.append(yeppp.library.core.x64.Multiply_V16usV16us_V32us)
-		function.assembly_implementations.append(yeppp.library.core.x64.Multiply_V32usV32us_V64us)
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VXus_VFPv3)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VXus_NEON)
-		function.assembly_implementations.append(yeppp.library.core.arm.AddSubMul_VXusVXus_VYus_NEON)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -432,104 +393,101 @@ while (length-- != 0) {
 return YepStatusOk;
 """
 		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		function.generate("yepCore_Multiply_V8sV8s_V8s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V8sV8s_V16s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V8uV8u_V16u(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V8sV8s_V8s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V8sV8s_V16s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V8uV8u_V16u(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V16sV16s_V16s(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V16sV16s_V32s(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V16uV16u_V32u(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V32sV32s_V32s(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V32sV32s_V64s(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V32uV32u_V64u(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V64sV64s_V64s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V64sV64s_V64s(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V32fV32f_V32f(x, y, product, YepSize length)")
 		function.generate("yepCore_Multiply_V64fV64f_V64f(x, y, product, YepSize length)")
-	
-		function.java_documentation = """
-@brief	Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
-"""
-		function.c_documentation = """
-@brief	Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
-@param[in]	x	Pointer to the factor array of %(InputType0)s elements.
-@param[in]	y	The %(InputType1)s constant to be multiplied by.
-@param[out]	product	Pointer to the product array of %(OutputType0)s elements.
-@param[in]	length	Length of the arrays specified by @a x and @a product.
-"""
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	const Yep%(OutputType0)s x = *xPointer++;
-	const Yep%(OutputType0)s product = x * y;
-	*productPointer++ = product;
-}
-return YepStatusOk;
-"""
-		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		function.generate("yepCore_Multiply_V8sS8s_V8s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V8sS8s_V16s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V8uS8u_V16u(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V16sS16s_V16s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V16sS16s_V32s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V16uS16u_V32u(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V32sS32s_V32s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V32sS32s_V64s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V32uS32u_V64u(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V64sS64s_V64s(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V32fS32f_V32f(x, y, product, YepSize length)")
-		function.generate("yepCore_Multiply_V64fS64f_V64f(x, y, product, YepSize length)")
 
-		function.java_documentation = """
-@brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
-"""
-		function.c_documentation = """
-@brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
-@param[in,out]	x	Pointer to the first factor array of %(InputType0)s elements.
-@param[in]	y	Pointer to the second factor array of %(InputType1)s elements.
-@param[in]	length	Length of the arrays specified by @a x and @a y.
-"""
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	const Yep%(OutputType0)s y = *yPointer++;
-	x *= y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		function.generate("yepCore_Multiply_IV8sV8s_IV8s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV16sV16s_IV16s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV32sV32s_IV32s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV64sV64s_IV64s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV32fV32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV64fV64f_IV64f(x, y, YepSize length)")
+		# function.java_documentation = """
+# @brief	Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
+# """
+		# function.c_documentation = """
+# @brief	Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
+# @param[in]	x	Pointer to the factor array of %(InputType0)s elements.
+# @param[in]	y	The %(InputType1)s constant to be multiplied by.
+# @param[out]	product	Pointer to the product array of %(OutputType0)s elements.
+# @param[in]	length	Length of the arrays specified by @a x and @a product.
+# """
+		# function.c_implementation = """
+# while (length-- != 0) {
+	# const Yep%(OutputType0)s x = *xPointer++;
+	# const Yep%(OutputType0)s product = x * y;
+	# *productPointer++ = product;
+# }
+# return YepStatusOk;
+# """
+		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		# function.generate("yepCore_Multiply_V8sS8s_V8s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V8sS8s_V16s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V8uS8u_V16u(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V16sS16s_V16s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V16sS16s_V32s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V16uS16u_V32u(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V32sS32s_V32s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V32sS32s_V64s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V32uS32u_V64u(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V64sS64s_V64s(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V32fS32f_V32f(x, y, product, YepSize length)")
+		# function.generate("yepCore_Multiply_V64fS64f_V64f(x, y, product, YepSize length)")
 
-		function.java_documentation = """
-@brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
-"""
-		function.c_documentation = """
-@brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
-@param[in,out]	x	Pointer to the factor array of %(InputType0)s elements.
-@param[in]	y	The %(InputType1)s constant factor.
-@param[in]	length	Length of the array specified by @a x.
-"""
-		function.assembly_implementations = []
-		function.c_implementation = """
-while (length-- != 0) {
-	Yep%(OutputType0)s x = *xPointer;
-	x *= y;
-	*xPointer++ = x;
-}
-return YepStatusOk;
-"""
-		function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		function.generate("yepCore_Multiply_IV8sS8s_IV8s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV16sS16s_IV16s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV32sS32s_IV32s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV64sS64s_IV64s(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV32fS32f_IV32f(x, y, YepSize length)")
-		function.generate("yepCore_Multiply_IV64fS64f_IV64f(x, y, YepSize length)")
+		# function.java_documentation = """
+# @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+# """
+		# function.c_documentation = """
+# @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+# @param[in,out]	x	Pointer to the first factor array of %(InputType0)s elements.
+# @param[in]	y	Pointer to the second factor array of %(InputType1)s elements.
+# @param[in]	length	Length of the arrays specified by @a x and @a y.
+# """
+		# function.c_implementation = """
+# while (length-- != 0) {
+	# Yep%(OutputType0)s x = *xPointer;
+	# const Yep%(OutputType0)s y = *yPointer++;
+	# x *= y;
+	# *xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		# function.generate("yepCore_Multiply_IV8sV8s_IV8s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV16sV16s_IV16s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV32sV32s_IV32s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV64sV64s_IV64s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV32fV32f_IV32f(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV64fV64f_IV64f(x, y, YepSize length)")
+
+		# function.java_documentation = """
+# @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
+# """
+		# function.c_documentation = """
+# @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
+# @param[in,out]	x	Pointer to the factor array of %(InputType0)s elements.
+# @param[in]	y	The %(InputType1)s constant factor.
+# @param[in]	length	Length of the array specified by @a x.
+# """
+		# function.c_implementation = """
+# while (length-- != 0) {
+	# Yep%(OutputType0)s x = *xPointer;
+	# x *= y;
+	# *xPointer++ = x;
+# }
+# return YepStatusOk;
+# """
+		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
+		# function.generate("yepCore_Multiply_IV8sS8s_IV8s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV16sS16s_IV16s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV32sS32s_IV32s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV64sS64s_IV64s(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV32fS32f_IV32f(x, y, YepSize length)")
+		# function.generate("yepCore_Multiply_IV64fS64f_IV64f(x, y, YepSize length)")
 
 def generate_multiply_add(module):
 	with yeppp.module.Function(module, 'MultiplyAdd', 'Multiplication and addition') as function:
@@ -542,7 +500,6 @@ def generate_multiply_add(module):
 @param[out]	mac	Pointer to the resulting array of %(OutputType0)s elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, @a z, and @a mac.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -563,7 +520,6 @@ return YepStatusOk;
 @param[in,out]	z	Pointer the input/output array of %(InputType2)s elements to be added to the intermediate multiplication result.
 @param[in]	length	Length of the arrays pointed by @a xPointer, @a yPointer, and @a zPointer.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -579,7 +535,6 @@ return YepStatusOk;
 def generate_divide(module):
 	with yeppp.module.Function(module, 'Divide', 'Division') as function:
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -591,9 +546,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_V32fV32f_V32f(x, y, fraction, YepSize length)")
 		function.generate("yepCore_Divide_V64fV64f_V64f(x, y, fraction, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -604,9 +558,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_V32fS32f_V32f(x, y, fraction, YepSize length)")
 		function.generate("yepCore_Divide_V64fS64f_V64f(x, y, fraction, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s y = *yPointer++;
@@ -617,9 +570,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_S32fV32f_V32f(x, y, fraction, YepSize length)")
 		function.generate("yepCore_Divide_S64fV64f_V64f(x, y, fraction, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -631,9 +583,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_IV32fV32f_IV32f(x, y, YepSize length)")
 		function.generate("yepCore_Divide_IV64fV64f_IV64f(x, y, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -645,9 +596,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_V32fIV32f_IV32f(x, y, YepSize length)")
 		function.generate("yepCore_Divide_V64fIV64f_IV64f(x, y, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -658,9 +608,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_IV32fS32f_IV32f(x, y, YepSize length)")
 		function.generate("yepCore_Divide_IV64fS64f_IV64f(x, y, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s y = *yPointer;
@@ -671,11 +620,10 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Divide_S32fIV32f_IV32f(x, y, YepSize length)")
 		function.generate("yepCore_Divide_S64fIV64f_IV64f(x, y, YepSize length)")
-	
+
 def generate_reciprocal(module):
 	with yeppp.module.Function(module, 'Reciprocal', 'Reciprocal') as function:
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -686,9 +634,8 @@ return YepStatusOk;
 """
 		function.generate("yepCore_Reciprocal_V32f_V32f(x, y, YepSize length)")
 		function.generate("yepCore_Reciprocal_V64f_V64f(x, y, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(InputType0)s x = *xPointer++;
@@ -713,9 +660,8 @@ return YepStatusOk;
 		function.generate("yepCore_Reciprocal_V32s_V64f(x, y, YepSize length)")
 		function.generate("yepCore_Reciprocal_V64u_V64f(x, y, YepSize length)")
 		function.generate("yepCore_Reciprocal_V64s_V64f(x, y, YepSize length)")
-	
+
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s v = *vPointer;
@@ -730,7 +676,6 @@ return YepStatusOk;
 def generate_convert(module):
 	with yeppp.module.Function(module, 'Convert', 'Type conversion') as function:
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -767,7 +712,6 @@ def generate_min(module):
 @param[out]	minimum	Pointer to the variable where the minimum will be stored.
 @param[in]	length	Length of the array specified by @a v. Must be non-zero.
 """
-		function.assembly_implementations = list()
 		function.c_implementation = """
 Yep%(InputType0)s minimum = *vPointer++;
 while (--length != 0) {
@@ -788,7 +732,7 @@ return YepStatusOk;
 		function.generate("yepCore_Min_V64u_S64u(v, minimum, YepSize length: length != 0)")
 		function.generate("yepCore_Min_V32f_S32f(v, minimum, YepSize length: length != 0)")
 		function.generate("yepCore_Min_V64f_S64f(v, minimum, YepSize length: length != 0)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise minima of corresponding elements in two %(InputType0)s arrays.
 """
@@ -799,9 +743,6 @@ return YepStatusOk;
 @param[out]	minimum	Pointer to the array of pairwise minimum elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a minimum.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf)
-		function.assembly_implementations.append(yeppp.library.core.arm.MinMax_VXusVXus_VXus_NEON)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -822,7 +763,7 @@ return YepStatusOk;
 		function.generate("yepCore_Min_V64uV32u_V64u(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V32fV32f_V32f(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V64fV64f_V64f(x, y, minimum, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise minima of %(InputType0)s array elements and a constant.
 """
@@ -833,7 +774,6 @@ return YepStatusOk;
 @param[out]	minimum	Pointer to the array of pairwise minimum elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a minimum.
 """
-		function.assembly_implementations = list()
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -853,7 +793,7 @@ return YepStatusOk;
 		function.generate("yepCore_Min_V64uS32u_V64u(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V32fS32f_V32f(x, y, minimum, YepSize length)")
 		function.generate("yepCore_Min_V64fS64f_V64f(x, y, minimum, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise minima of corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
 """
@@ -863,7 +803,6 @@ return YepStatusOk;
 @param[in]	y	Pointer to the second array of %(InputType1)s elements.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -884,7 +823,7 @@ return YepStatusOk;
 		function.generate("yepCore_Min_IV64uV32u_IV64u(x, y, YepSize length)")
 		function.generate("yepCore_Min_IV32fV32f_IV32f(x, y, YepSize length)")
 		function.generate("yepCore_Min_IV64fV64f_IV64f(x, y, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise minima of %(InputType0)s array elements and a constant and writes the result to the same array.
 """
@@ -894,7 +833,6 @@ return YepStatusOk;
 @param[in]	y	The %(InputType1)s constant.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = list()
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -926,7 +864,6 @@ def generate_max(module):
 @param[out]	maximum	Pointer to the variable where the maximum will be stored.
 @param[in]	length	Length of the array specified by @a v. Must be non-zero.
 """
-		function.assembly_implementations = list()
 		function.c_implementation = """
 Yep%(InputType0)s maximum = *vPointer++;
 while (--length != 0) {
@@ -958,9 +895,6 @@ return YepStatusOk;
 @param[out]	maximum	Pointer to the array of pairwise maximum elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a maximum.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.AddSubMulMinMax_VfVf_Vf)
-		function.assembly_implementations.append(yeppp.library.core.arm.MinMax_VXusVXus_VXus_NEON)
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -981,7 +915,7 @@ return YepStatusOk;
 		function.generate("yepCore_Max_V64uV32u_V64u(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V32fV32f_V32f(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V64fV64f_V64f(x, y, maximum, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise maxima of %(InputType0)s array elements and a constant.
 """
@@ -992,7 +926,6 @@ return YepStatusOk;
 @param[out]	maximum	Pointer to the array of pairwise maximum elements.
 @param[in]	length	Length of the arrays specified by @a x, @a y, and @a maximum.
 """
-		function.assembly_implementations = list()
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(OutputType0)s x = *xPointer++;
@@ -1012,7 +945,7 @@ return YepStatusOk;
 		function.generate("yepCore_Max_V64uS32u_V64u(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V32fS32f_V32f(x, y, maximum, YepSize length)")
 		function.generate("yepCore_Max_V64fS64f_V64f(x, y, maximum, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise maxima of corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
 """
@@ -1022,7 +955,6 @@ return YepStatusOk;
 @param[in]	y	Pointer to the second array of %(InputType1)s elements.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -1043,7 +975,7 @@ return YepStatusOk;
 		function.generate("yepCore_Max_IV64uV32u_IV64u(x, y, YepSize length)")
 		function.generate("yepCore_Max_IV32fV32f_IV32f(x, y, YepSize length)")
 		function.generate("yepCore_Max_IV64fV64f_IV64f(x, y, YepSize length)")
-	
+
 		function.java_documentation = """
 @brief	Computes pairwise maxima of %(InputType0)s array elements and a constant and writes the result to the same array.
 """
@@ -1053,7 +985,6 @@ return YepStatusOk;
 @param[in]	y	The %(InputType1)s constant.
 @param[in]	length	Length of the arrays specified by @a x and @a y.
 """
-		function.assembly_implementations = list()
 		function.c_implementation = """
 while (length-- != 0) {
 	Yep%(OutputType0)s x = *xPointer;
@@ -1077,7 +1008,6 @@ return YepStatusOk;
 def generate_min_max(module):
 	with yeppp.module.Function(module, 'MinMax', 'Minimum and maximum') as function:
 		function.c_documentation = None
-		function.assembly_implementations = list()
 		function.c_implementation = """
 Yep%(InputType0)s minimum = *vPointer++;
 Yep%(InputType0)s maximum = minimum;
@@ -1101,7 +1031,7 @@ return YepStatusOk;
 		function.generate("yepCore_MinMax_V64u_S64uS64u(v, minimum, maximum, YepSize length)")
 		function.generate("yepCore_MinMax_V32f_S32fS32f(v, minimum, maximum, YepSize length)")
 		function.generate("yepCore_MinMax_V64f_S64fS64f(v, minimum, maximum, YepSize length)")
-	
+
 def generate_sum(module):
 	with yeppp.module.Function(module, 'Sum', 'Sum') as function:
 		function.java_documentation = """
@@ -1113,9 +1043,6 @@ def generate_sum(module):
 @param[out]	sum	Pointer to the variable where the sum will be stored.
 @param[in]	length	Length of the array specified by @a v. If @a length is zero, the computed sum will be 0.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.Sum_VXf_SXf_SSE)
-		function.assembly_implementations.append(yeppp.library.core.x64.Sum_VXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s sum = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -1140,9 +1067,6 @@ def generate_sum_abs(module):
 @param[out]	sumAbs	Pointer to the variable where the sum of absolute values will be stored.
 @param[in]	length	Length of the array specified by @a v. If @a length is zero, the computed sum will be 0.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.SumAbs_VXf_SXf_SSE)
-		function.assembly_implementations.append(yeppp.library.core.x64.SumAbs_VXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s sumAbs = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -1167,9 +1091,6 @@ def generate_sum_squares(module):
 @param[out]	sumSquares	Pointer to the variable where the sum of squares will be stored.
 @param[in]	length	Length of the array specified by @a v. If @a length is zero, the computed sum of squares will be 0.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_VXf_SXf_SSE)
-		function.assembly_implementations.append(yeppp.library.core.x64.SumSquares_VXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s sumSquares = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -1195,9 +1116,6 @@ def generate_dot_product(module):
 @param[out]	dotProduct	Pointer to the variable where the dot product value will be stored.
 @param[in]	length	Length of the vectors specified by @a x and @a y.
 """
-		function.assembly_implementations = list()
-		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VXfVXf_SXf_SSE)
-		function.assembly_implementations.append(yeppp.library.core.x64.DotProduct_VXfVXf_SXf_AVX)
 		function.c_implementation = """
 Yep%(InputType0)s dotProduct = Yep%(InputType0)s(0);
 while (length-- != 0) {
@@ -1212,10 +1130,13 @@ return YepStatusOk;
 		function.generate("yepCore_DotProduct_V32fV32f_S32f(x, y, dotProduct, YepSize length)")
 		function.generate("yepCore_DotProduct_V64fV64f_S64f(x, y, dotProduct, YepSize length)")
 
+                yepCore_DotProduct:
+                    - JavaDoc:
+                    -
+
 def generate_gather(module):
 	with yeppp.module.Function(module, 'Gather', 'Gather') as function:
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const YepSize index = YepSize(*indexPointer++);
@@ -1244,7 +1165,6 @@ return YepStatusOk;
 def generate_scatter_increment(module):
 	with yeppp.module.Function(module, 'ScatterIncrement', 'Scatter-increment') as function:
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const YepSize index = YepSize(*indexPointer++);
@@ -1272,7 +1192,6 @@ return YepStatusOk;
 def generate_scatter_add(module):
 	with yeppp.module.Function(module, 'ScatterAdd', 'Scatter-add') as function:
 		function.c_documentation = None
-		function.assembly_implementations = []
 		function.c_implementation = """
 while (length-- != 0) {
 	const Yep%(InputType0)s weight = *weightPointer++;
@@ -1325,20 +1244,20 @@ return YepStatusOk;
 if __name__ == '__main__':
 	with yeppp.module.Module('Core', 'Basic arithmetic operations') as module:
 		generate_add(module)
-		generate_subtract(module)
-		generate_negate(module)
+		# generate_subtract(module)
+		# generate_negate(module)
 		generate_multiply(module)
 # 		generate_multiply_add(module)
 # 		generate_divide(module)
 # 		generate_reciprocal(module)
 # 		generate_convert(module)
-		generate_min(module)
-		generate_max(module)
+		# generate_min(module)
+		# generate_max(module)
 # 		generate_min_max(module)
-		generate_sum(module)
-		generate_sum_abs(module)
-		generate_sum_squares(module)
-		generate_dot_product(module)
+		# generate_sum(module)
+		# generate_sum_abs(module)
+		# generate_sum_squares(module)
+		# generate_dot_product(module)
 # 		generate_gather(module)
 # 		generate_scatter_increment(module)
 # 		generate_scatter_add(module)

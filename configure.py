@@ -199,7 +199,7 @@ class Configuration:
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
 
-    def generate_dispatch_table(self, json_files, source_file):
+    def generate_dispatch_table(self, source_file, json_files):
         self.writer.build(source_file, "generate-dispatch-table", json_files)
         return source_file
 
@@ -362,7 +362,7 @@ def main():
     #         library_object_files.append(config.compile_c(source_filename))
 
     # Generating Dispatch Tables
-    dispatch_table = config.generate_dispatch_table(json_metadata_files, os.path.join(library_build_root, "core/Dispatch_Table.cpp"))
+    dispatch_table = config.generate_dispatch_table(os.path.join(library_build_root, "core/Dispatch_Table.cpp"), json_metadata_files)
     library_object_files.append(config.compile_cxx(dispatch_table))
 
     config.source_dir = library_source_root
