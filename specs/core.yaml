@@ -1,0 +1,82 @@
+module: core
+
+functions:
+  - operation: Add
+    function_groups:
+        # Functions which add two vectors and store in a third vector
+        - c_documentation: |
+            @brief	Adds corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
+            @param[in]	x	Pointer to the first addend array of %(InputType0)s elements.
+            @param[in]	y	Pointer to the second addend array of %(InputType1)s elements.
+            @param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
+            @param[in]	length	Length of the arrays specified by @a x, @a y, and @a sum.
+          java_documentation: |
+            @brief	Adds corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
+          group:
+            - declaration: yepCore_Add_V8sV8s_V8s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V8sV8s_V16s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V8uV8u_V16u x, y, sum, YepSize length
+            - declaration: yepCore_Add_V16sV16s_V16s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V16sV16s_V32s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V16uV16u_V32u x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32sV32s_V32s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32sV32s_V64s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32uV32u_V64u x, y, sum, YepSize length
+            - declaration: yepCore_Add_V64sV64s_V64s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32fV32f_V32f x, y, sum, YepSize length
+            - declaration: yepCore_Add_V64fV64f_V64f x, y, sum, YepSize length
+              # Functions which add a scalar to a vector element-wise
+        - c_documentation: |
+            @brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
+            @param[in]	x	Pointer to the addend array of %(InputType0)s elements.
+            @param[in]	y	The %(InputType1)s constant to be added.
+            @param[out]	sum	Pointer to the summand array of %(OutputType0)s elements.
+            @param[in]	length	Length of the arrays specified by @a x and @a sum.
+          java_documentation: |
+            @brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
+          group:
+            - declaration: yepCore_Add_V8sS8s_V8s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V8sS8s_V16s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V8uS8u_V16u x, y, sum, YepSize length
+            - declaration: yepCore_Add_V16sS16s_V16s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V16sS16s_V32s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V16uS16u_V32u x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32sS32s_V32s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32sS32s_V64s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32uS32u_V64u x, y, sum, YepSize length
+            - declaration: yepCore_Add_V64sV64s_V64s x, y, sum, YepSize length
+            - declaration: yepCore_Add_V32fS32f_V32f x, y, sum, YepSize length
+            - declaration: yepCore_Add_V64fS64f_V64f x, y, sum, YepSize length
+        # Functions which add two vectors and store the result in the first vector
+        - c_documentation: |
+            @brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+            @param[in,out]	x	Pointer to the first addend array of %(InputType0)s elements.
+            @param[in]	y	Pointer to the second addend array of %(InputType1)s elements.
+            @param[in]	length	Length of the arrays specified by @a x and @a y.
+          java_documentation: |
+            @brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+          group:
+            - declaration: yepCore_Add_IV8sV8s_IV8s x, y, YepSize length
+            - declaration: yepCore_Add_IV16sV16s_IV16s x, y, YepSize length
+            - declaration: yepCore_Add_IV32sV32s_IV32s x, y, YepSize length
+            - declaration: yepCore_Add_IV64sV64s_IV64s x, y, YepSize length
+            - declaration: yepCore_Add_IV64sV64s_IV64s x, y, YepSize length
+            - declaration: yepCore_Add_IV32fV32f_IV32f x, y, YepSize length
+            - declaration: yepCore_Add_IV64fV64f_IV64f x, y, YepSize length
+
+        # Functions which add a scalar to an immediate vector
+        - c_documentation: |
+            @brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
+            @param[in,out]	x	Pointer to the addend array of %(InputType0)s elements.
+            @param[in]	y	The %(InputType1)s constant to be added.
+            @param[in]	length	Length of the array specified by @a x.
+          java_documentation: |
+            @brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
+          group:
+            - declaration: yepCore_Add_IV8sS8s_IV8s x, y, YepSize length
+            - declaration: yepCore_Add_IV16sS16s_IV16s x, y, YepSize length
+            - declaration: yepCore_Add_IV32sS32s_IV32s x, y, YepSize length
+            - declaration: yepCore_Add_IV64sS64s_IV64s x, y, YepSize length
+            - declaration: yepCore_Add_IV64sS64s_IV64s x, y, YepSize length
+            - declaration: yepCore_Add_IV32fS32f_IV32f x, y, YepSize length
+            - declaration: yepCore_Add_IV64fS64f_IV64f x, y, YepSize length
