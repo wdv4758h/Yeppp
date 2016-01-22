@@ -143,6 +143,7 @@ class Configuration:
         self.include_dirs = [library_header_root, library_source_root, jni_source_root]
 
         if self.platform.os == "osx":
+            python = "python"
             cc = options.cc if options.cc is not None else "clang"
             cxx = options.cxx if options.cxx is not None else "clang++"
             cflags = {
@@ -165,6 +166,7 @@ class Configuration:
         # Variables
         if self.platform.os == "osx":
             self.writer.variable("osxmin", "10.7")
+        self.writer.variable("python", python)
         self.writer.variable("cc", cc)
         self.writer.variable("cxx", cxx)
         self.writer.variable("cflags", " ".join(cflags))
@@ -190,17 +192,20 @@ class Configuration:
             description="AR $descpath")
         self.writer.rule("nasm", "$nasm -o $out $nasmflags $in",
             description="NASM $descpath")
-        self.writer.rule("peachpy-obj", \
-                "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
-                " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in")
-        self.writer.rule("generate-dispatch-table", \
-                "python generate-dispatch-table.py -o $out $in")
+        self.writer.rule("peachpy-obj",
+            "$python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
+            " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in",
+            description="PEACHPY $descpath")
+        self.writer.rule("generate-dispatch-table",
+            "$python codegen/generate-dispatch-table.py -o $out $in",
+            description="GENERATE $descpath")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
 
-    def generate_dispatch_table(self, source_file, json_files):
-        self.writer.build(source_file, "generate-dispatch-table", json_files)
+    def generate_dispatch_table(self, json_files, source_file):
+        self.writer.build(source_file, "generate-dispatch-table", json_files,
+            variables={"descpath": os.path.relpath(source_file, self.build_dir)})
         return source_file
 
     def compile_peachpy(self, source_file, object_file=None):
@@ -320,10 +325,6 @@ def main():
     config.build_dir = library_build_root
     config.header_dir = library_header_root
     source_extensions = ["*.c", "*.cpp", "*.py"]
-    if config.platform.arch == "x86-64" and config.platform.abi == "sysv":
-        source_extensions += ["*.x64-sysv.asm"]
-    if config.platform.arch == "x86-64" and config.platform.abi == "ms":
-        source_extensions += ["*.x64-ms.asm"]
     json_metadata_files = []
     for (source_dir, source_subdir, filenames) in os.walk(library_source_root):
         source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), source_extensions), [])
@@ -347,10 +348,11 @@ def main():
             if relative_source_filename == "library/sources/library/CpuMacOSX.cpp" and config.platform.kernel not in {"mach"}:
                 continue
 
-            if source_dir.endswith("core") and not source_filename.endswith("__init__.py") and source_filename.endswith(".py"):
-                object_file, json_file = config.compile_peachpy(source_filename)
-                json_metadata_files.append(json_file)
-                library_object_files.append(object_file)
+            if source_filename.endswith(".py"):
+                if not os.path.basename(source_filename).startswith("__"):
+                    object_file, json_file = config.compile_peachpy(source_filename)
+                    json_metadata_files.append(json_file)
+                    library_object_files.append(object_file)
             elif source_filename.endswith(".cpp"):
                 library_object_files.append(config.compile_cxx(source_filename))
     # config.source_dir = jni_source_root
@@ -362,8 +364,8 @@ def main():
     #         library_object_files.append(config.compile_c(source_filename))
 
     # Generating Dispatch Tables
-    dispatch_table = config.generate_dispatch_table(os.path.join(library_build_root, "core/Dispatch_Table.cpp"), json_metadata_files)
-    library_object_files.append(config.compile_cxx(dispatch_table))
+    dispatch_table_object = config.generate_dispatch_table(json_metadata_files, os.path.join(library_build_root, "core", "DispatchTable.cpp"))
+    library_object_files.append(config.compile_cxx(dispatch_table_object))
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root
