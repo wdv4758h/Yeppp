@@ -109,7 +109,7 @@ if __name__ == "__main__":
     parser.add_argument("input", nargs=1)
     options = parser.parse_args()
 
-    with open(options.input, "r") as specification_file:
+    with open(options.input[0], "r") as specification_file:
         yaml_data = yaml.load(specification_file)
         module = yaml_data["module"]
 
