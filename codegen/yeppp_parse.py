@@ -9,19 +9,19 @@ class Function:
         self.declaration = func["declaration"]
         self.java_documentation = func_group["java_documentation"]
         self.c_documentation = func_group["c_documentation"]
-        self.c_declaration_string = None
+        self._c_declaration = None
 
     def generate_c_declaration(self):
-        c_declaration_string = ""
+        c_declaration = ""
 
         # Write the function documentation
-        c_declaration_string += "/**\n"
+        c_declaration += "/**\n"
         for doc_line in self.c_documentation.splitlines():
-            c_declaration_string += " * " + doc_line + "\n"
-        c_declaration_string += " */\n"
+            c_declaration += " * " + doc_line + "\n"
+        c_declaration += " */\n"
 
         # Write the function return type
-        c_declaration_string += "YEP_PUBLIC_SYMBOL enum YepStatus YEPABI "
+        c_declaration += "YEP_PUBLIC_SYMBOL enum YepStatus YEPABI "
 
         # Parse the declaration passed in for its parameter names and types
         (name, _, args) = self.declaration.partition(" ")
@@ -30,28 +30,26 @@ class Function:
         input_types = name_parts[2]
         input_types = separate_args_in_name(input_types)
         output_type = name_parts[3]
-        c_declaration_string += name + "("
+        c_declaration += name + "("
 
         # Parse and write the declaration for the input args
-        c_declaration_string += parse_arg_type(input_types[0], True) + " " + args_arr[0] + ", "
-        c_declaration_string += parse_arg_type(input_types[1], True) + " " + args_arr[1] + ", "
+        c_declaration += parse_arg_type(input_types[0], True) + " " + args_arr[0] + ", "
+        c_declaration += parse_arg_type(input_types[1], True) + " " + args_arr[1] + ", "
 
         # Parse and write the output arg if it exists
         if len(args_arr) > 3:
-            c_declaration_string += parse_arg_type(output_type, False) + " " + args_arr[2] + ", "
+            c_declaration += parse_arg_type(output_type, False) + " " + args_arr[2] + ", "
 
         # Write the length parameter
-        c_declaration_string += "YepSize length);\n\n"
+        c_declaration += "YepSize length);\n\n"
 
-        self.c_declaration_string = c_declaration_string
+        self._c_declaration = c_declaration
 
-    def get_c_declaration(self):
-        if self.c_declaration_string is not None:
-            return self.c_declaration_string
-        else:
+    @property
+    def c_declaration(self):
+        if self._c_declaration is None:
             self.generate_c_declaration()
-            return self.c_declaration_string
-
+        return self._c_declaration
 
 
 def parse_arg_type(arg_str, is_input):
@@ -87,20 +85,32 @@ def separate_args_in_name(arg_str):
             break
     return [arg_str[:split + 1], arg_str[split + 1:]]
 
-def generate_c_header(header_path, func_list):
+def generate_c_header(header_path, function_list):
     with open(header_path, "w") as header_file:
         # Write the includes
-        header_file.write("#pragma once\n")
-        header_file.write("#include <yepPredefines.h>\n")
-        header_file.write("#include <yepTypes.h>\n")
+        header_file.write("""
+#pragma once
+
+#include <yepPredefines.h>
+#include <yepTypes.h>
+
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
+""")
 
         # Write the extern C decl
-        header_file.write("#ifdef __cplusplus\n    extern \"C\" {\n#endif\n\n")
-        for func in func_list:
-            header_file.write(func.get_c_declaration())
+        for function in function_list:
+            header_file.write(function.c_declaration)
 
         # Close C decl
-        header_file.write("#ifdef __cplusplus\n    }\n#endif")
+        header_file.write("""\
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+
+""")
 
 
 if __name__ == "__main__":
