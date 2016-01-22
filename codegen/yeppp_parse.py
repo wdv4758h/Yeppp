@@ -9,13 +9,11 @@ class Function:
         self.declaration = func["declaration"]
         self.java_documentation = func_group["java_documentation"]
         self.c_documentation = func_group["c_documentation"]
-        self._c_declaration = None
 
-    def generate_c_declaration(self):
-        c_declaration = ""
-
+    @property
+    def c_declaration(self):
         # Write the function documentation
-        c_declaration += "/**\n"
+        c_declaration = "/**\n"
         for doc_line in self.c_documentation.splitlines():
             c_declaration += " * " + doc_line + "\n"
         c_declaration += " */\n"
@@ -43,13 +41,7 @@ class Function:
         # Write the length parameter
         c_declaration += "YepSize length);\n\n"
 
-        self._c_declaration = c_declaration
-
-    @property
-    def c_declaration(self):
-        if self._c_declaration is None:
-            self.generate_c_declaration()
-        return self._c_declaration
+        return c_declaration
 
 
 def parse_arg_type(arg_str, is_input):
