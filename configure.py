@@ -194,7 +194,7 @@ class Configuration:
                 "python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
                 " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in")
         self.writer.rule("generate-dispatch-table", \
-                "python codegen_dispatch_table.py -o $out $in")
+                "python generate-dispatch-table.py -o $out $in")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
