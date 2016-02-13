@@ -21,14 +21,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Default Implementation Generator")
     parser.add_argument("-o", dest="output", required=True, help="Output file name")
     parser.add_argument("input", nargs=1)
-    parser.add_argument("--op-to-generate", required=True, dest="op_to_generate", help="The operation to generate default impls for")
     options = parser.parse_args()
 
     # The file name with no path, e.g Add.impl.cpp
     file_name = os.path.split(options.output)[1]
-
-    # Determine which operation we are generating the default implementations for
-    op_to_generate = options.op_to_generate
 
     with open(options.input[0], "r") as specification_file:
         yaml_data = yaml.load(specification_file)
@@ -39,9 +35,6 @@ if __name__ == "__main__":
         # Iterate through the operations of the module
         for op_set in yaml_data["functions"]:
             op = op_set["operation"]
-
-            # Only want to generate for a specific operation
-            if op.lower() != options.op_to_generate.lower(): continue
 
             # Iterates through each function group of the operation,
             # where a group consists of functions which add vectors to vectors,
