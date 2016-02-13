@@ -111,7 +111,7 @@ return YepStatusOk;
 # @param[in]	length	Length of the array specified by @a x.
 # """
 		# function.c_implementation = """
-# while (length-- != 0) {
+
 	# Yep%(OutputType0)s x = *xPointer;
 	# x += y;
 	# *xPointer++ = x;
