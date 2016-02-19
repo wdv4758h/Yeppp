@@ -54,15 +54,15 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     LOAD.ARGUMENT(reg_z_addr, arg_z)
     TEST(reg_z_addr, reg_z_addr)
     JZ(ret_null_pointer)
-    TEST(reg_z_addr, arg_z.ctype.base.size - 1) # Make sure arg_z is aligned
+    TEST(reg_z_addr, arg_z.c_type.base.size - 1) # Make sure arg_z is aligned
     JNZ(ret_misaligned_pointer)
 
     unroll_factor = 6
     xmm_accs = [XMMRegister() for _ in range(unroll_factor)]
     xmm_ops = [XMMRegister() for _ in range(unroll_factor)]
 
-    reg_x_scalar = scalar_register_map[arg_z.ctype.base]()
-    reg_y_scalar = scalar_register_map[arg_z.ctype.base]()
+    reg_x_scalar = scalar_register_map[arg_z.c_type.base]()
+    reg_y_scalar = scalar_register_map[arg_z.c_type.base]()
 
     align_loop = Loop() # Loop to align one of the addresses
     scalar_loop = Loop() # Processes remainder elements (if n % 8 != 0)
@@ -72,13 +72,13 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     TEST(reg_z_addr, XMMRegister.size - 1)
     JZ(align_loop.end)
     with align_loop:
-        scalar_mov_instr_select(reg_x_scalar, [reg_x_addr], arg_x.ctype.base, arg_z.ctype.base)
-        scalar_mov_instr_select(reg_y_scalar, [reg_y_addr], arg_x.ctype.base, arg_z.ctype.base)
-        scalar_add_map[arg_z.ctype.base](reg_x_scalar, reg_y_scalar)
-        scalar_move_map[arg_z.ctype.base]([reg_z_addr], reg_x_scalar)
-        ADD(reg_x_addr, arg_x.ctype.base.size)
-        ADD(reg_y_addr, arg_x.ctype.base.size)
-        ADD(reg_z_addr, arg_z.ctype.base.size)
+        scalar_mov_instr_select(reg_x_scalar, [reg_x_addr], arg_x.c_type.base, arg_z.c_type.base)
+        scalar_mov_instr_select(reg_y_scalar, [reg_y_addr], arg_x.c_type.base, arg_z.c_type.base)
+        scalar_add_map[arg_z.c_type.base](reg_x_scalar, reg_y_scalar)
+        scalar_move_map[arg_z.c_type.base]([reg_z_addr], reg_x_scalar)
+        ADD(reg_x_addr, arg_x.c_type.base.size)
+        ADD(reg_y_addr, arg_x.c_type.base.size)
+        ADD(reg_z_addr, arg_z.c_type.base.size)
         SUB(reg_length, 1)
         JZ(ret_ok)
         TEST(reg_z_addr, XMMRegister.size - 1)
@@ -89,32 +89,32 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     instruction_offsets = (0, 1, 1, 1)
     for i in range(unroll_factor):
         with instruction_columns[0]:
-            packed_mov_instr_select(xmm_accs[i], [reg_x_addr + i * XMMRegister.size * arg_x.ctype.base.size / arg_z.ctype.base.size], arg_x.ctype.base, arg_z.ctype.base)
+            packed_mov_instr_select(xmm_accs[i], [reg_x_addr + i * XMMRegister.size * arg_x.c_type.base.size / arg_z.c_type.base.size], arg_x.c_type.base, arg_z.c_type.base)
         with instruction_columns[1]:
-            packed_mov_instr_select(xmm_ops[i], [reg_y_addr + i * XMMRegister.size * arg_x.ctype.base.size / arg_z.ctype.base.size], arg_x.ctype.base, arg_z.ctype.base)
+            packed_mov_instr_select(xmm_ops[i], [reg_y_addr + i * XMMRegister.size * arg_x.c_type.base.size / arg_z.c_type.base.size], arg_x.c_type.base, arg_z.c_type.base)
         with instruction_columns[2]:
-            packed_add_map[arg_z.ctype.base](xmm_accs[i], xmm_ops[i])
+            packed_add_map[arg_z.c_type.base](xmm_accs[i], xmm_ops[i])
         with instruction_columns[3]:
-            packed_aligned_move_map[arg_z.ctype.base]([reg_z_addr + i * XMMRegister.size], xmm_accs[i])
+            packed_aligned_move_map[arg_z.c_type.base]([reg_z_addr + i * XMMRegister.size], xmm_accs[i])
     with instruction_columns[0]:
-        ADD(reg_x_addr, XMMRegister.size * unroll_factor * arg_x.ctype.base.size / arg_z.ctype.base.size)
+        ADD(reg_x_addr, XMMRegister.size * unroll_factor * arg_x.c_type.base.size / arg_z.c_type.base.size)
     with instruction_columns[1]:
-        ADD(reg_y_addr, XMMRegister.size * unroll_factor * arg_x.ctype.base.size / arg_z.ctype.base.size)
+        ADD(reg_y_addr, XMMRegister.size * unroll_factor * arg_x.c_type.base.size / arg_z.c_type.base.size)
     with instruction_columns[3]:
         ADD(reg_z_addr, XMMRegister.size * unroll_factor)
 
-    software_pipelined_loop(reg_length, unroll_factor * XMMRegister.size / arg_z.ctype.base.size, instruction_columns, instruction_offsets)
+    software_pipelined_loop(reg_length, unroll_factor * XMMRegister.size / arg_z.c_type.base.size, instruction_columns, instruction_offsets)
 
     TEST(reg_length, reg_length)
     JZ(scalar_loop.end)
     with scalar_loop: # Process the remaining elements
-        scalar_mov_instr_select(reg_x_scalar, [reg_x_addr], arg_x.ctype.base, arg_z.ctype.base)
-        scalar_mov_instr_select(reg_y_scalar, [reg_y_addr], arg_x.ctype.base, arg_z.ctype.base)
-        scalar_add_map[arg_z.ctype.base](reg_x_scalar, reg_y_scalar)
-        scalar_move_map[arg_z.ctype.base]([reg_z_addr], reg_x_scalar)
-        ADD(reg_x_addr, arg_x.ctype.base.size)
-        ADD(reg_y_addr, arg_x.ctype.base.size)
-        ADD(reg_z_addr, arg_z.ctype.base.size)
+        scalar_mov_instr_select(reg_x_scalar, [reg_x_addr], arg_x.c_type.base, arg_z.c_type.base)
+        scalar_mov_instr_select(reg_y_scalar, [reg_y_addr], arg_x.c_type.base, arg_z.c_type.base)
+        scalar_add_map[arg_z.c_type.base](reg_x_scalar, reg_y_scalar)
+        scalar_move_map[arg_z.c_type.base]([reg_z_addr], reg_x_scalar)
+        ADD(reg_x_addr, arg_x.c_type.base.size)
+        ADD(reg_y_addr, arg_x.c_type.base.size)
+        ADD(reg_z_addr, arg_z.c_type.base.size)
         SUB(reg_length, 1)
         JNZ(scalar_loop.begin)
 

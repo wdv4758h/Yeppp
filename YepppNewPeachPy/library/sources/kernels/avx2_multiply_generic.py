@@ -51,7 +51,7 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
     # For certain data types (e.g 16s -> 32s multiplication)
     # where multiplication requires unpacking, XMM implementations are simpler
     # TODO: Implement everything with YMM and test speed vs. XMM implementations
-    if arg_x.ctype.base in [Yep16s, Yep16u] and arg_z.ctype.base in [Yep32s, Yep32u]:
+    if arg_x.c_type.base in [Yep16s, Yep16u] and arg_z.c_type.base in [Yep32s, Yep32u]:
         vector_x_reg = XMMRegister()
         vector_y_reg = XMMRegister()
         vector_low_res = XMMRegister()
@@ -62,40 +62,40 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
         vector_y_reg = YMMRegister()
         vec_reg_size = YMMRegister.size
 
-    scalar_x_reg = scalar_register_map[arg_z.ctype.base]()
-    scalar_y_reg = scalar_register_map[arg_z.ctype.base]()
+    scalar_x_reg = scalar_register_map[arg_z.c_type.base]()
+    scalar_y_reg = scalar_register_map[arg_z.c_type.base]()
 
-    CMP(reg_length, vec_reg_size / arg_x.ctype.base.size) # Not enough elements to use SIMD instructions
+    CMP(reg_length, vec_reg_size / arg_x.c_type.base.size) # Not enough elements to use SIMD instructions
     JB(vector_loop.end)
     with vector_loop:
-        if arg_x.ctype.base in [Yep16s, Yep32s, Yep64s] and arg_x.ctype.base == arg_z.ctype.base: # We are only going to keep the lower bits
-            packed_aligned_move_map[arg_x.ctype.base](vector_x_reg, [reg_x_addr])
-            packed_aligned_move_map[arg_y.ctype.base](vector_y_reg, [reg_y_addr])
-            packed_low_mult_map[arg_x.ctype.base](vector_x_reg, vector_x_reg, vector_y_reg)
-            packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr], vector_x_reg)
+        if arg_x.c_type.base in [Yep16s, Yep32s, Yep64s] and arg_x.c_type.base == arg_z.c_type.base: # We are only going to keep the lower bits
+            packed_aligned_move_map[arg_x.c_type.base](vector_x_reg, [reg_x_addr])
+            packed_aligned_move_map[arg_y.c_type.base](vector_y_reg, [reg_y_addr])
+            packed_low_mult_map[arg_x.c_type.base](vector_x_reg, vector_x_reg, vector_y_reg)
+            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr], vector_x_reg)
             ADD(reg_z_addr, vec_reg_size)
             ADD(reg_x_addr, vec_reg_size)
             ADD(reg_y_addr, vec_reg_size)
-            SUB(reg_length, vec_reg_size / arg_x.ctype.base.size)
-            CMP(reg_length, vec_reg_size / arg_x.ctype.base.size)
-        elif arg_x.ctype.base in [Yep16s, Yep16u] and arg_z.ctype.base in [Yep32s, Yep32u]: # Multiplication requires unpacking the low and high results
-            packed_aligned_move_map[arg_x.ctype.base](vector_x_reg, [reg_x_addr])
-            packed_aligned_move_map[arg_y.ctype.base](vector_y_reg, [reg_y_addr])
-            packed_low_mult_map[arg_x.ctype.base](vector_low_res, vector_x_reg, vector_y_reg)
-            packed_high_mult_map[arg_x.ctype.base](vector_high_res, vector_x_reg, vector_y_reg)
+            SUB(reg_length, vec_reg_size / arg_x.c_type.base.size)
+            CMP(reg_length, vec_reg_size / arg_x.c_type.base.size)
+        elif arg_x.c_type.base in [Yep16s, Yep16u] and arg_z.c_type.base in [Yep32s, Yep32u]: # Multiplication requires unpacking the low and high results
+            packed_aligned_move_map[arg_x.c_type.base](vector_x_reg, [reg_x_addr])
+            packed_aligned_move_map[arg_y.c_type.base](vector_y_reg, [reg_y_addr])
+            packed_low_mult_map[arg_x.c_type.base](vector_low_res, vector_x_reg, vector_y_reg)
+            packed_high_mult_map[arg_x.c_type.base](vector_high_res, vector_x_reg, vector_y_reg)
             VPUNPCKHWD(vector_x_reg, vector_low_res, vector_high_res)
             VPUNPCKLWD(vector_y_reg, vector_low_res, vector_high_res)
-            packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr], vector_y_reg)
-            packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr + vec_reg_size], vector_x_reg)
+            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr], vector_y_reg)
+            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr + vec_reg_size], vector_x_reg)
             ADD(reg_z_addr, 2 * vec_reg_size)
             ADD(reg_x_addr, vec_reg_size)
             ADD(reg_y_addr, vec_reg_size)
-            SUB(reg_length, vec_reg_size / arg_x.ctype.base.size)
-            CMP(reg_length, vec_reg_size / arg_x.ctype.base.size)
-        elif arg_x.ctype.base in [Yep32s, Yep32u] and arg_z.ctype.base in [Yep64s, Yep64u]: # Multiply from 32s -> 64s using the VMULDQ instr
+            SUB(reg_length, vec_reg_size / arg_x.c_type.base.size)
+            CMP(reg_length, vec_reg_size / arg_x.c_type.base.size)
+        elif arg_x.c_type.base in [Yep32s, Yep32u] and arg_z.c_type.base in [Yep64s, Yep64u]: # Multiply from 32s -> 64s using the VMULDQ instr
             VPMOVZXDQ(vector_x_reg, [reg_x_addr])
             VPMOVZXDQ(vector_y_reg, [reg_y_addr])
-            if arg_x.ctype.base == Yep32s:
+            if arg_x.c_type.base == Yep32s:
                 VPMULDQ(vector_x_reg, vector_x_reg, vector_y_reg)
             else:
                 VPMULUDQ(vector_x_reg, vector_x_reg, vector_y_reg)
@@ -103,30 +103,30 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
             ADD(reg_z_addr, vec_reg_size)
             ADD(reg_x_addr, vec_reg_size / 2)
             ADD(reg_y_addr, vec_reg_size / 2)
-            SUB(reg_length, vec_reg_size / (2 * arg_x.ctype.base.size))
-            CMP(reg_length, vec_reg_size / (2 * arg_x.ctype.base.size))
-        elif arg_x.ctype.base in [Yep32f, Yep64f]: # Multiplication can be performed in 1 instruction on floats
-            packed_aligned_move_map[arg_x.ctype.base](vector_x_reg, [reg_x_addr])
-            packed_aligned_move_map[arg_y.ctype.base](vector_y_reg, [reg_y_addr])
-            packed_mult_map[arg_x.ctype.base](vector_x_reg, vector_x_reg, vector_y_reg)
-            packed_aligned_move_map[arg_x.ctype.base]([reg_z_addr], vector_x_reg)
+            SUB(reg_length, vec_reg_size / (2 * arg_x.c_type.base.size))
+            CMP(reg_length, vec_reg_size / (2 * arg_x.c_type.base.size))
+        elif arg_x.c_type.base in [Yep32f, Yep64f]: # Multiplication can be performed in 1 instruction on floats
+            packed_aligned_move_map[arg_x.c_type.base](vector_x_reg, [reg_x_addr])
+            packed_aligned_move_map[arg_y.c_type.base](vector_y_reg, [reg_y_addr])
+            packed_mult_map[arg_x.c_type.base](vector_x_reg, vector_x_reg, vector_y_reg)
+            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr], vector_x_reg)
             ADD(reg_z_addr, vec_reg_size)
             ADD(reg_x_addr, vec_reg_size)
             ADD(reg_y_addr, vec_reg_size)
-            SUB(reg_length, vec_reg_size / arg_x.ctype.base.size)
-            CMP(reg_length, vec_reg_size / arg_x.ctype.base.size)
+            SUB(reg_length, vec_reg_size / arg_x.c_type.base.size)
+            CMP(reg_length, vec_reg_size / arg_x.c_type.base.size)
         JAE(vector_loop.begin)
 
     TEST(reg_length, reg_length)
     JZ(ret_ok)
     with scalar_loop:
-        scalar_move_map[arg_x.ctype.base](scalar_x_reg, [reg_x_addr])
-        scalar_move_map[arg_x.ctype.base](scalar_y_reg, [reg_y_addr])
-        scalar_mult_inst_select(scalar_x_reg, scalar_y_reg, arg_x.ctype.base)
-        scalar_move_map[arg_z.ctype.base]([reg_z_addr], scalar_x_reg)
-        ADD(reg_x_addr, arg_x.ctype.base.size)
-        ADD(reg_y_addr, arg_y.ctype.base.size)
-        ADD(reg_z_addr, arg_z.ctype.base.size)
+        scalar_move_map[arg_x.c_type.base](scalar_x_reg, [reg_x_addr])
+        scalar_move_map[arg_x.c_type.base](scalar_y_reg, [reg_y_addr])
+        scalar_mult_inst_select(scalar_x_reg, scalar_y_reg, arg_x.c_type.base)
+        scalar_move_map[arg_z.c_type.base]([reg_z_addr], scalar_x_reg)
+        ADD(reg_x_addr, arg_x.c_type.base.size)
+        ADD(reg_y_addr, arg_y.c_type.base.size)
+        ADD(reg_z_addr, arg_z.c_type.base.size)
         SUB(reg_length, 1)
         JNZ(scalar_loop.begin)
 

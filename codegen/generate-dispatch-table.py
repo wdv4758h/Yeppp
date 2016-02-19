@@ -3,6 +3,7 @@
 import json
 import argparse
 import os
+import yaml
 from collections import defaultdict
 
 TABLE_HEADER = "extern \"C\" YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s YEP_RESTRICT, " \
@@ -35,8 +36,8 @@ def write_table_header(func_metadata):
     arg_type_input = filter(lambda arg: arg["name"] == "xPointer", func_metadata["arguments"])[0]["type"]
     arg_type_output = filter(lambda arg: arg["name"] == "zPointer", func_metadata["arguments"])[0]["type"]
     func_name = func_metadata["name"]
-    f.write(TABLE_HEADER % (arg_type_input, arg_type_input, arg_type_output, func_name))
-    f.write('\n')
+    outfile.write(TABLE_HEADER % (arg_type_input, arg_type_input, arg_type_output, func_name))
+    outfile.write('\n')
 
 def write_systemv_abi(func_metadata):
     target_arch = func_metadata["uarch"]
@@ -44,25 +45,36 @@ def write_systemv_abi(func_metadata):
     simd_extensions = x86_64_SIMD_EXTENSIONS[target_arch]
     system_extensions = x86_64_SYSTEM_FEATURES[(target_arch, "SysV")]
     yep_target_arch = "YepCpuMicroarchitecture" + target_arch
-    f.write('    ')
-    f.write(IMPLEMENTATION_DESCRIPTION % (func_metadata["symbol"], isa_extensions, \
+    outfile.write('    ')
+    outfile.write(IMPLEMENTATION_DESCRIPTION % (func_metadata["symbol"], isa_extensions, \
             ' | '.join(simd_extensions), ' | '.join(system_extensions), yep_target_arch))
 
 def generate_includes(src_dir):
-    f.write("#include <yepPrivate.h>\n")
+    outfile.write("#include <yepPrivate.h>\n")
     for dir_path,subdirs,build_files in os.walk(src_dir):
         for build_file in build_files:
             if build_file.endswith(".h"):
-                f.write("#include <core/%s>\n" % build_file)
+                outfile.write("#include <core/%s>\n" % build_file)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates Dispatch tables for Yeppp")
     parser.add_argument("-o", dest="output", required=True, help="Output File name")
     parser.add_argument("input", nargs="+")
+    parser.add_argument("--spec-file", dest="specfile")
     options = parser.parse_args()
-    f = open(options.output, "w")
 
-    generate_includes("library/sources/core")
+    outfile = open(options.output, "w")
+
+    # Open the specfile and parse it with the YAML parser
+    specfile = open(options.specfile, "r")
+    yaml_data = yaml.load(specfile)
+    module = yaml_data["module"]
+
+    generate_includes("library/sources/" + module) # Write the #include<> at head
+
+    # Put all implementations of a given function specialization in
+    # a dictionary indexed by name.  E.g "yepCore_Add_V8sV8s_V8s" ->
+    # a list of all implementations of that function's JSON data
     json_files = options.input
     decoder = json.JSONDecoder()
     function_dict = defaultdict(list)
@@ -72,22 +84,28 @@ if __name__ == "__main__":
             for func_data in metadata:
                 func_name = func_data["name"]
                 function_dict[func_name].append(func_data)
+
+    # Iterate through the different functions, generating their dispatch tables
     for func,data_list in function_dict.items():
         write_table_header(data_list[0])
         for i,data in enumerate(data_list):
             write_systemv_abi(data)
             if i != len(data_list) - 1:
-                f.write(",")
-            f.write('\n')
-        f.write("};")
-        f.write("\n")
+                outfile.write(",")
+            outfile.write('\n')
+        outfile.write("};")
+        outfile.write("\n")
+
+    # Generate dispatch function pointers
     for func,data_list in function_dict.items():
         data = data_list[0]
-        f.write(FUNCTION_POINTER_DECLARATION.format(", ".join(arg["type"] for arg in data["arguments"]), **data_list[0]))
-        f.write("\n")
-    f.write("\n")
+        outfile.write(FUNCTION_POINTER_DECLARATION.format(", ".join(arg["type"] for arg in data["arguments"]), **data_list[0]))
+        outfile.write("\n")
+    outfile.write("\n")
+
+    # Write the functions which call the function pointers from dispatch table
     for func,data_list in function_dict.items():
         data = data_list[0]
-        f.write(DISPATCH_STUB.format(", ".join(arg["type"] + " " + arg["name"] for arg in data["arguments"]), \
+        outfile.write(DISPATCH_STUB.format(", ".join(arg["type"] + " " + arg["name"] for arg in data["arguments"]), \
                 ", ".join(arg["name"] for arg in data["arguments"]), **data_list[0]))
-        f.write("\n")
+        outfile.write("\n")
