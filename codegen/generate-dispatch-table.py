@@ -90,11 +90,10 @@ if __name__ == "__main__":
         write_table_header(data_list[0])
         for i,data in enumerate(data_list):
             write_systemv_abi(data)
-            if i != len(data_list) - 1:
-                outfile.write(",")
-            outfile.write('\n')
-        outfile.write("};")
-        outfile.write("\n")
+            outfile.write(',\n')
+        outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\"".format(data["symbol"]))
+        outfile.write("\n};")
+        outfile.write("\n\n")
 
     # Generate dispatch function pointers
     for func,data_list in function_dict.items():
