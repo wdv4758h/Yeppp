@@ -5,6 +5,7 @@ import argparse
 import os
 import yaml
 from collections import defaultdict
+from Function import Function
 
 TABLE_HEADER = "extern \"C\" YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s YEP_RESTRICT, " \
         "%s YEP_RESTRICT, %s YEP_RESTRICT, YepSize)> _dispatchTable_%s[] = {"
@@ -56,6 +57,17 @@ def generate_includes(src_dir):
             if build_file.endswith(".h"):
                 outfile.write("#include <core/%s>\n" % build_file)
 
+
+def generate_dispatch_for_asm(func, data_list):
+    write_table_header(data_list[0])
+    for i,data in enumerate(data_list):
+        write_systemv_abi(data)
+        outfile.write(',\n')
+    outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(data["symbol"]))
+    outfile.write("\n};")
+    outfile.write("\n\n")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates Dispatch tables for Yeppp")
     parser.add_argument("-o", dest="output", required=True, help="Output File name")
@@ -75,36 +87,58 @@ if __name__ == "__main__":
     # Put all implementations of a given function specialization in
     # a dictionary indexed by name.  E.g "yepCore_Add_V8sV8s_V8s" ->
     # a list of all implementations of that function's JSON data
+    # Parse all JSON files and mark them as having assembly implementations
     json_files = options.input
     decoder = json.JSONDecoder()
-    function_dict = defaultdict(list)
+    asm_function_dict = defaultdict(list)
     for json_file in json_files:
         with open(json_file) as json_f:
             metadata = decoder.decode(json_f.read())
             for func_data in metadata:
                 func_name = func_data["name"]
-                function_dict[func_name].append(func_data)
+                asm_function_dict[func_name].append(func_data)
 
-    # Iterate through the different functions, generating their dispatch tables
-    for func,data_list in function_dict.items():
-        write_table_header(data_list[0])
-        for i,data in enumerate(data_list):
-            write_systemv_abi(data)
-            outfile.write(',\n')
-        outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\"".format(data["symbol"]))
-        outfile.write("\n};")
+    # Now go through the spec files and find the ones which do not have assembly implementations
+    non_asm_functions = []
+    for op_set in yaml_data["functions"]:
+        op = op_set["operation"]
+        for func_group in op_set["function_groups"]:
+            for func in func_group["group"]:
+                non_asm_functions.append(Function(func, func_group))
+
+    # Iterate through the different functions with asm impls, generating their dispatch tables
+    for func,data_list in asm_function_dict.items():
+        generate_dispatch_for_asm(func, data_list)
+
+    # Iterate through the functions which do not have asm implementations
+    for func in non_asm_functions:
+        outfile.write("\n")
+        outfile.write(func.dispatch_table)
         outfile.write("\n\n")
 
     # Generate dispatch function pointers
-    for func,data_list in function_dict.items():
+    for func,data_list in asm_function_dict.items():
         data = data_list[0]
         outfile.write(FUNCTION_POINTER_DECLARATION.format(", ".join(arg["type"] for arg in data["arguments"]), **data_list[0]))
         outfile.write("\n")
     outfile.write("\n")
 
-    # Write the functions which call the function pointers from dispatch table
-    for func,data_list in function_dict.items():
+    outfile.write("\n")
+    for func in non_asm_functions:
+        outfile.write("\n")
+        outfile.write(func.function_pointer_declaration)
+
+    # Write the functions which call the function pointers from dispatch table for asm functions
+    outfile.write("\n")
+    for func,data_list in asm_function_dict.items():
         data = data_list[0]
         outfile.write(DISPATCH_STUB.format(", ".join(arg["type"] + " " + arg["name"] for arg in data["arguments"]), \
                 ", ".join(arg["name"] for arg in data["arguments"]), **data_list[0]))
-        outfile.write("\n")
+        outfile.write("\n\n")
+
+    # Write the functions which call function points from dispatch table for non-asm functions
+    outfile.write("\n\n")
+    for func in non_asm_functions:
+        outfile.write(func.dispatch_stub)
+        outfile.write("\n\n")
+

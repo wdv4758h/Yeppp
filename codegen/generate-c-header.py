@@ -2,7 +2,7 @@
 
 import yaml
 import argparse
-import Function
+from Function import Function
 
 def generate_c_header(header_path, function_list):
     with open(header_path, "w") as header_file:

@@ -28,20 +28,41 @@ class Function:
 
 
     @property
+    def dispatch_table(self):
+        """
+        Generate the dispatch table for this function,
+        which does not have an asm implementation (since those
+        dispatch tables are generated from .json files)
+        """
+        ret = "extern \"C\" YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)("
+        for i,arg in enumerate(self.arguments):
+            ret += arg.full_arg_type
+            if i != len(self.arguments) - 1:
+                ret += ", "
+        ret += ")> _dispatchTable_{}[] = {{\n".format(self.name)
+
+
+        ret += "    YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{},\
+        YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault,\
+        YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")\n}};".format(self.name)
+        return ret
+
+
+    @property
     def c_declaration(self):
         """
         Generate the C declaration for this function, which will be used
         in the generated C headers
         """
         # Write the function return type
-        c_declaration += "YEP_PUBLIC_SYMBOL enum YepStatus YEPABI "
+        c_declaration = "YEP_PUBLIC_SYMBOL enum YepStatus YEPABI "
 
         # Parse the declaration passed in for its parameter names and types
         c_declaration += self.name + "("
 
         # Parse and write the declaration for the input args
         for i,arg in enumerate(self.arguments):
-            c_declaration += arg.decl_str()
+            c_declaration += arg.declaration
             if i != len(self.arguments) - 1:
                 c_declaration += ", "
         c_declaration += ");"
@@ -84,6 +105,18 @@ class Function:
     @property
     def c_documentation(self):
         return self.c_documentation
+
+
+    @property
+    def function_pointer_declaration(self):
+        return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{})({}) = YEP_NULL_POINTER;".format(self.name, ", ".join([arg.full_arg_type for arg in self.arguments]))
+
+
+    @property
+    def dispatch_stub(self):
+        args_names = ", ".join([arg.name for arg in self.arguments])
+        args_str = ", ".join([arg.declaration for arg in self.arguments])
+        return "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {}({}) {{ return _{}({}); }}".format(self.name, args_str, self.name, args_names)
 
 
     def _separate_args_in_name(self, arg_str):
@@ -206,6 +239,21 @@ class Argument:
         e.g const Yep8s *x -> Yep8s
         """
         return self.arg_type
+
+    @property
+    def full_arg_type(self):
+        """
+        This is the type of the argument including qualifiers
+        like const, pointers etc.
+        """
+        ret = ""
+        if self.is_const:
+            ret += "const "
+        ret += self.arg_type + " "
+        if self.is_pointer:
+            ret += "*YEP_RESTRICT "
+        return ret
+
 
     @property
     def name(self):
