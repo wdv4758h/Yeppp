@@ -12,15 +12,15 @@
 #include <yepVersion.h>
 
 #include <yepCore.h>
-#include <core/functions.h>
 #include <library/functions.h>
+#include <core/yepCore.init.h>
 
 YepStatus YEPABI yepLibrary_Init() {
 	YepStatus status = _yepLibrary_InitCpuInfo();
 	if YEP_UNLIKELY(status != YepStatusOk) {
 		return status;
 	}
-	
+
 	status = _yepCore_Init();
 	if YEP_UNLIKELY(status != YepStatusOk) {
 		return status;
@@ -45,7 +45,7 @@ FunctionPointer _yepLibrary_InitFunction(const FunctionDescriptor<YepStatus (*)(
 		defaultImplementation = defaultMicroarchitecture && defaultIsaFeatures && defaultSimdFeatures && defaultSystemFeatures;
 		endFunction += 1;
 	} while (!defaultImplementation);
-	
+
 	for (const YepCpuMicroarchitecture *targetMicroarchitecturePointer = _dispatchList; ; targetMicroarchitecturePointer++) {
 		const YepCpuMicroarchitecture targetMicroarchitecture = *targetMicroarchitecturePointer;
 		for (const GeneralizedFunctionDescriptor* currentFunction = startFunction; currentFunction != endFunction; currentFunction++) {
@@ -77,7 +77,7 @@ const YepLibraryVersion* YEPABI yepLibrary_GetVersion() {
 
 	extern "C" BOOL WINAPI _DllMainCRTStartup(HINSTANCE instance, DWORD reason, LPVOID) {
 		return TRUE;
-	} 
+	}
 #endif
 
 #if defined(YEP_LINUX_OS)

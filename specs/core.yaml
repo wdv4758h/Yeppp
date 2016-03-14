@@ -1,8 +1,8 @@
 module: core
 
 functions:
-  - operation: Add
-    function_groups:
+    - operation: Add
+      function_groups:
         # Functions which add two vectors and store in a third vector
         - c_documentation: |
             @brief	Adds corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
@@ -43,12 +43,12 @@ functions:
           java_documentation: |
             @brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
-             while (length-- != 0) {
-                 const ${xPointer.arg_type} x = *xPointer++;
-                 const ${sumPointer.arg_type} sum = x + y;
-                 *sumPointer++ = sum;
-             }
-             return YepStatusOk;
+            while (length-- != 0) {
+                const ${xPointer.arg_type} x = *xPointer++;
+                const ${sumPointer.arg_type} sum = x + y;
+                *sumPointer++ = sum;
+            }
+            return YepStatusOk;
           group:
             - declaration: yepCore_Add_V8sS8s_V8s xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V8sS8s_V16s xPointer, y, sumPointer, YepSize length
@@ -62,7 +62,7 @@ functions:
             - declaration: yepCore_Add_V64sV64s_V64s xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V32fS32f_V32f xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V64fS64f_V64f xPointer, y, sumPointer, YepSize length
-        # Functions which add two vectors and store the result in the first vector
+              # Functions which add two vectors and store the result in the first vector
         - c_documentation: |
             @brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
             @param[in,out]	x	Pointer to the first addend array of %(InputType0)s elements.
@@ -71,13 +71,13 @@ functions:
           java_documentation: |
             @brief	Adds corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
           default_implementation_template: |
-             while (length-- != 0) {
-                 ${xPointer.arg_type} x = *xPointer;
-                 ${yPointer.arg_type} y = *yPointer++;
-                 x += y;
-                 *xPointer++ = x;
-             }
-             return YepStatusOk;
+            while (length-- != 0) {
+                ${xPointer.arg_type} x = *xPointer;
+                ${yPointer.arg_type} y = *yPointer++;
+                x += y;
+                *xPointer++ = x;
+            }
+            return YepStatusOk;
           group:
             - declaration: yepCore_Add_IV8sV8s_IV8s xPointer, yPointer, YepSize length
             - declaration: yepCore_Add_IV16sV16s_IV16s xPointer, yPointer, YepSize length
@@ -96,12 +96,12 @@ functions:
           java_documentation: |
             @brief	Adds a constant to %(InputType0)s array elements and writes the result to the same array.
           default_implementation_template: |
-             while (length-- != 0) {
-                 ${xPointer.arg_type} x = *xPointer;
-                 x += y;
-                 *xPointer++ = x;
-             }
-             return YepStatusOk;
+            while (length-- != 0) {
+                ${xPointer.arg_type} x = *xPointer;
+                x += y;
+                *xPointer++ = x;
+            }
+            return YepStatusOk;
           group:
             - declaration: yepCore_Add_IV8sS8s_IV8s xPointer, y, YepSize length
             - declaration: yepCore_Add_IV16sS16s_IV16s xPointer, y, YepSize length
@@ -110,3 +110,109 @@ functions:
             - declaration: yepCore_Add_IV64sS64s_IV64s xPointer, y, YepSize length
             - declaration: yepCore_Add_IV32fS32f_IV32f xPointer, y, YepSize length
             - declaration: yepCore_Add_IV64fS64f_IV64f xPointer, y, YepSize length
+    - operation: Multiply
+      function_groups:
+        # Multiply two vectors and store in a third
+        - c_documentation: |
+            @brief	Multiples corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
+            @param[in]	x	Pointer to the first factor array of %(InputType0)s elements.
+            @param[in]	y	Pointer to the second factor array of %(InputType1)s elements.
+            @param[out]	product	Pointer to the product array of %(OutputType0)s elements.
+            @param[in]	length	Length of the arrays specified by @a x, @a y, and @a product.
+          java_documentation: |
+            @brief	Multiples corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
+          default_implementation_template: |
+            while (length-- != 0) {
+                const Yep%(OutputType0)s x = *xPointer++;
+                const Yep%(OutputType0)s y = *yPointer++;
+                const Yep%(OutputType0)s product = x * y;
+                *productPointer++ = product;
+            }
+            return YepStatusOk;
+          group:
+            - declaration: yepCore_Multiply_V8sV8s_V8s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V8sV8s_V16s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V8uV8u_V16u x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V16sV16s_V16s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V16sV16s_V32s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V16uV16u_V32u x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32sV32s_V32s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32sV32s_V64s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32uV32u_V64u x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V64sV64s_V64s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32fV32f_V32f x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V64fV64f_V64f x, y, product, YepSize length
+        # Multiply a vector by a scalar constant
+        - c_documentation: |
+            @brief	Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
+            @param[in]	x	Pointer to the factor array of %(InputType0)s elements.
+            @param[in]	y	The %(InputType1)s constant to be multiplied by.
+            @param[out]	product	Pointer to the product array of %(OutputType0)s elements.
+            @param[in]	length	Length of the arrays specified by @a x and @a product.
+          java_documentation: |
+            @brief Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
+          default_implementation_template: |
+            while (length-- != 0) {
+                const Yep%(OutputType0)s x = *xPointer++;
+                const Yep%(OutputType0)s product = x * y;
+                *productPointer++ = product;
+            }
+            return YepStatusOk;
+          group:
+            - declaration: yepCore_Multiply_V8sS8s_V8s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V8sS8s_V16s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V8uS8u_V16u x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V16sS16s_V16s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V16sS16s_V32s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V16uS16u_V32u x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32sS32s_V32s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32sS32s_V64s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32uS32u_V64u x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V64sS64s_V64s x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V32fS32f_V32f x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V64fS64f_V64f x, y, product, YepSize length
+        # Multiply a vector and writes to the first array
+        - c_documentation: |
+            @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+            @param[in,out]	x	Pointer to the first factor array of %(InputType0)s elements.
+            @param[in]	y	Pointer to the second factor array of %(InputType1)s elements.
+            @param[in]	length	Length of the arrays specified by @a x and @a y.
+          java_documentation: |
+            @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+          default_implementation_template: |
+            while (length-- != 0) {
+                Yep%(OutputType0)s x = *xPointer;
+                const Yep%(OutputType0)s y = *yPointer++;
+                x *= y;
+                *xPointer++ = x;
+            }
+            return YepStatusOk;
+          group:
+            - declaration: yepCore_Multiply_IV8sV8s_IV8s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV16sV16s_IV16s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV32sV32s_IV32s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV64sV64s_IV64s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV32fV32f_IV32f x, y, YepSize length
+            - declaration: yepCore_Multiply_IV64fV64f_IV64f x, y, YepSize length
+        # Multiply a vector by a constant and write to same array
+        - c_documentation: |
+            @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
+            @param[in,out]	x	Pointer to the factor array of %(InputType0)s elements.
+            @param[in]	y	The %(InputType1)s constant factor.
+            @param[in]	length	Length of the array specified by @a x.
+          java_documentation: |
+            @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
+          default_implementation_template: |
+            while (length-- != 0) {
+                Yep%(OutputType0)s x = *xPointer;
+                x *= y;
+                *xPointer++ = x;
+            }
+            return YepStatusOk;
+          group:
+            - declaration: yepCore_Multiply_IV8sS8s_IV8s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV16sS16s_IV16s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV32sS32s_IV32s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV64sS64s_IV64s x, y, YepSize length
+            - declaration: yepCore_Multiply_IV32fS32f_IV32f x, y, YepSize length
+            - declaration: yepCore_Multiply_IV64fS64f_IV64f x, y, YepSize length

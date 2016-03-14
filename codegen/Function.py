@@ -7,7 +7,7 @@ class Function:
     default implementations
     """
 
-    def __init__(self, func, func_group):
+    def __init__(self, func, func_group, has_asm_impl=False):
         self.yaml_declaration = func["declaration"] # This needs to be parsed to get function info
         self.java_documentation = func_group["java_documentation"]
         self.c_documentation = func_group["c_documentation"]
@@ -26,6 +26,8 @@ class Function:
         self.arguments = []
         self._parse_arg_types(args_arr, input_types_encoded, output_type_encoded)
 
+        self.has_asm_impl = has_asm_impl
+
 
     @property
     def dispatch_table(self):
@@ -34,7 +36,7 @@ class Function:
         which does not have an asm implementation (since those
         dispatch tables are generated from .json files)
         """
-        ret = "extern \"C\" YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)("
+        ret = "YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)("
         for i,arg in enumerate(self.arguments):
             ret += arg.full_arg_type
             if i != len(self.arguments) - 1:
@@ -45,6 +47,20 @@ class Function:
         ret += "    YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{},\
         YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault,\
         YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")\n}};".format(self.name)
+        return ret
+
+
+    @property
+    def dispatch_table_declaration(self):
+        """
+        Generate the declaration of the dispatch table for the header
+        """
+        ret = "extern \"C\" YEP_PRIVATE_SYMBOL const FunctionDescriptor<YepStatus (YEPABI*)("
+        for i, arg in enumerate(self.arguments):
+            ret += arg.full_arg_type
+            if i != len(self.arguments) - 1:
+                ret += ", "
+        ret += ")> _dispatchTable_{}[];".format(self.name)
         return ret
 
 
@@ -108,8 +124,14 @@ class Function:
 
 
     @property
-    def function_pointer_declaration(self):
+    def function_pointer_definition(self):
         return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{})({}) = YEP_NULL_POINTER;".format(self.name, ", ".join([arg.full_arg_type for arg in self.arguments]))
+
+
+    @property
+    def function_pointer_declaration(self):
+        return "extern \"C\" YEP_PRIVATE_SYMBOL YepStatus (YEPABI* _{})({});".format(self.name,
+                ', '.join([arg.declaration for arg in self.arguments]))
 
 
     @property

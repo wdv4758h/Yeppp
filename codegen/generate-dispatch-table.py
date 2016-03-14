@@ -7,7 +7,7 @@ import yaml
 from collections import defaultdict
 from Function import Function
 
-TABLE_HEADER = "extern \"C\" YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s YEP_RESTRICT, " \
+TABLE_HEADER = "YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s YEP_RESTRICT, " \
         "%s YEP_RESTRICT, %s YEP_RESTRICT, YepSize)> _dispatchTable_%s[] = {"
 IMPLEMENTATION_DESCRIPTION = "YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(%s, %s, %s, %s, %s, \"asm\", YEP_NULL_POINTER, YEP_NULL_POINTER)"
 FUNCTION_POINTER_DECLARATION = "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{name})({0}) = YEP_NULL_POINTER;"
@@ -51,7 +51,10 @@ def write_systemv_abi(func_metadata):
             ' | '.join(simd_extensions), ' | '.join(system_extensions), yep_target_arch))
 
 def generate_includes(src_dir):
-    outfile.write("#include <yepPrivate.h>\n")
+    outfile.write("""
+#include <yepPrivate.h>
+#include <yepCore.h>
+""")
     for dir_path,subdirs,build_files in os.walk(src_dir):
         for build_file in build_files:
             if build_file.endswith(".h"):
@@ -63,16 +66,39 @@ def generate_dispatch_for_asm(func, data_list):
     for i,data in enumerate(data_list):
         write_systemv_abi(data)
         outfile.write(',\n')
-    outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(data["symbol"]))
+    outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION({}, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(data["symbol"]))
     outfile.write("\n};")
     outfile.write("\n\n")
+
+
+def generate_dispatch_table_header():
+    pre, ext = os.path.splitext(options.output)
+    header_out = pre + ".h"
+    with open(header_out, "w") as header_outfile:
+        header_outfile.write("""
+#pragma once
+
+#include <yepPredefines.h>
+#include <yepTypes.h>
+#include <yepPrivate.h>
+
+""")
+        for func in all_functions.values():
+            header_outfile.write(func.dispatch_table_declaration)
+            header_outfile.write("\n")
+
+        header_outfile.write("\n\n")
+
+        for func in all_functions.values():
+            header_outfile.write(func.function_pointer_declaration)
+            header_outfile.write("\n")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates Dispatch tables for Yeppp")
     parser.add_argument("-o", dest="output", required=True, help="Output File name")
     parser.add_argument("input", nargs="+")
-    parser.add_argument("--spec-file", dest="specfile")
+    parser.add_argument("--yaml", dest="specfile")
     options = parser.parse_args()
 
     outfile = open(options.output, "w")
@@ -81,8 +107,13 @@ if __name__ == "__main__":
     specfile = open(options.specfile, "r")
     yaml_data = yaml.load(specfile)
     module = yaml_data["module"]
+    all_functions = {}
+    for op_set in yaml_data["functions"]:
+        for func_group in op_set["function_groups"]:
+            for func in func_group["group"]:
+                # Map function names -> Function objects
+                all_functions[func["declaration"].split()[0]] = Function(func, func_group)
 
-    generate_includes("library/sources/" + module) # Write the #include<> at head
 
     # Put all implementations of a given function specialization in
     # a dictionary indexed by name.  E.g "yepCore_Add_V8sV8s_V8s" ->
@@ -97,21 +128,18 @@ if __name__ == "__main__":
             for func_data in metadata:
                 func_name = func_data["name"]
                 asm_function_dict[func_name].append(func_data)
+                all_functions[func_name].has_asm_impl = True
 
-    # Now go through the spec files and find the ones which do not have assembly implementations
-    non_asm_functions = []
-    for op_set in yaml_data["functions"]:
-        op = op_set["operation"]
-        for func_group in op_set["function_groups"]:
-            for func in func_group["group"]:
-                non_asm_functions.append(Function(func, func_group))
+    generate_includes("library/sources/" + module) # Write the #include<> at head
+    generate_dispatch_table_header()
 
     # Iterate through the different functions with asm impls, generating their dispatch tables
     for func,data_list in asm_function_dict.items():
         generate_dispatch_for_asm(func, data_list)
 
     # Iterate through the functions which do not have asm implementations
-    for func in non_asm_functions:
+    for func in all_functions.values():
+        if func.has_asm_impl: continue # We already generated these above
         outfile.write("\n")
         outfile.write(func.dispatch_table)
         outfile.write("\n\n")
@@ -124,9 +152,10 @@ if __name__ == "__main__":
     outfile.write("\n")
 
     outfile.write("\n")
-    for func in non_asm_functions:
+    for func in all_functions.values():
+        if func.has_asm_impl: continue
         outfile.write("\n")
-        outfile.write(func.function_pointer_declaration)
+        outfile.write(func.function_pointer_definition)
 
     # Write the functions which call the function pointers from dispatch table for asm functions
     outfile.write("\n")
@@ -138,7 +167,8 @@ if __name__ == "__main__":
 
     # Write the functions which call function points from dispatch table for non-asm functions
     outfile.write("\n\n")
-    for func in non_asm_functions:
+    for func in all_functions.values():
+        if func.has_asm_impl: continue
         outfile.write(func.dispatch_stub)
         outfile.write("\n\n")
 

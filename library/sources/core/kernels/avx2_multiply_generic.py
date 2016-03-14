@@ -1,7 +1,7 @@
 from peachpy.x86_64 import *
 from peachpy import *
 from instruction_maps.avx_mult_instruction_maps import *
-from common.YepStatus import YepStatus
+from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
 
 def scalar_mult_inst_select(reg_x, reg_y, op_type):
@@ -131,10 +131,10 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
         JNZ(scalar_loop.begin)
 
     with LABEL(ret_ok):
-        RETURN(YepStatus.YepStatusOk)
+        RETURN(YepStatusOk)
 
     with LABEL(ret_null_pointer):
-        RETURN(YepStatus.YepStatusNullPointer)
+        RETURN(YepStatusNullPointer)
 
     with LABEL(ret_misaligned_pointer):
-        RETURN(YepStatus.YepStatusMisalignedPointer)
+        RETURN(YepStatusMisalignedPointer)

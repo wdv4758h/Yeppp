@@ -133,6 +133,7 @@ class Configuration:
         self.source_dir = None
         self.build_dir = None
         self.header_dir = None
+        self.spec_dir = None
         self.platform = Platform(options.platform)
 
         root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -180,10 +181,10 @@ class Configuration:
         self.writer.variable("strip", "strip")
 
         # Rules
-        self.writer.rule("cc", "$cc $cflags -MMD -MT $out -MF $out.d -o $out -c $in",
+        self.writer.rule("cc", "$cc $cflags -MMD -MT $out -MF $out.d -o $out -c $src",
             description="CC $descpath",
             depfile="$out.d")
-        self.writer.rule("cxx", "$cxx $cxxflags -MMD -MT $out -MF $out.d -o $out -c $in",
+        self.writer.rule("cxx", "$cxx $cxxflags -MMD -MT $out -MF $out.d -o $out -c $src",
             description="CXX $descpath",
             depfile="$out.d")
         self.writer.rule("cxxld", "$cxx -o $out $in $ldflags $libs",
@@ -197,15 +198,55 @@ class Configuration:
             " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in",
             description="PEACHPY $descpath")
         self.writer.rule("generate-dispatch-table",
-            "$python codegen/generate-dispatch-table.py -o $out $in",
+            "$python codegen/generate-dispatch-table.py --yaml $yaml -o $out $json",
+            description="GENERATE $descpath")
+        self.writer.rule("generate-c-header",
+            "$python codegen/generate-c-header.py $in -o $out",
+            description="GENERATE $descpath")
+        self.writer.rule("generate-default-impl",
+            "$python codegen/generate-default-impl.py $in -o $out",
+            description="GENERATE $descpath")
+        self.writer.rule("generate-init-function",
+            "$python codegen/generate-init-function.py $in -o $out",
             description="GENERATE $descpath")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
 
-    def generate_dispatch_table(self, json_files, source_file):
-        self.writer.build(source_file, "generate-dispatch-table", json_files,
-            variables={"descpath": os.path.relpath(source_file, self.build_dir)})
+
+    def generate_dispatch_table(self, yaml_file, json_files, source_file):
+        self.writer.build(source_file, "generate-dispatch-table", [yaml_file] + json_files,
+            variables={
+                "yaml": yaml_file,
+                "json": " ".join(json_files),
+                "descpath": os.path.relpath(source_file, self.build_dir)})
+        return source_file
+
+    def generate_c_header(self, yaml_file, source_file=None):
+        if source_file is None:
+            module_name = os.path.splitext(os.path.basename(os.path.relpath(yaml_file, self.spec_dir)))[0]
+            source_file = os.path.join(self.header_dir, "yep{Module}.h".format(Module=module_name.capitalize()))
+        self.writer.build(source_file, "generate-c-header", yaml_file,
+            variables={
+                "descpath": os.path.relpath(source_file, self.build_dir)})
+        return source_file
+
+    def generate_init_function(self, yaml_file, source_file=None):
+        if source_file is None:
+            module_name = os.path.splitext(os.path.basename(os.path.relpath(yaml_file, self.spec_dir)))[0]
+            source_file = os.path.join(self.source_dir, "core", "yep{Module}".format(Module=module_name.capitalize())) + ".init.h"
+        self.writer.build(source_file, "generate-init-function", yaml_file,
+            variables={
+                "descpath": os.path.relpath(source_file, self.build_dir)})
+        return source_file
+
+    def generate_default_impl(self, yaml_file, source_file=None):
+        if source_file is None:
+            module_name = os.path.splitext(os.path.basename(os.path.relpath(yaml_file, self.spec_dir)))[0]
+            source_file = os.path.join(self.build_dir, "yep{Module}".format(Module=module_name.capitalize())) + ".impl.cpp"
+        self.writer.build(source_file, "generate-default-impl", yaml_file,
+            variables={
+                "descpath": os.path.relpath(source_file, self.build_dir)})
         return source_file
 
     def compile_peachpy(self, source_file, object_file=None):
@@ -258,26 +299,28 @@ class Configuration:
         self.writer.build(object_file, "nasm", source_file, variables=variables)
         return object_file
 
-    def compile_c(self, source_file, object_file=None):
+    def compile_c(self, source_file, object_file=None, extra_deps=[]):
         if object_file is None:
             object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + self.platform.obj_ext
         variables = {
+            "src": source_file,
             "descpath": os.path.relpath(source_file, self.source_dir)
         }
         if self.include_dirs:
             variables["cflags"] = "$cflags " + " ".join("-I" + include_dir for include_dir in self.include_dirs)
-        self.writer.build(object_file, "cc", source_file, variables=variables)
+        self.writer.build(object_file, "cc", [source_file] + extra_deps, variables=variables)
         return object_file
 
-    def compile_cxx(self, source_file, object_file=None):
+    def compile_cxx(self, source_file, object_file=None, extra_deps=[]):
         if object_file is None:
             object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + self.platform.obj_ext
         variables = {
+            "src": source_file,
             "descpath": os.path.relpath(source_file, self.source_dir)
         }
         if self.include_dirs:
             variables["cxxflags"] = "$cxxflags " + " ".join("-I" + include_dir for include_dir in self.include_dirs)
-        self.writer.build(object_file, "cxx", source_file, variables=variables)
+        self.writer.build(object_file, "cxx", [source_file] + extra_deps, variables=variables)
         return object_file
 
     def link_cxx_library(self, object_files, library_file):
@@ -316,15 +359,27 @@ def main():
     root_dir = os.path.dirname(os.path.abspath(__file__))
     library_source_root = os.path.join(root_dir, "library", "sources")
     library_header_root = os.path.join(root_dir, "library", "headers")
+    library_build_root = os.path.join(root_dir, "build", config.platform.name)
+    library_spec_root = os.path.join(root_dir, "specs")
     jni_source_root = os.path.join(root_dir, "bindings", "java", "sources-jni")
-    library_build_root = os.path.join(root_dir, "library", "build", config.platform.name)
     jni_build_root = os.path.join(root_dir, "bindings", "java", "build", config.platform.name)
 
     library_object_files = []
     config.source_dir = library_source_root
     config.build_dir = library_build_root
     config.header_dir = library_header_root
+    config.spec_dir = library_spec_root
     source_extensions = ["*.c", "*.cpp", "*.py"]
+
+    generated_public_headers = []
+    generated_init_functions = []
+    generated_implementations = []
+    spec_files = [os.path.join(library_spec_root, yaml_file) for yaml_file in os.listdir(library_spec_root) if fnmatch.fnmatch(yaml_file, "*.yaml")]
+    for yaml_file in spec_files:
+        generated_public_headers.append(config.generate_c_header(yaml_file))
+        generated_init_functions.append(config.generate_init_function(yaml_file))
+        generated_implementations.append(config.generate_default_impl(yaml_file))
+
     json_metadata_files = []
     for (source_dir, source_subdir, filenames) in os.walk(library_source_root):
         source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), source_extensions), [])
@@ -348,13 +403,12 @@ def main():
             if relative_source_filename == "library/sources/library/CpuMacOSX.cpp" and config.platform.kernel not in {"mach"}:
                 continue
 
-            if source_filename.endswith(".py"):
-                if not os.path.basename(source_filename).startswith("__"):
-                    object_file, json_file = config.compile_peachpy(source_filename)
-                    json_metadata_files.append(json_file)
-                    library_object_files.append(object_file)
-            elif source_filename.endswith(".cpp"):
-                library_object_files.append(config.compile_cxx(source_filename))
+            if source_filename.endswith(".py") and os.path.basename(source_filename).startswith("yep"):
+                object_file, json_file = config.compile_peachpy(source_filename)
+                json_metadata_files.append(json_file)
+                library_object_files.append(object_file)
+            elif source_filename.endswith(".cpp") and not source_filename.endswith(".disp.cpp"):
+                library_object_files.append(config.compile_cxx(source_filename, extra_deps=generated_public_headers))
     # config.source_dir = jni_source_root
     # config.build_dir = jni_build_root
     # for (source_dir, source_subdir, filenames) in os.walk(os.path.join(root_dir, "bindings", "java", "sources-jni")):
@@ -363,9 +417,11 @@ def main():
     #     for source_filename in source_filenames:
     #         library_object_files.append(config.compile_c(source_filename))
 
+
     # Generating Dispatch Tables
-    dispatch_table_object = config.generate_dispatch_table(json_metadata_files, os.path.join(library_build_root, "core", "DispatchTable.cpp"))
-    library_object_files.append(config.compile_cxx(dispatch_table_object))
+    for yaml_file in spec_files:
+        dispatch_table_src = config.generate_dispatch_table(yaml_file, json_metadata_files, os.path.join(library_source_root, "core", "yepCore.disp.cpp"))
+        library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers))
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root

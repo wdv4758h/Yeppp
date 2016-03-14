@@ -425,69 +425,69 @@ return YepStatusOk;
 # return YepStatusOk;
 # """
 		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		# function.generate("yepCore_Multiply_V8sS8s_V8s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V8sS8s_V16s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V8uS8u_V16u(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V16sS16s_V16s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V16sS16s_V32s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V16uS16u_V32u(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V32sS32s_V32s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V32sS32s_V64s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V32uS32u_V64u(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V64sS64s_V64s(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V32fS32f_V32f(x, y, product, YepSize length)")
-		# function.generate("yepCore_Multiply_V64fS64f_V64f(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V8sS8s_V8s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V8sS8s_V16s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V8uS8u_V16u(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V16sS16s_V16s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V16sS16s_V32s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V16uS16u_V32u(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V32sS32s_V32s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V32sS32s_V64s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V32uS32u_V64u(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V64sS64s_V64s(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V32fS32f_V32f(x, y, product, YepSize length)")
+		function.generate("yepCore_Multiply_V64fS64f_V64f(x, y, product, YepSize length)")
 
 		# function.java_documentation = """
-# @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+@brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
 # """
 		# function.c_documentation = """
-# @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
-# @param[in,out]	x	Pointer to the first factor array of %(InputType0)s elements.
-# @param[in]	y	Pointer to the second factor array of %(InputType1)s elements.
-# @param[in]	length	Length of the arrays specified by @a x and @a y.
+@brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
+@param[in,out]	x	Pointer to the first factor array of %(InputType0)s elements.
+@param[in]	y	Pointer to the second factor array of %(InputType1)s elements.
+@param[in]	length	Length of the arrays specified by @a x and @a y.
 # """
 		# function.c_implementation = """
-# while (length-- != 0) {
-	# Yep%(OutputType0)s x = *xPointer;
-	# const Yep%(OutputType0)s y = *yPointer++;
-	# x *= y;
-	# *xPointer++ = x;
-# }
-# return YepStatusOk;
+while (length-- != 0) {
+	Yep%(OutputType0)s x = *xPointer;
+	const Yep%(OutputType0)s y = *yPointer++;
+	x *= y;
+	*xPointer++ = x;
+}
+return YepStatusOk;
 # """
 		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		# function.generate("yepCore_Multiply_IV8sV8s_IV8s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV16sV16s_IV16s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV32sV32s_IV32s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV64sV64s_IV64s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV32fV32f_IV32f(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV64fV64f_IV64f(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV8sV8s_IV8s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV16sV16s_IV16s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV32sV32s_IV32s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV64sV64s_IV64s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV32fV32f_IV32f(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV64fV64f_IV64f(x, y, YepSize length)")
 
 		# function.java_documentation = """
-# @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
+@brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
 # """
 		# function.c_documentation = """
-# @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
-# @param[in,out]	x	Pointer to the factor array of %(InputType0)s elements.
-# @param[in]	y	The %(InputType1)s constant factor.
-# @param[in]	length	Length of the array specified by @a x.
+@brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
+@param[in,out]	x	Pointer to the factor array of %(InputType0)s elements.
+@param[in]	y	The %(InputType1)s constant factor.
+@param[in]	length	Length of the array specified by @a x.
 # """
 		# function.c_implementation = """
-# while (length-- != 0) {
-	# Yep%(OutputType0)s x = *xPointer;
-	# x *= y;
-	# *xPointer++ = x;
-# }
-# return YepStatusOk;
+while (length-- != 0) {
+	Yep%(OutputType0)s x = *xPointer;
+	x *= y;
+	*xPointer++ = x;
+}
+return YepStatusOk;
 # """
 		# function.unit_test = ReferenceUnitTest(x = Uniform(), y = Uniform())
-		# function.generate("yepCore_Multiply_IV8sS8s_IV8s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV16sS16s_IV16s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV32sS32s_IV32s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV64sS64s_IV64s(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV32fS32f_IV32f(x, y, YepSize length)")
-		# function.generate("yepCore_Multiply_IV64fS64f_IV64f(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV8sS8s_IV8s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV16sS16s_IV16s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV32sS32s_IV32s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV64sS64s_IV64s(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV32fS32f_IV32f(x, y, YepSize length)")
+		function.generate("yepCore_Multiply_IV64fS64f_IV64f(x, y, YepSize length)")
 
 def generate_multiply_add(module):
 	with yeppp.module.Function(module, 'MultiplyAdd', 'Multiplication and addition') as function:

@@ -14,18 +14,15 @@ def generate_init_function(module, outfile, function_list):
         init_file.write("""
 #pragma once
 
-#include <core/Add.disp.h>
-#include <core/Subtract.disp.h>
-#include <core/Negate.disp.h>
-#include <core/Multiply.disp.h>
-#include <core/Min.disp.h>
-#include <core/Max.disp.h>
-#include <core/Sum.disp.h>
-#include <core/SumAbs.disp.h>
-#include <core/SumSquares.disp.h>
-#include <core/DotProduct.disp.h>
-inline static YepStatus _yep{}_Init() {{
-""".format(module))
+#include <yepPredefines.h>
+#include <yepTypes.h>
+#include <yepPrivate.h>
+#include <yepCore.h>
+#include <library/functions.h>
+#include <core/yepCore.disp.h>
+
+YEP_INLINE static YepStatus _yep{}_Init() {{
+""".format(module.capitalize()))
 
         for func in function_list:
             init_file.write("  *reinterpret_cast<FunctionPointer*>(&_{}) = _yepLibrary_InitFunction((const FunctionDescriptor<YepStatus (*)()>*)_dispatchTable_{});\n".format(func, func))

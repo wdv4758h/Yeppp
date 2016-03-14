@@ -21,6 +21,7 @@ def generate_c_header(header_path, function_list):
 
         for function in function_list:
             header_file.write(function.c_declaration)
+            header_file.write("\n")
 
         # Close C decl
         header_file.write("""\

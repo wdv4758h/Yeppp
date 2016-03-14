@@ -2,7 +2,7 @@ from peachpy.x86_64 import *
 from peachpy import *
 from instruction_maps.sse_add_instruction_maps import *
 from common.pipeline import software_pipelined_loop
-from common.YepStatus import YepStatus
+from common.YepStatus import *
 
 def scalar_mov_instr_select(reg, addr, input_type, output_type):
     """
@@ -119,11 +119,11 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
         JNZ(scalar_loop.begin)
 
     with LABEL(ret_ok):
-        RETURN(YepStatus.YepStatusOk)
+        RETURN(YepStatusOk)
 
     with LABEL(ret_null_pointer):
-        RETURN(YepStatus.YepStatusNullPointer)
+        RETURN(YepStatusNullPointer)
 
     with LABEL(ret_misaligned_pointer):
-        RETURN(YepStatus.YepStatusMisalignedPointer)
+        RETURN(YepStatusMisalignedPointer)
 
