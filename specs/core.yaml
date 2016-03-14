@@ -59,7 +59,7 @@ functions:
             - declaration: yepCore_Add_V32sS32s_V32s xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V32sS32s_V64s xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V32uS32u_V64u xPointer, y, sumPointer, YepSize length
-            - declaration: yepCore_Add_V64sV64s_V64s xPointer, y, sumPointer, YepSize length
+            - declaration: yepCore_Add_V64sS64s_V64s xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V32fS32f_V32f xPointer, y, sumPointer, YepSize length
             - declaration: yepCore_Add_V64fS64f_V64f xPointer, y, sumPointer, YepSize length
               # Functions which add two vectors and store the result in the first vector
@@ -82,7 +82,6 @@ functions:
             - declaration: yepCore_Add_IV8sV8s_IV8s xPointer, yPointer, YepSize length
             - declaration: yepCore_Add_IV16sV16s_IV16s xPointer, yPointer, YepSize length
             - declaration: yepCore_Add_IV32sV32s_IV32s xPointer, yPointer, YepSize length
-            - declaration: yepCore_Add_IV64sV64s_IV64s xPointer, yPointer, YepSize length
             - declaration: yepCore_Add_IV64sV64s_IV64s xPointer, yPointer, YepSize length
             - declaration: yepCore_Add_IV32fV32f_IV32f xPointer, yPointer, YepSize length
             - declaration: yepCore_Add_IV64fV64f_IV64f xPointer, yPointer, YepSize length
@@ -107,7 +106,6 @@ functions:
             - declaration: yepCore_Add_IV16sS16s_IV16s xPointer, y, YepSize length
             - declaration: yepCore_Add_IV32sS32s_IV32s xPointer, y, YepSize length
             - declaration: yepCore_Add_IV64sS64s_IV64s xPointer, y, YepSize length
-            - declaration: yepCore_Add_IV64sS64s_IV64s xPointer, y, YepSize length
             - declaration: yepCore_Add_IV32fS32f_IV32f xPointer, y, YepSize length
             - declaration: yepCore_Add_IV64fS64f_IV64f xPointer, y, YepSize length
     - operation: Multiply
@@ -123,25 +121,25 @@ functions:
             @brief	Multiples corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                const Yep%(OutputType0)s x = *xPointer++;
-                const Yep%(OutputType0)s y = *yPointer++;
-                const Yep%(OutputType0)s product = x * y;
+                ${xPointer.arg_type} x = *xPointer++;
+                ${yPointer.arg_type} y = *yPointer++;
+                ${productPointer.arg_type} product = x * y;
                 *productPointer++ = product;
             }
             return YepStatusOk;
           group:
-            - declaration: yepCore_Multiply_V8sV8s_V8s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V8sV8s_V16s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V8uV8u_V16u x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V16sV16s_V16s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V16sV16s_V32s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V16uV16u_V32u x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32sV32s_V32s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32sV32s_V64s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32uV32u_V64u x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V64sV64s_V64s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32fV32f_V32f x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V64fV64f_V64f x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V8sV8s_V8s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V8sV8s_V16s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V8uV8u_V16u xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V16sV16s_V16s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V16sV16s_V32s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V16uV16u_V32u xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32sV32s_V32s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32sV32s_V64s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32uV32u_V64u xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V64sV64s_V64s xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32fV32f_V32f xPointer, yPointer, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V64fV64f_V64f xPointer, yPointer, productPointer, YepSize length
         # Multiply a vector by a scalar constant
         - c_documentation: |
             @brief	Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
@@ -153,24 +151,24 @@ functions:
             @brief Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                const Yep%(OutputType0)s x = *xPointer++;
-                const Yep%(OutputType0)s product = x * y;
+                ${xPointer.arg_type} x = *xPointer++;
+                ${productPointer.arg_type} product = x * y;
                 *productPointer++ = product;
             }
             return YepStatusOk;
           group:
-            - declaration: yepCore_Multiply_V8sS8s_V8s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V8sS8s_V16s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V8uS8u_V16u x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V16sS16s_V16s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V16sS16s_V32s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V16uS16u_V32u x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32sS32s_V32s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32sS32s_V64s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32uS32u_V64u x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V64sS64s_V64s x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V32fS32f_V32f x, y, product, YepSize length
-            - declaration: yepCore_Multiply_V64fS64f_V64f x, y, product, YepSize length
+            - declaration: yepCore_Multiply_V8sS8s_V8s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V8sS8s_V16s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V8uS8u_V16u xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V16sS16s_V16s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V16sS16s_V32s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V16uS16u_V32u xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32sS32s_V32s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32sS32s_V64s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32uS32u_V64u xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V64sS64s_V64s xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V32fS32f_V32f xPointer, y, productPointer, YepSize length
+            - declaration: yepCore_Multiply_V64fS64f_V64f xPointer, y, productPointer, YepSize length
         # Multiply a vector and writes to the first array
         - c_documentation: |
             @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
@@ -181,19 +179,19 @@ functions:
             @brief	Multiplies corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
           default_implementation_template: |
             while (length-- != 0) {
-                Yep%(OutputType0)s x = *xPointer;
-                const Yep%(OutputType0)s y = *yPointer++;
+                ${xPointer.arg_type} x = *xPointer;
+                ${yPointer.arg_type} y = *yPointer++;
                 x *= y;
                 *xPointer++ = x;
             }
             return YepStatusOk;
           group:
-            - declaration: yepCore_Multiply_IV8sV8s_IV8s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV16sV16s_IV16s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV32sV32s_IV32s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV64sV64s_IV64s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV32fV32f_IV32f x, y, YepSize length
-            - declaration: yepCore_Multiply_IV64fV64f_IV64f x, y, YepSize length
+            - declaration: yepCore_Multiply_IV8sV8s_IV8s xPointer, yPointer, YepSize length
+            - declaration: yepCore_Multiply_IV16sV16s_IV16s xPointer, yPointer, YepSize length
+            - declaration: yepCore_Multiply_IV32sV32s_IV32s xPointer, yPointer, YepSize length
+            - declaration: yepCore_Multiply_IV64sV64s_IV64s xPointer, yPointer, YepSize length
+            - declaration: yepCore_Multiply_IV32fV32f_IV32f xPointer, yPointer, YepSize length
+            - declaration: yepCore_Multiply_IV64fV64f_IV64f xPointer, yPointer, YepSize length
         # Multiply a vector by a constant and write to same array
         - c_documentation: |
             @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
@@ -204,15 +202,15 @@ functions:
             @brief	Multiplies %(InputType0)s array elements by a constant and writes the result to the same array.
           default_implementation_template: |
             while (length-- != 0) {
-                Yep%(OutputType0)s x = *xPointer;
+                ${xPointer.arg_type} x = *xPointer;
                 x *= y;
                 *xPointer++ = x;
             }
             return YepStatusOk;
           group:
-            - declaration: yepCore_Multiply_IV8sS8s_IV8s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV16sS16s_IV16s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV32sS32s_IV32s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV64sS64s_IV64s x, y, YepSize length
-            - declaration: yepCore_Multiply_IV32fS32f_IV32f x, y, YepSize length
-            - declaration: yepCore_Multiply_IV64fS64f_IV64f x, y, YepSize length
+            - declaration: yepCore_Multiply_IV8sS8s_IV8s xPointer, y, YepSize length
+            - declaration: yepCore_Multiply_IV16sS16s_IV16s xPointer, y, YepSize length
+            - declaration: yepCore_Multiply_IV32sS32s_IV32s xPointer, y, YepSize length
+            - declaration: yepCore_Multiply_IV64sS64s_IV64s xPointer, y, YepSize length
+            - declaration: yepCore_Multiply_IV32fS32f_IV32f xPointer, y, YepSize length
+            - declaration: yepCore_Multiply_IV64fS64f_IV64f xPointer, y, YepSize length

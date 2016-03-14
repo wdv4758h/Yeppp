@@ -234,7 +234,7 @@ class Configuration:
     def generate_init_function(self, yaml_file, source_file=None):
         if source_file is None:
             module_name = os.path.splitext(os.path.basename(os.path.relpath(yaml_file, self.spec_dir)))[0]
-            source_file = os.path.join(self.source_dir, "core", "yep{Module}".format(Module=module_name.capitalize())) + ".init.h"
+            source_file = os.path.join(self.source_dir, module_name, "yep{Module}".format(Module=module_name.capitalize())) + ".init.h"
         self.writer.build(source_file, "generate-init-function", yaml_file,
             variables={
                 "descpath": os.path.relpath(source_file, self.build_dir)})
@@ -243,7 +243,7 @@ class Configuration:
     def generate_default_impl(self, yaml_file, source_file=None):
         if source_file is None:
             module_name = os.path.splitext(os.path.basename(os.path.relpath(yaml_file, self.spec_dir)))[0]
-            source_file = os.path.join(self.build_dir, "yep{Module}".format(Module=module_name.capitalize())) + ".impl.cpp"
+            source_file = os.path.join(self.source_dir, module_name, "yep{Module}".format(Module=module_name.capitalize())) + ".impl.cpp"
         self.writer.build(source_file, "generate-default-impl", yaml_file,
             variables={
                 "descpath": os.path.relpath(source_file, self.build_dir)})
@@ -380,6 +380,9 @@ def main():
         generated_init_functions.append(config.generate_init_function(yaml_file))
         generated_implementations.append(config.generate_default_impl(yaml_file))
 
+    for impl_src in generated_implementations:
+        library_object_files.append(config.compile_cxx(impl_src, extra_deps=generated_public_headers))
+
     json_metadata_files = []
     for (source_dir, source_subdir, filenames) in os.walk(library_source_root):
         source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), source_extensions), [])
@@ -407,7 +410,7 @@ def main():
                 object_file, json_file = config.compile_peachpy(source_filename)
                 json_metadata_files.append(json_file)
                 library_object_files.append(object_file)
-            elif source_filename.endswith(".cpp") and not source_filename.endswith(".disp.cpp"):
+            elif source_filename.endswith(".cpp"):
                 library_object_files.append(config.compile_cxx(source_filename, extra_deps=generated_public_headers))
     # config.source_dir = jni_source_root
     # config.build_dir = jni_build_root
@@ -422,6 +425,7 @@ def main():
     for yaml_file in spec_files:
         dispatch_table_src = config.generate_dispatch_table(yaml_file, json_metadata_files, os.path.join(library_source_root, "core", "yepCore.disp.cpp"))
         library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers))
+
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root

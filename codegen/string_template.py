@@ -21,11 +21,12 @@ class StringTemplate:
         eval_str = ""
         in_template = False
         for i,c in enumerate(self.template):
-            if c == "{": continue
+            if c == "{" and in_template: continue
             if c == "$" and not in_template:
-                in_template = True
                 if self.template[i+1] != "{":
                     return ""
+                else:
+                    in_template = True
             elif in_template and c == "}":
                 in_template = False
                 ret += str(eval(eval_str, args))
