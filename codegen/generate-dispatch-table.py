@@ -84,6 +84,11 @@ def generate_dispatch_table_header():
 
 """)
         for func in all_functions.values():
+            header_outfile.write(func.default_impl_declaration)
+            header_outfile.write("\n")
+            
+
+        for func in all_functions.values():
             header_outfile.write(func.dispatch_table_declaration)
             header_outfile.write("\n")
 

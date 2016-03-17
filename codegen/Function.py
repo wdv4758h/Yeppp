@@ -44,7 +44,7 @@ class Function:
         ret += ")> _dispatchTable_{}[] = {{\n".format(self.name)
 
 
-        ret += "    YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{},\
+        ret += "    YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}_Default,\
         YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault,\
         YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")\n}};".format(self.name)
         return ret
@@ -116,6 +116,13 @@ class Function:
                 default_impl += "  "
         default_impl += "}\n"
         return default_impl
+
+    
+    @property
+    def default_impl_declaration(self):
+        return "extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI _{}_Default({});".format(
+                self.name,
+                ", ".join([arg.declaration for arg in self.arguments]))
 
 
     @property
