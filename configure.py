@@ -412,14 +412,6 @@ def main():
                 library_object_files.append(object_file)
             elif source_filename.endswith(".cpp"):
                 library_object_files.append(config.compile_cxx(source_filename, extra_deps=generated_public_headers))
-    # config.source_dir = jni_source_root
-    # config.build_dir = jni_build_root
-    # for (source_dir, source_subdir, filenames) in os.walk(os.path.join(root_dir, "bindings", "java", "sources-jni")):
-    #     source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), ["*.c"]), [])
-    #     source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
-    #     for source_filename in source_filenames:
-    #         library_object_files.append(config.compile_c(source_filename))
-
 
     # Generating Dispatch Tables
     for yaml_file in spec_files:

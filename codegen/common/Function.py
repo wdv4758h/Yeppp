@@ -1,4 +1,7 @@
 from string_template import StringTemplate
+from code_generator import CodeGenerator
+from Argument import Argument
+
 
 class Function:
     """
@@ -8,7 +11,18 @@ class Function:
     """
 
     def __init__(self, func, func_group, has_asm_impl=False):
-        self.yaml_declaration = func["declaration"] # This needs to be parsed to get function info
+        """
+        Initialize the function, setting the function name,
+        its documentation, template for default implementation,
+        and creating an array of Argument objects for the functions
+        arguments
+        :param func A dictionary from the spec file containing the declaration
+        :param func_group The group the function is in: groups subsets of specific operations,
+            e.g all Add functions which take a vector and a scalar and output a vector
+        :param has_asm_impl Whether or not this function has an assembly implementation
+            (used in generating dispatch tables)
+        """
+        self.yaml_declaration = func["declaration"] # e.g yepCore_Add_V8sV8s_V8s xPointer, yPointer, sumPointer, YepSize length
         self.java_documentation = func_group["java_documentation"]
         self.c_documentation = func_group["c_documentation"]
         self.default_impl_template = func_group["default_implementation_template"]
@@ -28,7 +42,36 @@ class Function:
 
         self.has_asm_impl = has_asm_impl
 
+    @property
+    def c_documentation(self):
+        """
+        Get the C documentation for this function
+        that is parsed from the YAML file
+        """
+        return self.c_documentation
 
+    @property
+    def c_declaration(self):
+        """
+        Generate the C declaration for this function, which will be used
+        in the generated C headers
+        """
+        # Write the function return type
+        c_declaration = "YEP_PUBLIC_SYMBOL enum YepStatus YEPABI "
+        # Parse the declaration passed in for its parameter names and types
+        c_declaration += self.name + "("
+        # Parse and write the declaration for the input args
+        for i,arg in enumerate(self.arguments):
+            c_declaration += arg.declaration
+            if i != len(self.arguments) - 1:
+                c_declaration += ", "
+        c_declaration += ");"
+        return c_declaration
+
+
+    # ========================================================
+    # DISPATCH GENERATION
+    # ========================================================
     @property
     def dispatch_table(self):
         """
@@ -42,13 +85,10 @@ class Function:
             if i != len(self.arguments) - 1:
                 ret += ", "
         ret += ")> _dispatchTable_{}[] = {{\n".format(self.name)
-
-
         ret += "    YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}_Default,\
         YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault,\
         YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")\n}};".format(self.name)
         return ret
-
 
     @property
     def dispatch_table_declaration(self):
@@ -63,28 +103,35 @@ class Function:
         ret += ")> _dispatchTable_{}[];".format(self.name)
         return ret
 
+    @property
+    def function_pointer_definition(self):
+        """
+        Define the pointer to this function and set it to null
+        """
+        return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{})({}) = YEP_NULL_POINTER;".format(self.name, ", ".join([arg.full_arg_type for arg in self.arguments]))
 
     @property
-    def c_declaration(self):
+    def function_pointer_declaration(self):
         """
-        Generate the C declaration for this function, which will be used
-        in the generated C headers
+        Declare the function pointer to this function
         """
-        # Write the function return type
-        c_declaration = "YEP_PUBLIC_SYMBOL enum YepStatus YEPABI "
+        return "extern \"C\" YEP_PRIVATE_SYMBOL YepStatus (YEPABI* _{})({});".format(self.name,
+                ', '.join([arg.declaration for arg in self.arguments]))
 
-        # Parse the declaration passed in for its parameter names and types
-        c_declaration += self.name + "("
+    @property
+    def dispatch_stub(self):
+        """
+        Generate the stub which the user calls which just redirects
+        to the function pointer set from the dispatch initialization
+        """
+        args_names = ", ".join([arg.name for arg in self.arguments])
+        args_str = ", ".join([arg.declaration for arg in self.arguments])
+        return "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {}({}) {{ return _{}({}); }}".format(self.name, args_str, self.name, args_names)
 
-        # Parse and write the declaration for the input args
-        for i,arg in enumerate(self.arguments):
-            c_declaration += arg.declaration
-            if i != len(self.arguments) - 1:
-                c_declaration += ", "
-        c_declaration += ");"
-        return c_declaration
 
-
+    # ========================================================
+    # DEFAULT IMPL GENERATION
+    # ========================================================
     @property
     def default_implementation(self):
         """
@@ -117,37 +164,82 @@ class Function:
         default_impl += "}\n"
         return default_impl
 
-    
     @property
     def default_impl_declaration(self):
+        """
+        Get the C declaration for the default implementation of this function
+        """
         return "extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI _{}_Default({});".format(
                 self.name,
                 ", ".join([arg.declaration for arg in self.arguments]))
 
 
+    # ========================================================
+    # UNIT TEST GENERATION
+    # ========================================================
     @property
-    def c_documentation(self):
-        return self.c_documentation
+    def unit_test(self):
+        """
+        Generate the CPP unit test for this function
+        """
+        utg = CodeGenerator()
+        # Generate definition, rng setup, etc.
+        utg.add_line("static Yep32s Test_{0}(Yep64u supportedIsaFeatures, Yep64u supportedSimdFeatures, Yep64u supportedSystemFeatures) {{".format(
+            "_".join(self.name.split("_")[1:]))) # Slices off the yepModule part of the name
+        utg.add_line("YepRandom_WELL1024a rng;")
+        utg.add_line("YepStatus status = yepRandom_WELL1024a_Init(&rng);")
+        utg.add_line("assert(status == YepStatusOk);")
+        utg.add_line()
 
+        utg.add_line("typedef YepStatus (YEPABI* FunctionPointer)({0});".format(
+            ", ".join([arg.full_arg_type for arg in self.arguments])))
+        utg.add_line("typedef const FunctionDescriptor<FunctionPointer>* DescriptorPointer;")
+        utg.add_line("const DescriptorPointer defaultDescriptor = findDefaultDescriptor(_dispatchTable_{0});".format(self.name))
+        utg.add_line("const FunctionPointer defaultImplementation = defaultDescriptor->function;")
+        utg.add_line("Yep32s failedTests = 0;")
+        utg.add_line()
 
-    @property
-    def function_pointer_definition(self):
-        return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{})({}) = YEP_NULL_POINTER;".format(self.name, ", ".join([arg.full_arg_type for arg in self.arguments]))
+        # Generate test inputs and randomly initialize
+        random_generator_function_map = {'Yep8u' : 'yepRandom_WELL1024a_GenerateDiscreteUniform_S8uS8u_V8u',
+                                         'Yep16u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S16uS16u_V16u',
+                                         'Yep32u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u',
+                                         'Yep64u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S64uS64u_V64u',
+                                         'Yep8s' : 'yepRandom_WELL1024a_GenerateDiscreteUniform_S8sS8s_V8s',
+                                         'Yep16s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S16sS16s_V16s',
+                                         'Yep32s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S32sS32s_V32s',
+                                         'Yep64s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S64sS64s_V64s',
+                                         'Yep32f': 'yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32',
+                                         'Yep64f': 'yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64'}
+        for arg in self.arguments:
+            if arg.is_pointer:
+                utg.add_line("YEP_ALIGN(64) {0} {1}Array[1088 + (64 / sizeof({0}))];".format(
+                    arg.arg_type, arg.name))
+                # TODO FIX THIS LINE!!!
+                utg.add_line("status = {0}(&rng, {1}, {2}, YEP_COUNT_OF({2}));".format(
+                    random_generator_function_map[arg.arg_type], ", ".join([-128, 127]), arg.name))
+            else:
+                utg.add_line("{} {};", arg.arg_type, arg.name)
+                # TODO FIX THIS LINE!!!
+                utg.add_line("status = {0}(&rng, {1}, &{2}, 1);".format(
+                    random_generator_function_map[arg.arg_type], ", ".join([-128, 127]), arg.name))
+            utg.add_line("assert(status == YepStatusOk")
+        utg.add_line()
 
+        utg.add_line("for (DescriptorPointer descriptor = &_dispatchTable_{0}[0]; \
+descriptor != defaultDescriptor; descriptor++) {{".format(self.name))
+        utg.indent()
+        utg.add_line("const Yep64u unsupportedRequiredFeatures = (descriptor->isaFeatures & ~supportedIsaFeatures) |")
+        utg.add_line("\t(descriptor->simdFeatures & ~supportedSimdFeatures) |")
+        utg.add_line("\t(descriptor->systemFeatures & ~supportedSystemFeatures);")
+        utg.add_line("if (unsupportedRequiredFeatures == 0) {")
+        utg.indent()
 
-    @property
-    def function_pointer_declaration(self):
-        return "extern \"C\" YEP_PRIVATE_SYMBOL YepStatus (YEPABI* _{})({});".format(self.name,
-                ', '.join([arg.declaration for arg in self.arguments]))
+        for arg in self.arguments:
+            utg.add_line("")
 
-
-    @property
-    def dispatch_stub(self):
-        args_names = ", ".join([arg.name for arg in self.arguments])
-        args_str = ", ".join([arg.declaration for arg in self.arguments])
-        return "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {}({}) {{ return _{}({}); }}".format(self.name, args_str, self.name, args_names)
-
-
+    # ========================================================
+    # PRIVATE HELPER FUNCTIONS
+    # ========================================================
     def _separate_args_in_name(self, arg_str):
         """
         Given a string such as IV64fV64f, it separates them into
@@ -160,7 +252,6 @@ class Function:
                 split = i
                 break
         return [arg_str[:split + 1], arg_str[split + 1:]]
-
 
     def _parse_arg_types(self, args_arr, inputs, output):
         """
@@ -189,7 +280,6 @@ class Function:
                 # These arguments have their types specified in the declaration string
                 arg = args_arr[args_arr_ind].split(" ")
                 self.arguments.append(Argument(arg[0], arg[1], False, False))
-
 
     def _parse_arg_type(self, arg_str):
         """
@@ -246,82 +336,5 @@ class ArgumentCheckGenerator:
   if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment({}, sizeof({})) != 0) {{
     return YepStatusMisalignedPointer;
   }}""".format(arg.name, arg.arg_type)
-
-
-class Argument:
-    """
-    Represents an argument to a function.
-    Used to generate declarations and default implementations
-    """
-
-    def __init__(self, arg_type, name, is_pointer, is_const):
-        self.arg_type = arg_type
-        self.name = name
-        self.is_pointer = is_pointer
-        self.is_const = is_const
-
-    @property
-    def arg_type(self):
-        """
-        This is the type of the argument with no qualifiers,
-        and if it is a pointer, it is the type pointed to
-        e.g const Yep8s *x -> Yep8s
-        """
-        return self.arg_type
-
-    @property
-    def full_arg_type(self):
-        """
-        This is the type of the argument including qualifiers
-        like const, pointers etc.
-        """
-        ret = ""
-        if self.is_const:
-            ret += "const "
-        ret += self.arg_type + " "
-        if self.is_pointer:
-            ret += "*YEP_RESTRICT "
-        return ret
-
-
-    @property
-    def name(self):
-        return self.name
-
-    @property
-    def is_pointer(self):
-        return self.is_pointer
-
-    @property
-    def is_const(self):
-        return self.is_const
-
-    @property
-    def declaration(self):
-        """
-        Returns the declaration needed in a C function
-        """
-        ret = ""
-        if self.is_const:
-            ret += "const "
-        ret += self.arg_type + " "
-        if self.is_pointer:
-            ret += "*YEP_RESTRICT "
-        ret += self.name
-        return ret
-
-    @property
-    def size(self):
-        """
-        Get the size of the argument, e.g Yep8s -> 8.
-        This is needed to generate the right alignment checks
-        """
-        ret = ""
-        for c in self.arg_type:
-            if c.isdigit():
-                ret += c
-        return ret
-
-
 
 

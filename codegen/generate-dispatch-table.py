@@ -5,7 +5,7 @@ import argparse
 import os
 import yaml
 from collections import defaultdict
-from Function import Function
+from common.Function import Function
 
 TABLE_HEADER = "YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)(%s YEP_RESTRICT, " \
         "%s YEP_RESTRICT, %s YEP_RESTRICT, YepSize)> _dispatchTable_%s[] = {"

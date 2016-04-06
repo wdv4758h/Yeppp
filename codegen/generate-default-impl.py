@@ -3,7 +3,7 @@
 import yaml
 import argparse
 import os
-from Function import Function
+from common.Function import Function
 
 
 def generate_default_implementations(path, function_list):
