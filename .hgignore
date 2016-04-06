@@ -32,6 +32,7 @@ unit-tests/sources/math/
 # Other auto-generated files
 bindings/clr/sources-csharp/VersionInfo.cs
 *.json
+*.d
 
 # Pre-compiled objects
 *.pyc
@@ -46,6 +47,7 @@ binaries/osx/x86-64/libyeppp.dylib
 binaries/osx/x86-64/libyeppp.dylib.dSYM
 binaries/osx/x86/libyeppp.dylib
 binaries/osx/x86/libyeppp.dylib.dSYM
+build/
 
 # ctags file
 tags
