@@ -47,4 +47,5 @@ binaries/osx/x86-64/libyeppp.dylib.dSYM
 binaries/osx/x86/libyeppp.dylib
 binaries/osx/x86/libyeppp.dylib.dSYM
 
-
+# ctags file
+tags

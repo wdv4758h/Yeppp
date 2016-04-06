@@ -1,5 +1,5 @@
 class CodeGenerator(object):
-    def __init__(self, use_tabs=True):
+    def __init__(self, use_tabs=False):
         self.indentationLevel = 0
         self.use_tabs = use_tabs
         self.code = []

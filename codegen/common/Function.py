@@ -1,6 +1,7 @@
-from string_template import StringTemplate
-from code_generator import CodeGenerator
 from Argument import Argument
+from DispatchTableGenerator import DispatchTableGenerator
+from DefaultImplementationGenerator import DefaultImplementationGenerator
+from UnitTestGenerator import UnitTestGenerator
 
 
 class Function:
@@ -41,6 +42,9 @@ class Function:
         self._parse_arg_types(args_arr, input_types_encoded, output_type_encoded)
 
         self.has_asm_impl = has_asm_impl
+        self.dispatch_table_generator = DispatchTableGenerator(self.name, self.arguments)
+        self.default_impl_generator = DefaultImplementationGenerator(self.name, self.arguments, self.default_impl_template)
+        self.unit_test_generator = UnitTestGenerator(self.name, self.arguments)
 
     @property
     def c_documentation(self):
@@ -68,178 +72,39 @@ class Function:
         c_declaration += ");"
         return c_declaration
 
-
-    # ========================================================
-    # DISPATCH GENERATION
-    # ========================================================
-    @property
-    def dispatch_table(self):
-        """
-        Generate the dispatch table for this function,
-        which does not have an asm implementation (since those
-        dispatch tables are generated from .json files)
-        """
-        ret = "YEP_USE_DISPATCH_TABLE_SECTION const FunctionDescriptor<YepStatus (YEPABI*)("
-        for i,arg in enumerate(self.arguments):
-            ret += arg.full_arg_type
-            if i != len(self.arguments) - 1:
-                ret += ", "
-        ret += ")> _dispatchTable_{}[] = {{\n".format(self.name)
-        ret += "    YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}_Default,\
-        YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault,\
-        YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")\n}};".format(self.name)
-        return ret
-
-    @property
-    def dispatch_table_declaration(self):
-        """
-        Generate the declaration of the dispatch table for the header
-        """
-        ret = "extern \"C\" YEP_PRIVATE_SYMBOL const FunctionDescriptor<YepStatus (YEPABI*)("
-        for i, arg in enumerate(self.arguments):
-            ret += arg.full_arg_type
-            if i != len(self.arguments) - 1:
-                ret += ", "
-        ret += ")> _dispatchTable_{}[];".format(self.name)
-        return ret
-
-    @property
-    def function_pointer_definition(self):
-        """
-        Define the pointer to this function and set it to null
-        """
-        return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{})({}) = YEP_NULL_POINTER;".format(self.name, ", ".join([arg.full_arg_type for arg in self.arguments]))
-
-    @property
-    def function_pointer_declaration(self):
-        """
-        Declare the function pointer to this function
-        """
-        return "extern \"C\" YEP_PRIVATE_SYMBOL YepStatus (YEPABI* _{})({});".format(self.name,
-                ', '.join([arg.declaration for arg in self.arguments]))
-
-    @property
-    def dispatch_stub(self):
-        """
-        Generate the stub which the user calls which just redirects
-        to the function pointer set from the dispatch initialization
-        """
-        args_names = ", ".join([arg.name for arg in self.arguments])
-        args_str = ", ".join([arg.declaration for arg in self.arguments])
-        return "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {}({}) {{ return _{}({}); }}".format(self.name, args_str, self.name, args_names)
-
-
-    # ========================================================
-    # DEFAULT IMPL GENERATION
-    # ========================================================
     @property
     def default_implementation(self):
-        """
-        Generate the default implementation for this function
-        based on the template in the YAML file
-        """
-        # Write the declaration
-        default_impl = "extern \"C\" YEP_LOCAL_SYMBOL YepStatus _{}_Default(".format(self.name)
-        for i,arg in enumerate(self.arguments):
-            default_impl += arg.declaration
-            if i != len(self.arguments) - 1:
-                default_impl += ", "
-        default_impl += ") {"
-
-        # Generate null pointer, alignment checks
-        arg_checker = ArgumentCheckGenerator(self.arguments)
-        checks = arg_checker.generate_arg_checks()
-        for check in checks:
-            default_impl += check
-        default_impl += "\n"
-
-        # Write the body of the implementation
-        template = StringTemplate(self.default_impl_template)
-        body = template.eval_template({ x.name: x for x in self.arguments })
-        default_impl += "  " # We need to add indentation of the body here
-        for i,c in enumerate(body):
-            default_impl += c
-            if c == "\n" and i != len(body) - 1:
-                default_impl += "  "
-        default_impl += "}\n"
-        return default_impl
+        return self.default_impl_generator.generate_default_implementation()
 
     @property
     def default_impl_declaration(self):
-        """
-        Get the C declaration for the default implementation of this function
-        """
-        return "extern \"C\" YEP_LOCAL_SYMBOL YepStatus YEPABI _{}_Default({});".format(
-                self.name,
-                ", ".join([arg.declaration for arg in self.arguments]))
+        return self.default_impl_generator.generate_default_impl_declaration()
 
+    @property
+    def dispatch_table(self):
+        return self.dispatch_table_generator.generate_dispatch_table()
 
-    # ========================================================
-    # UNIT TEST GENERATION
-    # ========================================================
+    @property
+    def dispatch_table_declaration(self):
+        return self.dispatch_table_generator.generate_dispatch_table_declaration()
+
+    @property
+    def dispatch_stub(self):
+        return self.dispatch_table_generator.generate_dispatch_stub()
+
+    @property
+    def function_pointer_declaration(self):
+        return self.dispatch_table_generator.generate_function_pointer_declaration()
+
+    @property
+    def function_pointer_definition(self):
+        return self.dispatch_table_generator.generate_function_pointer_definition()
+
     @property
     def unit_test(self):
-        """
-        Generate the CPP unit test for this function
-        """
-        utg = CodeGenerator()
-        # Generate definition, rng setup, etc.
-        utg.add_line("static Yep32s Test_{0}(Yep64u supportedIsaFeatures, Yep64u supportedSimdFeatures, Yep64u supportedSystemFeatures) {{".format(
-            "_".join(self.name.split("_")[1:]))) # Slices off the yepModule part of the name
-        utg.add_line("YepRandom_WELL1024a rng;")
-        utg.add_line("YepStatus status = yepRandom_WELL1024a_Init(&rng);")
-        utg.add_line("assert(status == YepStatusOk);")
-        utg.add_line()
+        return self.unit_test_generator.generate_unit_test()
 
-        utg.add_line("typedef YepStatus (YEPABI* FunctionPointer)({0});".format(
-            ", ".join([arg.full_arg_type for arg in self.arguments])))
-        utg.add_line("typedef const FunctionDescriptor<FunctionPointer>* DescriptorPointer;")
-        utg.add_line("const DescriptorPointer defaultDescriptor = findDefaultDescriptor(_dispatchTable_{0});".format(self.name))
-        utg.add_line("const FunctionPointer defaultImplementation = defaultDescriptor->function;")
-        utg.add_line("Yep32s failedTests = 0;")
-        utg.add_line()
 
-        # Generate test inputs and randomly initialize
-        random_generator_function_map = {'Yep8u' : 'yepRandom_WELL1024a_GenerateDiscreteUniform_S8uS8u_V8u',
-                                         'Yep16u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S16uS16u_V16u',
-                                         'Yep32u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S32uS32u_V32u',
-                                         'Yep64u': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S64uS64u_V64u',
-                                         'Yep8s' : 'yepRandom_WELL1024a_GenerateDiscreteUniform_S8sS8s_V8s',
-                                         'Yep16s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S16sS16s_V16s',
-                                         'Yep32s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S32sS32s_V32s',
-                                         'Yep64s': 'yepRandom_WELL1024a_GenerateDiscreteUniform_S64sS64s_V64s',
-                                         'Yep32f': 'yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32',
-                                         'Yep64f': 'yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64'}
-        for arg in self.arguments:
-            if arg.is_pointer:
-                utg.add_line("YEP_ALIGN(64) {0} {1}Array[1088 + (64 / sizeof({0}))];".format(
-                    arg.arg_type, arg.name))
-                # TODO FIX THIS LINE!!!
-                utg.add_line("status = {0}(&rng, {1}, {2}, YEP_COUNT_OF({2}));".format(
-                    random_generator_function_map[arg.arg_type], ", ".join([-128, 127]), arg.name))
-            else:
-                utg.add_line("{} {};", arg.arg_type, arg.name)
-                # TODO FIX THIS LINE!!!
-                utg.add_line("status = {0}(&rng, {1}, &{2}, 1);".format(
-                    random_generator_function_map[arg.arg_type], ", ".join([-128, 127]), arg.name))
-            utg.add_line("assert(status == YepStatusOk")
-        utg.add_line()
-
-        utg.add_line("for (DescriptorPointer descriptor = &_dispatchTable_{0}[0]; \
-descriptor != defaultDescriptor; descriptor++) {{".format(self.name))
-        utg.indent()
-        utg.add_line("const Yep64u unsupportedRequiredFeatures = (descriptor->isaFeatures & ~supportedIsaFeatures) |")
-        utg.add_line("\t(descriptor->simdFeatures & ~supportedSimdFeatures) |")
-        utg.add_line("\t(descriptor->systemFeatures & ~supportedSystemFeatures);")
-        utg.add_line("if (unsupportedRequiredFeatures == 0) {")
-        utg.indent()
-
-        for arg in self.arguments:
-            utg.add_line("")
-
-    # ========================================================
-    # PRIVATE HELPER FUNCTIONS
-    # ========================================================
     def _separate_args_in_name(self, arg_str):
         """
         Given a string such as IV64fV64f, it separates them into
@@ -296,45 +161,3 @@ descriptor != defaultDescriptor; descriptor++) {{".format(self.name))
         elif arg_str[0] == "I":
             # This points to both one input and where the output is stored
             return "Yep" + arg_str[2:]
-
-
-class ArgumentCheckGenerator:
-    """
-    Class responsible for generating the argument checks on the default
-    implementations of functions, e.g checking that pointers are non-null
-    and aligned
-    """
-
-    def __init__(self, arguments):
-        self.arguments = arguments
-
-
-    def generate_arg_checks(self):
-        """
-        Generate all argument checks for the arguments
-        passed in at construction and return them as
-        an array of strings
-        """
-        checks = []
-        for arg in self.arguments:
-            if arg.is_pointer:
-                checks.append(self.generate_null_check(arg))
-                if arg.size != "8" and arg.size != "":
-                    checks.append(self.generate_align_check(arg))
-        return checks
-
-
-    def generate_null_check(self, arg):
-        return """
-  if YEP_UNLIKELY({} == YEP_NULL_POINTER) {{
-    return YepStatusNullPointer;
-  }}""".format(arg.name)
-
-
-    def generate_align_check(self, arg):
-        return """
-  if YEP_UNLIKELY(yepBuiltin_GetPointerMisalignment({}, sizeof({})) != 0) {{
-    return YepStatusMisalignedPointer;
-  }}""".format(arg.name, arg.arg_type)
-
-
