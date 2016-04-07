@@ -26,8 +26,7 @@ bindings/clr/sources-csharp/core/*.cs
 bindings/clr/sources-csharp/math/*.cs
 
 # Generated unit tests
-unit-tests/sources/core/
-unit-tests/sources/math/
+unit-test/
 
 # Other auto-generated files
 bindings/clr/sources-csharp/VersionInfo.cs

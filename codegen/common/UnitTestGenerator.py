@@ -11,6 +11,18 @@ random_generator_function_map = {'Yep8u' : 'yepRandom_WELL1024a_GenerateDiscrete
                                  'Yep32f': 'yepRandom_WELL1024a_GenerateUniform_S32fS32f_V32f_Acc32',
                                  'Yep64f': 'yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64'}
 
+bounds =                        {'Yep8u' : ("0u", "255u"),
+                                 'Yep16u': ("0u", "65535u"),
+                                 'Yep32u': ("0u", "4294967295u"),
+                                 'Yep64u': ("0ull", "18446744073709551615ull"),
+                                 'Yep8s' : ("-128", "127"),
+                                 'Yep16s': ("-32768", "32767"),
+                                 'Yep32s': ("-2147483648", "2147483647"),
+                                 'Yep64s': ("-9223372036854775808ll", "9223372036854775807ll"),
+                                 'Yep32f': ("-1.0f", "1.0f"),
+                                 'Yep64f': ("-1.0", "1.0")}
+
+
 class UnitTestGenerator:
     """
     Class responsible for generating all unit tests for a function.
@@ -21,7 +33,7 @@ class UnitTestGenerator:
         self.name = name
         self.arguments = arguments
         self.inputs_arrs = [ arg for arg in self.arguments if arg.is_pointer and arg.is_const ]
-        self.output = [ arg for arg in self.arguments if not arg.arg_type == "YepSize" and not arg.is_const ][0]
+        self.output = [ arg for arg in self.arguments if arg.is_pointer and not arg.is_const ][0]
 
     def generate_unit_test(self):
         """
@@ -77,21 +89,19 @@ class UnitTestGenerator:
                 utg.add_line("YEP_ALIGN(64) {0} {1}Array[1088 + (64 / sizeof({0}))];".format(
                     arg.arg_type, arg.name))
                 if arg.name == self.output.name: continue # We don't want to initialize the output array here, only the init array below
-                # TODO FIX THIS LINE!!!
-                utg.add_line("status = {0}(&rng, {1}, {2}, YEP_COUNT_OF({2}));".format(
-                    random_generator_function_map[arg.arg_type], ", ".join(["-128", "127"]), arg.name))
+                utg.add_line("status = {0}(&rng, {1}, {2}Array, YEP_COUNT_OF({2}Array));".format(
+                    random_generator_function_map[arg.arg_type], ", ".join(bounds[arg.arg_type]), arg.name))
                 utg.add_line("assert(status == YepStatusOk);")
             elif arg.arg_type != "YepSize":
                 utg.add_line("{} {};".format(arg.arg_type, arg.name))
-                # TODO FIX THIS LINE!!!
                 utg.add_line("status = {0}(&rng, {1}, &{2}, 1);".format(
-                    random_generator_function_map[arg.arg_type], ", ".join(["-128", "127"]), arg.name))
+                    random_generator_function_map[arg.arg_type], ", ".join(bounds[arg.arg_type]), arg.name))
                 utg.add_line("assert(status == YepStatusOk);")
         # Initial arrays and reference arrays:
         if self.output.is_pointer: # Output is an array (not max, min, etc.)
             utg.add_line("YEP_ALIGN(64) {0} {1}InitArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("YEP_ALIGN(64) {0} {1}RefArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
-            utg.add_line("status = {0}(&rng, {1}, {2}InitArray, YEP_COUNT_OF({2}));".format(
+            utg.add_line("status = {0}(&rng, {1}, {2}InitArray, YEP_COUNT_OF({2}Array));".format(
                 random_generator_function_map[self.output.arg_type], ", ".join(["-128", "127"]), self.output.name))
 
     def _begin_implementation_loop(self, utg):
@@ -111,9 +121,6 @@ descriptor != defaultDescriptor; descriptor++) {{".format(self.name)).indent()
                 utg.add_line("for (YepSize length = 0; length < 64; length++) {").indent()
 
     def _argument_loop_body(self, utg):
-        inputs = [ arg for arg in self.arguments if arg.is_const ]
-        output = [ arg for arg in self.arguments if not arg.is_const and not arg.arg_type == "YepSize" ][0]
-
         utg.add_line("memcpy({0}RefArray, {0}InitArray, sizeof({0}RefArray));".format(self.output.name))
 
         utg.add_line("status = defaultImplementation({});".format(", ".join(self._determine_func_call_args(True))))

@@ -133,15 +133,15 @@ class Configuration:
         self.source_dir = None
         self.build_dir = None
         self.header_dir = None
+        self.unit_test_dir = None
         self.spec_dir = None
         self.platform = Platform(options.platform)
 
         root_dir = os.path.dirname(os.path.abspath(__file__))
         library_source_root = os.path.join(root_dir, "library", "sources")
         library_header_root = os.path.join(root_dir, "library", "headers")
-        jni_source_root = os.path.join(root_dir, "bindings", "java", "sources-jni")
 
-        self.include_dirs = [library_header_root, library_source_root, jni_source_root]
+        self.include_dirs = [library_header_root, library_source_root]
 
         if self.platform.os == "osx":
             python = "python"
@@ -175,7 +175,6 @@ class Configuration:
         self.writer.variable("ldflags", " ".join(ldflags))
         self.writer.variable("libs", " ".join(libs))
         self.writer.variable("ar", "ar")
-        self.writer.variable("nasm", "nasm")
         if self.platform.os == "osx":
             self.writer.variable("dsymutil", "dsymutil")
         self.writer.variable("strip", "strip")
@@ -189,10 +188,10 @@ class Configuration:
             depfile="$out.d")
         self.writer.rule("cxxld", "$cxx -o $out $in $ldflags $libs",
             description="CXXLD $descpath")
+        self.writer.rule("cxxexec", "$cxx -o $out $in",
+            description="Build CXX Binary $descpath")
         self.writer.rule("ar", "$ar $arflags rcs $out $in",
             description="AR $descpath")
-        self.writer.rule("nasm", "$nasm -o $out $nasmflags $in",
-            description="NASM $descpath")
         self.writer.rule("peachpy-obj",
             "$python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
             " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in",
@@ -208,6 +207,9 @@ class Configuration:
             description="GENERATE $descpath")
         self.writer.rule("generate-init-function",
             "$python codegen/generate-init-function.py $in -o $out",
+            description="GENERATE $descpath")
+        self.writer.rule("generate-unit-test",
+            "$python codegen/generate-unit-test.py $in -o $out -op=$op",
             description="GENERATE $descpath")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
@@ -249,6 +251,15 @@ class Configuration:
                 "descpath": os.path.relpath(source_file, self.build_dir)})
         return source_file
 
+    def generate_unit_test(self, yaml_file, op, source_file=None):
+        if source_file is None:
+            source_file = os.path.join(self.unit_test_dir, op + ".cpp")
+        self.writer.build(source_file, "generate-unit-test", yaml_file,
+            variables={
+                "descpath": os.path.relpath(source_file, self.build_dir),
+                "op": op})
+        return source_file
+
     def compile_peachpy(self, source_file, object_file=None):
         if object_file is None:
             object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + self.platform.obj_ext
@@ -275,29 +286,6 @@ class Configuration:
         }
         self.writer.build([object_file, json_file], "peachpy-obj", source_file, variables=variables)
         return object_file, json_file
-
-
-    def compile_nasm(self, source_file, object_file=None):
-        if object_file is None:
-            object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + self.platform.obj_ext
-        nasm_format_map = {
-            "x86_64-windows": "win64",
-            "x86_64-linux": "elf64",
-            "x86_64-android": "elf64",
-            "x86_64-osx": "macho64",
-            "x86-windows": "win32",
-            "x86-linux": "elf32",
-            "x86-android": "elf32",
-            "x86-osx": "macho32"
-        }
-        if self.platform.name not in nasm_format_map:
-            raise ValueError("nasm is not supported on %s platform" % self.platform.name)
-        variables={
-            "nasmflags": "-f " + nasm_format_map[self.platform.name],
-            "descpath": os.path.relpath(source_file, self.source_dir)
-        }
-        self.writer.build(object_file, "nasm", source_file, variables=variables)
-        return object_file
 
     def compile_c(self, source_file, object_file=None, extra_deps=[]):
         if object_file is None:
@@ -328,6 +316,10 @@ class Configuration:
             variables={"descpath": os.path.relpath(library_file, self.build_dir)})
         return library_file
 
+    def link_cxx_executable(self, object_files, executable_file):
+        self.writer.build(executable_file, "cxxexec", object_files)
+        return executable_file
+
     def link_c_executable(self, source_files, executable_file):
         self.writer.build(executable_file, "ccld", source_files,
             variables={"descpath": os.path.relpath(executable_file, self.build_dir)})
@@ -348,7 +340,6 @@ parser.add_argument("-p", "--platform", dest="platform", required=True,
     choices=Platform._supported)
 parser.add_argument("--with-cc", dest="cc")
 parser.add_argument("--with-cxx", dest="cxx")
-parser.add_argument("--with-nasm", dest="nasm", default="nasm")
 
 
 def main():
@@ -361,14 +352,14 @@ def main():
     library_header_root = os.path.join(root_dir, "library", "headers")
     library_build_root = os.path.join(root_dir, "build", config.platform.name)
     library_spec_root = os.path.join(root_dir, "specs")
-    jni_source_root = os.path.join(root_dir, "bindings", "java", "sources-jni")
-    jni_build_root = os.path.join(root_dir, "bindings", "java", "build", config.platform.name)
+    library_unit_test_root = os.path.join(root_dir, "unit-test")
 
     library_object_files = []
     config.source_dir = library_source_root
     config.build_dir = library_build_root
     config.header_dir = library_header_root
     config.spec_dir = library_spec_root
+    config.unit_test_dir = library_unit_test_root
     source_extensions = ["*.c", "*.cpp", "*.py"]
 
     generated_public_headers = []
@@ -418,12 +409,23 @@ def main():
         dispatch_table_src = config.generate_dispatch_table(yaml_file, json_metadata_files, os.path.join(library_source_root, "core", "yepCore.disp.cpp"))
         library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers))
 
+    # Generate unit tests
+    ops = ["Add", "Multiply"]
+    unit_test_source_files = []
+    for op in ops:
+        source_file = config.generate_unit_test(os.path.join(library_spec_root, "core.yaml"), op)
+        unit_test_source_files.append(source_file)
+    unit_test_object_files = []
+    for src in unit_test_source_files:
+        unit_test_object_files.append(config.compile_cxx(src, extra_deps=generated_public_headers))
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root
     libyeppp = config.link_cxx_library(library_object_files, os.path.join(library_build_root, "libyeppp.dylib"))
     binary_dir = os.path.join(root_dir, "binaries", config.platform.os, config.platform.arch.replace('-', '_'))
     config.extract_debug_symbols(libyeppp, os.path.join(binary_dir, "libyeppp.dylib"), os.path.join(binary_dir, "libyeppp.dylib.dSYM"))
+
+    config.link_cxx_executable(library_object_files + unit_test_object_files, os.path.join(library_unit_test_root, "test"))
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -14,7 +14,7 @@ def generate_unit_tests(path, function_list):
 #include <yepLibrary.h>
 #include <library/functions.h>
 #include <yepRandom.h>
-#include <core/functions.h>
+#include <core/yepCore.init.h>
 #include <yepBuiltin.h>
 #include <string.h>
 #include <stdio.h>
@@ -28,10 +28,10 @@ def generate_unit_tests(path, function_list):
 	#define YEP_ESCAPE_GREEN_COLOR ""
 	#define YEP_ESCAPE_YELLOW_COLOR ""
 #else
-	#define YEP_ESCAPE_NORMAL_COLOR "\x1B[0m"
-	#define YEP_ESCAPE_RED_COLOR "\x1B[31m"
-	#define YEP_ESCAPE_GREEN_COLOR "\x1B[32m"
-	#define YEP_ESCAPE_YELLOW_COLOR "\x1B[33m"
+	#define YEP_ESCAPE_NORMAL_COLOR "\\x1B[0m"
+	#define YEP_ESCAPE_RED_COLOR "\\x1B[31m"
+	#define YEP_ESCAPE_GREEN_COLOR "\\x1B[32m"
+	#define YEP_ESCAPE_YELLOW_COLOR "\\x1B[33m"
 #endif
 
 
@@ -41,7 +41,7 @@ static const char* getMicroarchitectureName(YepCpuMicroarchitecture microarchite
 	YepSize bufferLength = bufferSize - 1;
 	YepStatus status = yepLibrary_GetString(YepEnumerationCpuMicroarchitecture, microarchitecture, YepStringTypeDescription, buffer, &bufferLength);
 	assert(status == YepStatusOk);
-	buffer[bufferLength] = '\0';
+	buffer[bufferLength] = '\\0';
 	return buffer;
 }
 
@@ -52,11 +52,11 @@ static void reportFailedTest(const char* functionName, YepCpuMicroarchitecture m
 		printf("%s (%s): ", functionName, getMicroarchitectureName(microarchitecture));
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_INTENSITY);
-		printf("FAILED\n");
+		printf("FAILED\\n");
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);
 	#else
-		printf("%s (%s): %sFAILED%s\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR);
+		printf("%s (%s): %sFAILED%s\\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR);
 	#endif
 }
 
@@ -70,9 +70,9 @@ static void reportFailedTest(const char* functionName, YepCpuMicroarchitecture m
 		printf("FAILED");
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);
-		printf(" (%f ULP)\n", ulpError);
+		printf(" (%f ULP)\\n", ulpError);
 	#else
-		printf("%s (%s): %sFAILED%s (%f ULP)\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR, ulpError);
+		printf("%s (%s): %sFAILED%s (%f ULP)\\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_RED_COLOR, YEP_ESCAPE_NORMAL_COLOR, ulpError);
 	#endif
 }
 
@@ -83,11 +83,11 @@ static void reportPassedTest(const char* functionName, YepCpuMicroarchitecture m
 		printf("%s (%s): ", functionName, getMicroarchitectureName(microarchitecture));
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-		printf("PASSED\n");
+		printf("PASSED\\n");
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);
 	#else
-		printf("%s (%s): %sPASSED%s\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_GREEN_COLOR, YEP_ESCAPE_NORMAL_COLOR);
+		printf("%s (%s): %sPASSED%s\\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_GREEN_COLOR, YEP_ESCAPE_NORMAL_COLOR);
 	#endif
 }
 
@@ -98,11 +98,11 @@ static void reportSkippedTest(const char* functionName, YepCpuMicroarchitecture 
 		printf("%s (%s): ", functionName, getMicroarchitectureName(microarchitecture));
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-		printf("SKIPPED\n");
+		printf("SKIPPED\\n");
 		fflush(stdout);
 		::SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), bufferInfo.wAttributes);
 	#else
-		printf("%s (%s): %sSKIPPED%s\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_YELLOW_COLOR, YEP_ESCAPE_NORMAL_COLOR);
+		printf("%s (%s): %sSKIPPED%s\\n", functionName, getMicroarchitectureName(microarchitecture), YEP_ESCAPE_YELLOW_COLOR, YEP_ESCAPE_NORMAL_COLOR);
 	#endif
 }
 
@@ -120,7 +120,7 @@ static void reportSkippedTest(const char* functionName, YepCpuMicroarchitecture 
         for name in boolean_names:
             output.write("        {} = YepBooleanTrue;\n".format(name))
         output.write(
-"""     else {
+"""     } else {
         for (int i = 1; i < argc; i++) {
 """)
         else_part = ""
@@ -131,9 +131,11 @@ static void reportSkippedTest(const char* functionName, YepCpuMicroarchitecture 
            }}
 """.format(else_part, "_".join(name.split("_")[1:]), name))
             else_part = "else "
+
+        output.write("        }\n")
+        output.write("    }\n")
         output.write(
 """
-
 	YepStatus status = _yepLibrary_InitCpuInfo();
 	assert(status == YepStatusOk);
 
