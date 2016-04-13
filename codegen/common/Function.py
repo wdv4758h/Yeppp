@@ -148,7 +148,7 @@ class Function:
             # There are more arguments after input / output, namely length
             for i in range(args_arr_ind,len(args_arr)):
                 # These arguments have their types specified in the declaration string
-                arg = args_arr[args_arr_ind].split(" ")
+                arg = args_arr[i].split(" ")
                 self.arguments.append(Argument(arg[0], arg[1], False, False))
 
     def _parse_arg_type(self, arg_str):

@@ -50,15 +50,15 @@ def write_systemv_abi(func_metadata):
     outfile.write(IMPLEMENTATION_DESCRIPTION % (func_metadata["symbol"], isa_extensions, \
             ' | '.join(simd_extensions), ' | '.join(system_extensions), yep_target_arch))
 
-def generate_includes(src_dir):
+def generate_includes(src_dir, module):
     outfile.write("""
 #include <yepPrivate.h>
-#include <yepCore.h>
-""")
+#include <yep{}.h>
+""".format(module))
     for dir_path,subdirs,build_files in os.walk(src_dir):
         for build_file in build_files:
             if build_file.endswith(".h"):
-                outfile.write("#include <core/%s>\n" % build_file)
+                outfile.write("#include <{}/{}>\n".format(module, build_file))
 
 
 def generate_dispatch_for_asm(func, data_list):
@@ -86,7 +86,7 @@ def generate_dispatch_table_header():
         for func in all_functions.values():
             header_outfile.write(func.default_impl_declaration)
             header_outfile.write("\n")
-            
+
 
         for func in all_functions.values():
             header_outfile.write(func.dispatch_table_declaration)
@@ -102,7 +102,7 @@ def generate_dispatch_table_header():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates Dispatch tables for Yeppp")
     parser.add_argument("-o", dest="output", required=True, help="Output File name")
-    parser.add_argument("input", nargs="+")
+    parser.add_argument("input", nargs="*")
     parser.add_argument("--yaml", dest="specfile")
     options = parser.parse_args()
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 asm_function_dict[func_name].append(func_data)
                 all_functions[func_name].has_asm_impl = True
 
-    generate_includes("library/sources/" + module) # Write the #include<> at head
+    generate_includes("library/sources/" + module, module) # Write the #include<> at head
     generate_dispatch_table_header()
 
     # Iterate through the different functions with asm impls, generating their dispatch tables

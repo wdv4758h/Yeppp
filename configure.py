@@ -406,7 +406,9 @@ def main():
 
     # Generating Dispatch Tables
     for yaml_file in spec_files:
-        dispatch_table_src = config.generate_dispatch_table(yaml_file, json_metadata_files, os.path.join(library_source_root, "core", "yepCore.disp.cpp"))
+        module_name = os.path.basename(os.path.splitext(yaml_file)[0]).capitalize()
+        module_json_files = [ f for f in json_metadata_files if module_name in f ]
+        dispatch_table_src = config.generate_dispatch_table(yaml_file, module_json_files, os.path.join(library_source_root, module_name, "yep{}.disp.cpp".format(module_name)))
         library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers))
 
     # Generate unit tests
