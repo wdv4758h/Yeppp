@@ -2,6 +2,7 @@ from Argument import Argument
 from DispatchTableGenerator import DispatchTableGenerator
 from DefaultImplementationGenerator import DefaultImplementationGenerator
 from UnitTestGenerator import UnitTestGenerator
+import re
 
 
 class Function:
@@ -29,10 +30,10 @@ class Function:
         self.default_impl_template = func_group["default_implementation_template"]
 
         # Parse the yaml declaration to gather info about the functions arguments and C decl
-        self.name, _, args_str = self.yaml_declaration.partition(" ")
+        self.name, self.op, args_str = self.yaml_declaration.partition(" ")
         name_parts = self.name.split("_") # Will be ['yepModule', 'Op', 'InputTypes', 'OutputType']
         input_types_encoded = self._separate_args_in_name(name_parts[2])
-        output_type_encoded = name_parts[3]
+        output_type_encoded = self._separate_args_in_name(name_parts[3])
 
         args_arr = args_str.split(",")
         args_arr = [ a.lstrip().rstrip() for a in args_arr ]
@@ -112,13 +113,15 @@ class Function:
         """
         # Simply search for the first lowercase character and this is the split point.
         # This should maybe be replaced by something in the python standard library
+        splits = []
+        base = 0
         for (i,c) in enumerate(arg_str):
             if c.islower():
-                split = i
-                break
-        return [arg_str[:split + 1], arg_str[split + 1:]]
+                splits.append(arg_str[base:i + 1])
+                base = i + 1
+        return splits
 
-    def _parse_arg_types(self, args_arr, inputs, output):
+    def _parse_arg_types(self, args_arr, inputs, outputs):
         """
         Takes an array such as [IV64f, V64f] of inputs,
         an output string (such as V64f), and the arguments
@@ -134,10 +137,12 @@ class Function:
             args_arr_ind += 1
 
         # Check if we even have an output (the operation doesn't write to one of the sources)
-        if "I" not in inputs[0]:
-            arg_type = self._parse_arg_type(output)
-            self.arguments.append(Argument(arg_type, args_arr[args_arr_ind], True, False))
-            args_arr_ind += 1
+        has_output = reduce(lambda x, y: x or not "I" in y, outputs, False)
+        if has_output:
+            for output in outputs:
+                arg_type = self._parse_arg_type(output)
+                self.arguments.append(Argument(arg_type, args_arr[args_arr_ind], True, False))
+                args_arr_ind += 1
 
         if args_arr_ind < len(args_arr):
             # There are more arguments after input / output, namely length

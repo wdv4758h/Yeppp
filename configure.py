@@ -411,13 +411,13 @@ def main():
 
     # Generate unit tests
     ops = ["Add", "Multiply"]
-    unit_test_source_files = []
+    unit_test_source_files = {}
     for op in ops:
         source_file = config.generate_unit_test(os.path.join(library_spec_root, "core.yaml"), op)
-        unit_test_source_files.append(source_file)
-    unit_test_object_files = []
-    for src in unit_test_source_files:
-        unit_test_object_files.append(config.compile_cxx(src, extra_deps=generated_public_headers))
+        unit_test_source_files[op] = source_file
+    unit_test_object_files = {}
+    for op,src in unit_test_source_files.items():
+        unit_test_object_files[op] = config.compile_cxx(src, extra_deps=generated_public_headers)
 
     config.source_dir = library_source_root
     config.build_dir = library_build_root
@@ -425,7 +425,8 @@ def main():
     binary_dir = os.path.join(root_dir, "binaries", config.platform.os, config.platform.arch.replace('-', '_'))
     config.extract_debug_symbols(libyeppp, os.path.join(binary_dir, "libyeppp.dylib"), os.path.join(binary_dir, "libyeppp.dylib.dSYM"))
 
-    config.link_cxx_executable(library_object_files + unit_test_object_files, os.path.join(library_unit_test_root, "test"))
+    for op in ops:
+        config.link_cxx_executable(library_object_files + [unit_test_object_files[op]], os.path.join(library_unit_test_root, op + "Test"))
 
 if __name__ == "__main__":
     sys.exit(main())
