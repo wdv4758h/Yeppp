@@ -17,12 +17,12 @@ def generate_init_function(module, outfile, function_list):
 #include <yepPredefines.h>
 #include <yepTypes.h>
 #include <yepPrivate.h>
-#include <yepCore.h>
+#include <yep{0}.h>
 #include <library/functions.h>
-#include <core/yepCore.disp.h>
+#include <{0}/yep{1}.disp.h>
 
-YEP_INLINE static YepStatus _yep{}_Init() {{
-""".format(module.capitalize()))
+YEP_INLINE static YepStatus _yep{1}_Init() {{
+""".format(module, module.capitalize()))
 
         for func in function_list:
             init_file.write("  *reinterpret_cast<FunctionPointer*>(&_{}) = _yepLibrary_InitFunction((const FunctionDescriptor<YepStatus (*)()>*)_dispatchTable_{});\n".format(func, func))

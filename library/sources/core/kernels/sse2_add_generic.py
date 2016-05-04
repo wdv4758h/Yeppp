@@ -29,6 +29,11 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     Uses sse_add_instruction_maps to execute the addition
     kernel on any type operand
     """
+    # Compile time constants
+    INPUT_SIZE = arg_x.c_type.base.size
+    INPUT_TYPE = arg_x.c_type.base
+    OUTPUT_SIZE = arg_z.c_type.base.size
+    OUTPUT_TYPE = arg_z.c_type.base
 
     ret_ok = Label()
     ret_null_pointer = Label()
@@ -57,10 +62,6 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     TEST(reg_z_addr, arg_z.c_type.base.size - 1) # Make sure arg_z is aligned
     JNZ(ret_misaligned_pointer)
 
-    unroll_factor = 6
-    xmm_accs = [XMMRegister() for _ in range(unroll_factor)]
-    xmm_ops = [XMMRegister() for _ in range(unroll_factor)]
-
     reg_x_scalar = scalar_register_map[arg_z.c_type.base]()
     reg_y_scalar = scalar_register_map[arg_z.c_type.base]()
 
@@ -84,9 +85,27 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
         TEST(reg_z_addr, XMMRegister.size - 1)
         JNZ(align_loop.begin)
 
+    # instruction_columns = [ InstructionStream() for _ in range(6) ]
+    # instruction_offsets = tuple(range(6))
+    # xmm_xs = [ XMMRegister() for _ in range(6) ]
+    # xmm_ys = [ XMMRegister() for _ in range(6) ]
+    # for i in range(6):
+    #     with instruction_columns[i]:
+    #         packed_mov_instr_select(xmm_xs[i], [reg_x_addr + XMMRegister.size * INPUT_SIZE], INPUT_TYPE, OUTPUT_TYPE)
+    #         ADD(reg_x_addr, XMMRegister.size * INPUT_SIZE / OUTPUT_SIZE)
+    #         packed_mov_instr_select(xmm_ys[i], [reg_y_addr + XMMRegister.size * INPUT_SIZE], INPUT_TYPE, OUTPUT_TYPE)
+    #         ADD(reg_y_addr, XMMRegister.size * INPUT_SIZE / OUTPUT_SIZE)
+    #         packed_add_map[OUTPUT_TYPE](xmm_xs[i], xmm_ys[i])
+    #         packed_aligned_move_map[OUTPUT_TYPE]([reg_z_addr + XMMRegister.size], xmm_xs[i])
+    #         ADD(reg_z_addr, XMMRegister.size)
+
+    unroll_factor = 2
+    xmm_accs = [XMMRegister() for _ in range(unroll_factor)]
+    xmm_ops = [XMMRegister() for _ in range(unroll_factor)]
+
     # Batch loop prologue
     instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()]
-    instruction_offsets = (0, 1, 1, 1)
+    instruction_offsets = (0, 0, 1, 1)
     for i in range(unroll_factor):
         with instruction_columns[0]:
             packed_mov_instr_select(xmm_accs[i], [reg_x_addr + i * XMMRegister.size * arg_x.c_type.base.size / arg_z.c_type.base.size], arg_x.c_type.base, arg_z.c_type.base)
@@ -103,7 +122,7 @@ def add_generic(arg_x, arg_y, arg_z, arg_n):
     with instruction_columns[3]:
         ADD(reg_z_addr, XMMRegister.size * unroll_factor)
 
-    software_pipelined_loop(reg_length, unroll_factor * XMMRegister.size / arg_z.c_type.base.size, instruction_columns, instruction_offsets)
+    software_pipelined_loop(reg_length, unroll_factor * XMMRegister.size / OUTPUT_SIZE, instruction_columns, instruction_offsets)
 
     TEST(reg_length, reg_length)
     JZ(scalar_loop.end)

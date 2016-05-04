@@ -197,7 +197,7 @@ class Configuration:
             " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in",
             description="PEACHPY $descpath")
         self.writer.rule("generate-dispatch-table",
-            "$python codegen/generate-dispatch-table.py --yaml $yaml -o $out $json",
+            "$python codegen/generate-dispatch-table.py --yaml $yaml -o $srcout $json",
             description="GENERATE $descpath")
         self.writer.rule("generate-c-header",
             "$python codegen/generate-c-header.py $in -o $out",
@@ -209,20 +209,21 @@ class Configuration:
             "$python codegen/generate-init-function.py $in -o $out",
             description="GENERATE $descpath")
         self.writer.rule("generate-unit-test",
-            "$python codegen/generate-unit-test.py $in -o $out -op=$op",
+            "$python codegen/generate-unit-test.py $yaml -o $out -op=$op",
             description="GENERATE $descpath")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
 
 
-    def generate_dispatch_table(self, yaml_file, json_files, source_file):
-        self.writer.build(source_file, "generate-dispatch-table", [yaml_file] + json_files,
+    def generate_dispatch_table(self, yaml_file, json_files, source_files):
+        self.writer.build(source_files, "generate-dispatch-table", [yaml_file] + json_files,
             variables={
                 "yaml": yaml_file,
                 "json": " ".join(json_files),
-                "descpath": os.path.relpath(source_file, self.build_dir)})
-        return source_file
+                "descpath": os.path.relpath(source_files[0], self.build_dir),
+                "srcout": source_files[0]})
+        return source_files
 
     def generate_c_header(self, yaml_file, source_file=None):
         if source_file is None:
@@ -251,12 +252,13 @@ class Configuration:
                 "descpath": os.path.relpath(source_file, self.build_dir)})
         return source_file
 
-    def generate_unit_test(self, yaml_file, op, source_file=None):
+    def generate_unit_test(self, yaml_file, op, source_file=None, extra_deps=[]):
         if source_file is None:
             source_file = os.path.join(self.unit_test_dir, op + ".cpp")
-        self.writer.build(source_file, "generate-unit-test", yaml_file,
+        self.writer.build(source_file, "generate-unit-test", [yaml_file] + extra_deps,
             variables={
                 "descpath": os.path.relpath(source_file, self.build_dir),
+                "yaml": yaml_file,
                 "op": op})
         return source_file
 
@@ -380,6 +382,8 @@ def main():
         source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
         for source_filename in source_filenames:
             relative_source_filename = os.path.relpath(source_filename, root_dir)
+            if os.path.basename(source_filename) == "Init.cpp":
+                continue # We need to generate yepModule.disp.h before Init.o, but this requires generating the JSON files first
             if relative_source_filename == "library/sources/library/CpuX86.cpp" and config.platform.arch not in {"x86", "x86-64"}:
                 continue
             if relative_source_filename == "library/sources/library/CpuPPC.cpp" and config.platform.arch not in {"ppc", "ppc64"}:
@@ -405,17 +409,23 @@ def main():
                 library_object_files.append(config.compile_cxx(source_filename, extra_deps=generated_public_headers))
 
     # Generating Dispatch Tables
+    dispatch_headers = []
     for yaml_file in spec_files:
-        module_name = os.path.basename(os.path.splitext(yaml_file)[0]).capitalize()
-        module_json_files = [ f for f in json_metadata_files if module_name in f ]
-        dispatch_table_src = config.generate_dispatch_table(yaml_file, module_json_files, os.path.join(library_source_root, module_name, "yep{}.disp.cpp".format(module_name)))
-        library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers))
+        module_name = os.path.basename(os.path.splitext(yaml_file)[0])
+        module_json_files = [ f for f in json_metadata_files if module_name.capitalize() in f ]
+        src_and_hdr = ["yep{}.disp.cpp".format(module_name.capitalize()), "yep{}.disp.h".format(module_name.capitalize())]
+        full_path_src_and_hdr = map(lambda x: os.path.join(library_source_root, module_name, x), src_and_hdr)
+        dispatch_headers.append(full_path_src_and_hdr[1])
+        dispatch_table_src, dispatch_table_header = config.generate_dispatch_table(yaml_file, module_json_files, full_path_src_and_hdr)
+        library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers + [full_path_src_and_hdr[1]]))
+
+    library_object_files.append(config.compile_cxx("library/sources/library/Init.cpp", extra_deps=generated_public_headers + dispatch_headers))
 
     # Generate unit tests
     ops = ["Add", "Multiply"]
     unit_test_source_files = {}
     for op in ops:
-        source_file = config.generate_unit_test(os.path.join(library_spec_root, "core.yaml"), op)
+        source_file = config.generate_unit_test(os.path.join(library_spec_root, "core.yaml"), op, extra_deps=dispatch_headers)
         unit_test_source_files[op] = source_file
     unit_test_object_files = {}
     for op,src in unit_test_source_files.items():
