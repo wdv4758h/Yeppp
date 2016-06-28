@@ -79,8 +79,8 @@ scalar_movsx_map = {
     (Yep8u, Yep16u) : MOVZX,
     (Yep16s, Yep32s): MOVSX,
     (Yep16u, Yep32u): MOVZX,
-    (Yep32s, Yep64s): MOVSX,
-    (Yep32u, Yep64u): MOVZX
+    (Yep32s, Yep64s): MOVSXD,
+    (Yep32u, Yep64u): MOV
 }
 
 scalar_register_map = {

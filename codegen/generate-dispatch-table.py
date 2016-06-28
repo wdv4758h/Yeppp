@@ -66,7 +66,7 @@ def generate_dispatch_for_asm(func, data_list):
     for i,data in enumerate(data_list):
         write_systemv_abi(data)
         outfile.write(',\n')
-    outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION({}, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(data["symbol"]))
+    outfile.write("YEP_DESCRIBE_FUNCTION_IMPLEMENTATION(_{}_Default, YepIsaFeaturesDefault, YepSimdFeaturesDefault, YepSystemFeaturesDefault, YepCpuMicroarchitectureUnknown, \"c++\", \"Naive\", \"None\")".format(data["name"]))
     outfile.write("\n};")
     outfile.write("\n\n")
 

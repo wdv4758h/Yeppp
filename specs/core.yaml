@@ -14,8 +14,8 @@ functions:
             @brief	Adds corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                const ${xPointer.arg_type} x = *xPointer++;
-                const ${yPointer.arg_type} y = *yPointer++;
+                const ${sumPointer.arg_type} x = *xPointer++;
+                const ${sumPointer.arg_type} y = *yPointer++;
                 const ${sumPointer.arg_type} sum = x + y;
                 *sumPointer++ = sum;
             }
@@ -44,7 +44,7 @@ functions:
             @brief	Adds a constant to %(InputType0)s array elements. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                const ${xPointer.arg_type} x = *xPointer++;
+                const ${sumPointer.arg_type} x = *xPointer++;
                 const ${sumPointer.arg_type} sum = x + y;
                 *sumPointer++ = sum;
             }
@@ -73,7 +73,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${xPointer.arg_type} y = *yPointer++;
                 x += y;
                 *xPointer++ = x;
             }
@@ -120,8 +120,8 @@ functions:
             @brief	Subtracts corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${diffPointer.arg_type} x = *xPointer++;
+                ${diffPointer.arg_type} y = *yPointer++;
                 ${diffPointer.arg_type} diff = x - y;
                 *diffPointer++ = diff;
             }
@@ -150,7 +150,7 @@ functions:
             @brief	Subtracts corresponding elements in two %(InputType0)s arrays. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${diffPointer.arg_type} x = *xPointer++;
                 ${diffPointer.arg_type} diff = x - y;
                 *diffPointer++ = diff;
             }
@@ -179,7 +179,7 @@ functions:
             @brief	Subtracts %(InputType1)s array elements from a constant. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                ${yPointer.arg_type} y = *yPointer++;
+                ${diffPointer.arg_type} y = *yPointer++;
                 ${diffPointer.arg_type} diff = x - y;
                 *diffPointer++ = diff;
             }
@@ -208,7 +208,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${xPointer.arg_type} y = *yPointer++;
                 x -= y;
                 *xPointer++ = x;
             }
@@ -231,7 +231,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer;
+                ${xPointer.arg_type} y = *yPointer;
                 y = x - y;
                 *yPointer++ = y;
             }
@@ -277,7 +277,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = -x;
+                ${xPointer.arg_type} y = -x;
                 *yPointer++ = y;
             }
             return YepStatusOk;
@@ -322,8 +322,8 @@ functions:
             @brief	Multiples corresponding elements in two %(InputType0)s arrays, producing an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${productPointer.arg_type} x = *xPointer++;
+                ${productPointer.arg_type} y = *yPointer++;
                 ${productPointer.arg_type} product = x * y;
                 *productPointer++ = product;
             }
@@ -352,7 +352,7 @@ functions:
             @brief Multiplies %(InputType0)s array elements by a constant. Produces an array of %(OutputType0)s elements.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${productPointer.arg_type} x = *xPointer++;
                 ${productPointer.arg_type} product = x * y;
                 *productPointer++ = product;
             }
@@ -381,7 +381,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${xPointer.arg_type} y = *yPointer++;
                 x *= y;
                 *xPointer++ = x;
             }
@@ -429,9 +429,9 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer++;
-                ${zPointer.arg_type} z = *zPointer++;
+                ${macPointer.arg_type} x = *xPointer++;
+                ${macPointer.arg_type} y = *yPointer++;
+                ${macPointer.arg_type} z = *zPointer++;
                 ${macPointer.arg_type} mac = x * y + z;
                 *macPointer++ = mac;
             }
@@ -450,7 +450,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${zPointer.arg_type} x = *xPointer++;
                 ${zPointer.arg_type} z = *zPointer;
                 z = x * y + z;
                 *zPointer++ = z;
@@ -467,8 +467,8 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${fractionPointer.arg_type} x = *xPointer++;
+                ${fractionPointer.arg_type} y = *yPointer++;
                 ${fractionPointer.arg_type} fraction = x / y;
                 *fractionPointer++ = fraction;
             }
@@ -483,7 +483,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${fractionPointer.arg_type} x = *xPointer++;
                 ${fractionPointer.arg_type} fraction = x / y;
                 *fractionPointer++ = fraction;
             }
@@ -498,7 +498,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${yPointer.arg_type} y = *yPointer++;
+                ${fractionPointer.arg_type} y = *yPointer++;
                 ${fractionPointer.arg_type} fraction = x / y;
                 *fractionPointer++ = fraction;
             }
@@ -514,7 +514,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${xPointer.arg_type} y = *yPointer++;
                 x /= y;
                 *xPointer++ = x;
             }
@@ -529,7 +529,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${yPointer.arg_type} x = *xPointer++;
                 ${yPointer.arg_type} y = *yPointer;
                 y = x / y;
                 *yPointer++ = y;
@@ -576,7 +576,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${yPointer.arg_type} x = *xPointer++;
                 ${yPointer.arg_type} y = Yep${yPointer.size}s(1) / x;
                 *yPointer++ = y;
             }
@@ -591,7 +591,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${yPointer.arg_type} x = *xPointer++;
                 ${yPointer.arg_type} y = Yep${yPointer.size}s(1) / yepBuiltin_Convert_${xPointer.size}s_${yPointer.size}f(x);
                 *yPointer++ = y;
             }
@@ -636,7 +636,7 @@ functions:
             None
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${yPointer.arg_type} x = *xPointer++;
                 ${yPointer.arg_type} y = yepBuiltin_Convert_${xPointer.size}s_${yPointer.size}f(x);
                 *yPointer++ = y;
             }
@@ -698,8 +698,8 @@ functions:
             @brief	Computes pairwise minima of corresponding elements in two %(InputType0)s arrays.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${minimumPointer.arg_type} x = *xPointer++;
+                ${minimumPointer.arg_type} y = *yPointer++;
                 ${minimumPointer.arg_type} minimum = yepBuiltin_Min_${minimumPointer.size}s${minimumPointer.size}s_${minimumPointer.size}s(x, y);
                 *minimumPointer++ = minimum;
             }
@@ -726,7 +726,7 @@ functions:
             @brief	Computes pairwise minima of %(InputType0)s array elements and a constant.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${minimumPointer.arg_type} x = *xPointer++;
                 ${minimumPointer.arg_type} minimum = yepBuiltin_Min_${minimumPointer.size}s${minimumPointer.size}s_${minimumPointer.size}s(x, y);
                 *minimumPointer++ = minimum;
             }
@@ -752,7 +752,7 @@ functions:
             @brief	Computes pairwise minima of corresponding elements in two %(InputType0)s arrays and writes the result to the first array.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer;
+                ${yPointer.arg_type} x = *xPointer;
                 ${yPointer.arg_type} y = *yPointer++;
                 x = yepBuiltin_Min_${xPointer.size}s${xPointer.size}s_${xPointer.size}s(x, y);
                 *xPointer++ = x;
@@ -835,8 +835,8 @@ functions:
             @brief	Computes pairwise maxima of corresponding elements in two %(InputType0)s arrays.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${maximumPointer.arg_type} x = *xPointer++;
+                ${maximumPointer.arg_type} y = *yPointer++;
                 ${maximumPointer.arg_type} maximum = yepBuiltin_Max_${maximumPointer.size}s${maximumPointer.size}s_${maximumPointer.size}s(x, y);
                 *maximumPointer++ = maximum;
             }
@@ -863,7 +863,7 @@ functions:
             @brief	Computes pairwise maxima of %(InputType0)s array elements and a constant.
           default_implementation_template: |
             while (length-- != 0) {
-                ${xPointer.arg_type} x = *xPointer++;
+                ${maximumPointer.arg_type} x = *xPointer++;
                 ${maximumPointer.arg_type} maximum = yepBuiltin_Max_${maximumPointer.size}s${maximumPointer.size}s_${maximumPointer.size}s(x, y);
                 *maximumPointer++ = maximum;
             }
@@ -890,7 +890,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${xPointer.arg_type} x = *xPointer;
-                ${yPointer.arg_type} y = *yPointer++;
+                ${xPointer.arg_type} y = *yPointer++;
                 x = yepBuiltin_Max_${xPointer.size}s${xPointer.size}s_${xPointer.size}s(x, y);
                 *xPointer++ = x;
             }
