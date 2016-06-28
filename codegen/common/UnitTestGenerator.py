@@ -102,7 +102,7 @@ class UnitTestGenerator:
             utg.add_line("YEP_ALIGN(64) {0} {1}InitArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("YEP_ALIGN(64) {0} {1}RefArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("status = {0}(&rng, {1}, {2}InitArray, YEP_COUNT_OF({2}Array));".format(
-                random_generator_function_map[self.output.arg_type], ", ".join(self.output.arg_type), self.output.name))
+                random_generator_function_map[self.output.arg_type], ", ".join(bounds[self.output.arg_type]), self.output.name))
 
     def _begin_implementation_loop(self, utg):
         utg.add_line("for (DescriptorPointer descriptor = &_dispatchTable_{0}[0]; \

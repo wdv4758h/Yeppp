@@ -2,7 +2,7 @@ from peachpy.x86_64 import *
 from peachpy import *
 from peachpy.c.types import *
 
-packed_add_map = {
+sse_vector_add_map = {
     Yep8s : PADDB,
     Yep8u : PADDB,
     Yep16s: PADDW,
@@ -15,7 +15,7 @@ packed_add_map = {
     Yep64f: ADDPD
 }
 
-scalar_add_map = {
+sse_scalar_add_map = {
     Yep8s : ADD,
     Yep8u : ADD,
     Yep16s: ADD,
@@ -28,7 +28,7 @@ scalar_add_map = {
     Yep64f: ADDSD
 }
 
-packed_aligned_move_map = {
+sse_vector_aligned_mov_map = {
     Yep8s       : MOVDQA,
     Yep8u       : MOVDQA,
     Yep16s      : MOVDQA,
@@ -41,7 +41,7 @@ packed_aligned_move_map = {
     Yep64f      : MOVAPD,
 }
 
-packed_unaligned_move_map = {
+sse_vector_unaligned_mov_map = {
     Yep8s : MOVDQU,
     Yep8u : MOVDQU,
     Yep16s: MOVDQU,
@@ -52,7 +52,7 @@ packed_unaligned_move_map = {
     Yep64f: MOVUPD
 }
 
-packed_movsx_map = {
+sse_vector_movsx_map = {
     (Yep8s, Yep16s) : PMOVSXBW,
     (Yep8u, Yep16u) : PMOVZXBW,
     (Yep16s, Yep32s): PMOVSXWD,
@@ -61,7 +61,7 @@ packed_movsx_map = {
     (Yep32u, Yep64u): PMOVZXDQ
 }
 
-scalar_move_map = {
+sse_scalar_mov_map = {
     Yep8s       : MOV,
     Yep8u       : MOV,
     Yep16s      : MOV,
@@ -74,7 +74,16 @@ scalar_move_map = {
     Yep64f      : MOVSD
 }
 
-scalar_register_map = {
+sse_scalar_movsx_map = {
+    (Yep8s, Yep16s) : MOVSX,
+    (Yep8u, Yep16u) : MOVZX,
+    (Yep16s, Yep32s): MOVSX,
+    (Yep16u, Yep32u): MOVZX,
+    (Yep32s, Yep64s): MOVSXD,
+    (Yep32u, Yep64u): MOV
+}
+
+sse_scalar_register_map = {
     Yep8s       : GeneralPurposeRegister8,
     Yep8u       : GeneralPurposeRegister8,
     Yep16s      : GeneralPurposeRegister16,

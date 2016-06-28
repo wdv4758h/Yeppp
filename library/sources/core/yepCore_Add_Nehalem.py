@@ -1,6 +1,6 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from kernels.sse2_add_generic import add_generic
+from kernels.add_generic import add_generic
 from common.YepStatus import *
 
 ##
@@ -15,7 +15,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V8sV8s_V8s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V8sV8s_V8s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V8sV8s_V8s_Nehalem = Add_V8sV8s_V8s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -32,7 +32,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V8sV8s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V8sV8s_V16s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V8sV8s_V16s_Nehalem = Add_V8sV8s_V16s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -49,7 +49,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V8uV8u_V16u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V8uV8u_V16u:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V8uV8u_V16u_Nehalem = Add_V8uV8u_V16u.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -66,7 +66,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V16sV16s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V16sV16s_V16s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V16sV16s_V16s_Nehalem = Add_V16sV16s_V16s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -83,7 +83,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V16sV16s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V16sV16s_V32s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V16sV16s_V32s_Nehalem = Add_V16sV16s_V32s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -100,7 +100,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V16uV16u_V32u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V16uV16u_V32u:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V16uV16u_V32u_Nehalem = Add_V16uV16u_V32u.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -117,7 +117,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32sV32s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V32sV32s_V32s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V32sV32s_V32s_Nehalem = Add_V32sV32s_V32s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -134,7 +134,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32sV32s_V64s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V32sV32s_V64s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V32sV32s_V64s_Nehalem = Add_V32sV32s_V64s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -151,7 +151,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32uV32u_V64u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V32uV32u_V64u:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V32uV32u_V64u_Nehalem = Add_V32uV32u_V64u.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -168,7 +168,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V64sV64s_V64s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V64sV64s_V64s:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V64sV64s_V64s_Nehalem = Add_V64sV64s_V64s.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -185,7 +185,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32fV32f_V32f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V32fV32f_V32f:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V32fV32f_V32f_Haswell = Add_V32fV32f_V32f.finalize(peachpy.x86_64.abi.detect()).encode()
 
@@ -202,7 +202,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V64fV64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Add_V64fV64f_V64f:
-    add_generic(arg_x, arg_y, arg_z, arg_n)
+    add_generic(arg_x, arg_y, arg_z, arg_n, "sse")
 
 yepCore_Add_V64fV64f_V64f_Haswell = Add_V64fV64f_V64f.finalize(peachpy.x86_64.abi.detect()).encode()
 
