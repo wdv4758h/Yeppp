@@ -2,6 +2,9 @@ from peachpy.x86_64 import *
 from peachpy import *
 from peachpy.c.types import *
 
+# =================================================
+# ADDITION
+# =================================================
 sse_vector_add_map = {
     Yep8s : PADDB,
     Yep8u : PADDB,
@@ -28,6 +31,38 @@ sse_scalar_add_map = {
     Yep64f: ADDSD
 }
 
+# =================================================
+# SUBTRACTION
+# =================================================
+sse_vector_sub_map = {
+    Yep8s : PSUBB,
+    Yep8u : PSUBB,
+    Yep16s: PSUBW,
+    Yep16u: PSUBW,
+    Yep32s: PSUBD,
+    Yep32u: PSUBD,
+    Yep64s: PSUBQ,
+    Yep64u: PSUBQ,
+    Yep32f: SUBPS,
+    Yep64f: SUBPD
+}
+
+sse_scalar_sub_map = {
+    Yep8s : SUB,
+    Yep8u : SUB,
+    Yep16s: SUB,
+    Yep16u: SUB,
+    Yep32s: SUB,
+    Yep32u: SUB,
+    Yep64s: SUB,
+    Yep64u: SUB,
+    Yep32f: SUBSS,
+    Yep64f: SUBSD
+}
+
+# =================================================
+# MOV
+# =================================================
 sse_vector_aligned_mov_map = {
     Yep8s       : MOVDQA,
     Yep8u       : MOVDQA,
@@ -83,6 +118,9 @@ sse_scalar_movsx_map = {
     (Yep32u, Yep64u): MOV
 }
 
+# =================================================
+# REGS
+# =================================================
 sse_scalar_register_map = {
     Yep8s       : GeneralPurposeRegister8,
     Yep8u       : GeneralPurposeRegister8,

@@ -422,7 +422,7 @@ def main():
     library_object_files.append(config.compile_cxx("library/sources/library/Init.cpp", extra_deps=generated_public_headers + dispatch_headers))
 
     # Generate unit tests
-    ops = ["Add", "Multiply"]
+    ops = ["Add", "Subtract", "Multiply"]
     unit_test_source_files = {}
     for op in ops:
         source_file = config.generate_unit_test(os.path.join(library_spec_root, "core.yaml"), op, extra_deps=dispatch_headers)

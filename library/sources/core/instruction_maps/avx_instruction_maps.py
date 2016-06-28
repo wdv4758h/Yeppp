@@ -2,6 +2,9 @@ from peachpy.x86_64 import *
 from peachpy import *
 from peachpy.c.types import *
 
+# =================================================
+# ADDITION
+# =================================================
 avx_vector_add_map = {
     Yep8s : VPADDB,
     Yep8u : VPADDB,
@@ -28,6 +31,38 @@ avx_scalar_add_map = {
     Yep64f: VADDSD
 }
 
+# =================================================
+# SUBTRACTION
+# =================================================
+avx_vector_sub_map = {
+    Yep8s : VPSUBB,
+    Yep8u : VPSUBB,
+    Yep16s: VPSUBW,
+    Yep16u: VPSUBW,
+    Yep32s: VPSUBD,
+    Yep32u: VPSUBD,
+    Yep64s: VPSUBQ,
+    Yep64u: VPSUBQ,
+    Yep32f: VSUBPS,
+    Yep64f: VSUBPD
+}
+
+avx_scalar_sub_map = {
+    Yep8s : SUB,
+    Yep8u : SUB,
+    Yep16s: SUB,
+    Yep16u: SUB,
+    Yep32s: SUB,
+    Yep32u: SUB,
+    Yep64s: SUB,
+    Yep64u: SUB,
+    Yep32f: VSUBSS,
+    Yep64f: VSUBSD
+}
+
+# =================================================
+# MOV
+# =================================================
 avx_vector_aligned_mov_map = {
     Yep8s       : VMOVDQA,
     Yep8u       : VMOVDQA,
@@ -83,6 +118,9 @@ avx_scalar_movsx_map = {
     (Yep32u, Yep64u): MOV
 }
 
+# =================================================
+# REGS
+# =================================================
 avx_scalar_register_map = {
     Yep8s       : GeneralPurposeRegister8,
     Yep8u       : GeneralPurposeRegister8,
