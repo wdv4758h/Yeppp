@@ -1,6 +1,6 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from kernels.add_generic import add_generic
+from kernels.add_generic import add_vector_to_vector_generic, add_vector_to_scalar_generic
 from common.YepStatus import *
 
 
@@ -12,7 +12,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V8sV8s_V8s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V8sV8s_V8s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep8s), name="xPointer")
@@ -23,7 +23,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V8sV8s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V8sV8s_V16s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep8u), name="xPointer")
@@ -34,7 +34,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V8uV8u_V16u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V8uV8u_V16u:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep16s), name="xPointer")
@@ -45,7 +45,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V16sV16s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V16sV16s_V16s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep16s), name="xPointer")
@@ -56,7 +56,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V16sV16s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V16sV16s_V32s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep16u), name="xPointer")
@@ -67,7 +67,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V16uV16u_V32u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V16uV16u_V32u:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep32s), name="xPointer")
@@ -78,7 +78,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32sV32s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V32sV32s_V32s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep32s), name="xPointer")
@@ -89,7 +89,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32sV32s_V64s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V32sV32s_V64s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep32u), name="xPointer")
@@ -100,7 +100,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32uV32u_V64u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V32uV32u_V64u:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep64s), name="xPointer")
@@ -111,7 +111,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V64sV64s_V64s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V64sV64s_V64s:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep32f), name="xPointer")
@@ -122,7 +122,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V32fV32f_V32f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V32fV32f_V32f:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
 
 
 arg_x = Argument(ptr(const_Yep64f), name="xPointer")
@@ -133,4 +133,15 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_V64fV64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V64fV64f_V64f:
-    add_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    add_vector_to_vector_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+
+
+arg_x = Argument(ptr(const_Yep32s), name="xPointer")
+arg_y = Argument(Yep32s, name="y")
+arg_z = Argument(ptr(Yep64s), name="zPointer")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Add_V32sS32s_V64s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.haswell + isa.avx2) as Add_V32sS32s_V64s:
+    add_vector_to_scalar_generic(arg_x, arg_y, arg_z, arg_n, "avx")

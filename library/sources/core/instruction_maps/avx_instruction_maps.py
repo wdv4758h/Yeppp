@@ -61,6 +61,27 @@ avx_scalar_sub_map = {
 }
 
 # =================================================
+# UNPACK
+# =================================================
+avx_high_unpack_map = {
+    (Yep8s, Yep16s) : VPUNPCKHBW,
+    (Yep8u, Yep16u) : VPUNPCKHBW,
+    (Yep16s, Yep32s): VPUNPCKHWD,
+    (Yep16u, Yep32u): VPUNPCKHWD,
+    (Yep32s, Yep64s): VPUNPCKHDQ,
+    (Yep32u, Yep64u): VPUNPCKHDQ
+}
+
+avx_low_unpack_map = {
+    (Yep8s, Yep16s) : VPUNPCKLBW,
+    (Yep8u, Yep16u) : VPUNPCKLBW,
+    (Yep16s, Yep32s): VPUNPCKLWD,
+    (Yep16u, Yep32u): VPUNPCKLWD,
+    (Yep32s, Yep64s): VPUNPCKLDQ,
+    (Yep32u, Yep64u): VPUNPCKLDQ
+}
+
+# =================================================
 # MOV
 # =================================================
 avx_vector_aligned_mov_map = {

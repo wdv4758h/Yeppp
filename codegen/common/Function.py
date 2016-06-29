@@ -42,7 +42,7 @@ class Function:
         self.arguments = []
         self._parse_arg_types(args_arr, input_types_encoded, output_type_encoded)
 
-        self.has_asm_impl = has_asm_impl
+        self.asm_impl_metadata = []
         self.dispatch_table_generator = DispatchTableGenerator(self.name, self.arguments)
         self.default_impl_generator = DefaultImplementationGenerator(self.name, self.arguments, self.default_impl_template)
         self.unit_test_generator = UnitTestGenerator(self.name, self.arguments)
@@ -83,7 +83,7 @@ class Function:
 
     @property
     def dispatch_table(self):
-        return self.dispatch_table_generator.generate_dispatch_table()
+        return self.dispatch_table_generator.generate_dispatch_table(self.asm_impl_metadata)
 
     @property
     def dispatch_table_declaration(self):
@@ -104,7 +104,6 @@ class Function:
     @property
     def unit_test(self):
         return self.unit_test_generator.generate_unit_test()
-
 
     def _separate_args_in_name(self, arg_str):
         """
