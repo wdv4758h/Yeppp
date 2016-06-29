@@ -194,7 +194,7 @@ class Configuration:
             description="AR $descpath")
         self.writer.rule("peachpy-obj",
             "$python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
-            " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $in",
+            " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $src",
             description="PEACHPY $descpath")
         self.writer.rule("generate-dispatch-table",
             "$python codegen/generate-dispatch-table.py --yaml $yaml -o $srcout $json",
@@ -262,9 +262,9 @@ class Configuration:
                 "op": op})
         return source_file
 
-    def compile_peachpy(self, source_file, object_file=None):
+    def compile_peachpy(self, source_file, extra_deps=[], object_file=None):
         if object_file is None:
-            object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + self.platform.obj_ext
+            object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir))[:-3] + self.platform.obj_ext
         platform_map = {
             #                          arch      abi      image_format
             "x86_64-windows":         ("x86_64", "ms",    "mscoff"),
@@ -284,9 +284,10 @@ class Configuration:
             "image_format": image_format,
             "header": source_file[:-3] + ".h",
             "json_file": json_file,
-            "object_file": object_file
+            "object_file": object_file,
+            "src": source_file
         }
-        self.writer.build([object_file, json_file], "peachpy-obj", source_file, variables=variables)
+        self.writer.build([object_file, json_file], "peachpy-obj", [source_file] + extra_deps, variables=variables)
         return object_file, json_file
 
     def compile_c(self, source_file, object_file=None, extra_deps=[]):
@@ -362,12 +363,12 @@ def main():
     config.header_dir = library_header_root
     config.spec_dir = library_spec_root
     config.unit_test_dir = library_unit_test_root
-    source_extensions = ["*.c", "*.cpp", "*.py"]
+    source_extensions = ["*.c", "*.cpp", "yep*.py"]
 
     generated_public_headers = []
     generated_init_functions = []
     generated_implementations = []
-    spec_files = [os.path.join(library_spec_root, yaml_file) for yaml_file in os.listdir(library_spec_root) if fnmatch.fnmatch(yaml_file, "*.yaml")]
+    spec_files = [os.path.join(library_spec_root, yaml_file) for yaml_file in os.listdir(library_spec_root)]
     for yaml_file in spec_files:
         generated_public_headers.append(config.generate_c_header(yaml_file))
         generated_init_functions.append(config.generate_init_function(yaml_file))
@@ -379,7 +380,7 @@ def main():
     json_metadata_files = []
     for (source_dir, source_subdir, filenames) in os.walk(library_source_root):
         source_filenames = sum(map(lambda pattern: fnmatch.filter(filenames, pattern), source_extensions), [])
-        source_filenames = map(lambda path: os.path.join(source_dir, path), source_filenames)
+        source_filenames = map(lambda x: os.path.join(library_source_root, source_dir, x), source_filenames) # abs paths
         for source_filename in source_filenames:
             relative_source_filename = os.path.relpath(source_filename, root_dir)
             if os.path.basename(source_filename) == "Init.cpp":
@@ -401,8 +402,15 @@ def main():
             if relative_source_filename == "library/sources/library/CpuMacOSX.cpp" and config.platform.kernel not in {"mach"}:
                 continue
 
-            if source_filename.endswith(".py") and os.path.basename(source_filename).startswith("yep"):
-                object_file, json_file = config.compile_peachpy(source_filename)
+            if source_filename.endswith(".py"):
+                # Compiling PeachPy kernels, need to get dependents
+                op = os.path.basename(source_filename).split("_")[1].lower()
+                kernels_dir = os.path.join(os.path.dirname(source_filename), "kernels", op)
+                if os.path.exists(kernels_dir):
+                    kernels = [ os.path.join(kernels_dir, k) for k in os.listdir(kernels_dir) if k != "__init__.py" ]
+                else:
+                    kernels = []
+                object_file, json_file = config.compile_peachpy(source_filename, extra_deps=kernels)
                 json_metadata_files.append(json_file)
                 library_object_files.append(object_file)
             elif source_filename.endswith(".cpp"):
@@ -419,7 +427,7 @@ def main():
         dispatch_table_src, dispatch_table_header = config.generate_dispatch_table(yaml_file, module_json_files, full_path_src_and_hdr)
         library_object_files.append(config.compile_cxx(dispatch_table_src, extra_deps=generated_public_headers + [full_path_src_and_hdr[1]]))
 
-    library_object_files.append(config.compile_cxx("library/sources/library/Init.cpp", extra_deps=generated_public_headers + dispatch_headers))
+    library_object_files.append(config.compile_cxx(os.path.join(library_source_root, "library/Init.cpp"), extra_deps=generated_public_headers + dispatch_headers))
 
     # Generate unit tests
     ops = ["Add", "Subtract", "Multiply"]

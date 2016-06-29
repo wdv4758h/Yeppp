@@ -1,6 +1,7 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from kernels.add_generic import add_vector_to_vector_generic, add_vector_to_scalar_generic
+from kernels.add.add_vector_to_vector_generic import add_vector_to_vector_generic
+from kernels.add.add_vector_to_scalar_generic import add_vector_to_scalar_generic
 from common.YepStatus import *
 
 

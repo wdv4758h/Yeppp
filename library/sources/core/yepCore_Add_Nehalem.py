@@ -1,6 +1,6 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from kernels.add_generic import add_vector_to_vector_generic
+from kernels.add.add_vector_to_vector_generic import add_vector_to_vector_generic
 from common.YepStatus import *
 
 arg_x = Argument(ptr(const_Yep8s), name="xPointer")
