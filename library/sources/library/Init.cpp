@@ -11,9 +11,9 @@
 #include <yepLibrary.h>
 #include <yepVersion.h>
 
-#include <yepCore.h>
 #include <library/functions.h>
 #include <core/yepCore.init.h>
+#include <math/yepMath.init.h>
 
 YepStatus YEPABI yepLibrary_Init() {
 	YepStatus status = _yepLibrary_InitCpuInfo();
@@ -25,6 +25,11 @@ YepStatus YEPABI yepLibrary_Init() {
 	if YEP_UNLIKELY(status != YepStatusOk) {
 		return status;
 	}
+
+    status = _yepMath_Init();
+    if YEP_UNLIKELY(status != YepStatusOk) {
+        return status;
+    }
 	return YepStatusOk;
 }
 

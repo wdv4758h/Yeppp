@@ -4,7 +4,7 @@ from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
 from add_common import *
 
-def add_vector_to_scalar_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
+def add_VS_V_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
     INPUT_TYPE = arg_x.c_type.base
     OUTPUT_TYPE = arg_z.c_type.base
     INPUT_TYPE_SIZE = arg_x.c_type.base.size

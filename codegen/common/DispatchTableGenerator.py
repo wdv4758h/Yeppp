@@ -35,11 +35,6 @@ const FunctionDescriptor<YepStatus (YEPABI*)({args})> _dispatchTable_{name}[] = 
     YEP_DESCRIBE_FUNCTION_IMPLEMENTATION({symbol}, {isafeats}, {simdfeats}, {systemfeats}, YepCpuMicroarchitecture{microarch}, {lang}, {descriptor}, {final})
     """
 
-    DISPATCH_TABLE_DECLARATION_TEMPLATE = \
-    """
-extern "C" YEP_PRIVATE_SYMBOL const FunctionDescriptor<YepStatus (YEPABI*)({args})> _dispatchTable_{name}[];
-    """
-
     def __init__(self, name, arguments):
         self.name = name
         self.arguments = arguments
@@ -87,31 +82,37 @@ extern "C" YEP_PRIVATE_SYMBOL const FunctionDescriptor<YepStatus (YEPABI*)({args
         """
         Generate the declaration of the dispatch table for the header
         """
-        decl = DispatchTableGenerator.DISPATCH_TABLE_DECLARATION_TEMPLATE.format(
+        return "extern \"C\" YEP_PRIVATE_SYMBOL const FunctionDescriptor<YepStatus (YEPABI*)({args})> _dispatchTable_{name}[];".format(
                 args=', '.join([ arg.full_arg_type for arg in self.arguments ]),
                 name=self.name
         )
-        return decl
 
     def generate_function_pointer_definition(self):
         """
         Define the pointer to this function and set it to null
         """
-        return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{})({}) = YEP_NULL_POINTER;".format(self.name, ", ".join([arg.full_arg_type for arg in self.arguments]))
+        return "YEP_USE_DISPATCH_POINTER_SECTION YepStatus (YEPABI*_{name})({args}) = YEP_NULL_POINTER;".format(
+                name=self.name,
+                args=', '.join([ arg.full_arg_type for arg in self.arguments ])
+        )
 
     def generate_function_pointer_declaration(self):
         """
         Declare the function pointer to this function
         """
-        return "extern \"C\" YEP_PRIVATE_SYMBOL YepStatus (YEPABI* _{})({});".format(self.name,
-                ', '.join([arg.declaration for arg in self.arguments]))
+        return "extern \"C\" YEP_PRIVATE_SYMBOL YepStatus (YEPABI* _{name})({args});".format(
+                name=self.name,
+                args=', '.join([ arg.declaration for arg in self.arguments ])
+        )
 
     def generate_dispatch_stub(self):
         """
         Generate the stub which the user calls which just redirects
         to the function pointer set from the dispatch initialization
         """
-        args_names = ", ".join([arg.name for arg in self.arguments])
-        args_str = ", ".join([arg.declaration for arg in self.arguments])
-        return "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {}({}) {{ return _{}({}); }}".format(self.name, args_str, self.name, args_names)
+        return "YEP_USE_DISPATCH_FUNCTION_SECTION YepStatus YEPABI {name}({args}) {{ return _{name}({argnames}); }}".format(
+                name=self.name,
+                args=', '.join([ arg.declaration for arg in self.arguments ]),
+                argnames=', '.join([ arg.name for arg in self.arguments ])
+        )
 

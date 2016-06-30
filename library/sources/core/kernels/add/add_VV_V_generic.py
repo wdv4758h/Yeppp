@@ -1,74 +1,14 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from instruction_maps.avx_instruction_maps import * # The correct instructions to use depending on argument type
-from instruction_maps.sse_instruction_maps import *
 from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
+from add_common import *
 
-def avx_scalar_instruction_select(input_type, output_type):
-    # Choose the scalar load instruction.
-    # The special case is 32u -> 64u, as there is no zero-extension
-    # instruction, we have to cast the register from 64 bit to 32 bit.
-    if input_type == Yep32u and output_type == Yep64u:
-        SCALAR_LOAD = lambda x, y: MOV(x.as_dword, y)
-    elif input_type.size == output_type.size:
-        SCALAR_LOAD = avx_scalar_mov_map[input_type]
-    else:
-        SCALAR_LOAD = avx_scalar_movsx_map[(input_type, output_type)]
-
-    # We don't want to have to worry about the order of operands if we
-    # use the generic sub instruction
-    if output_type in [Yep8s, Yep8u, Yep16s, Yep16u, Yep32s, Yep32u,
-            Yep64s, Yep64u]:
-        SCALAR_SUB = lambda x, y, z: avx_scalar_sub_map[output_type](x, z) \
-            if x == y else avx_scalar_sub_map[output_type](x, y)
-    else:
-        SCALAR_SUB = lambda x, y, z: avx_scalar_sub_map[output_type](x, y, z)
-
-    SCALAR_STORE = avx_scalar_mov_map[output_type]
-    return SCALAR_LOAD, SCALAR_SUB, SCALAR_STORE
-
-def avx_vector_instruction_select(input_type, output_type):
-    if input_type.size == output_type.size:
-        SIMD_LOAD = avx_vector_unaligned_mov_map[input_type]
-    else:
-        SIMD_LOAD = avx_vector_movsx_map[(input_type, output_type)]
-
-    SIMD_SUB = avx_vector_sub_map[output_type]
-    SIMD_STORE = avx_vector_aligned_mov_map[output_type]
-    return SIMD_LOAD, SIMD_SUB, SIMD_STORE
-
-def sse_scalar_instruction_select(input_type, output_type):
-    # Choose the scalar load instruction.
-    # The special case is 32u -> 64u, as there is no zero-extension
-    # instruction, we have to cast the register from 64 bit to 32 bit.
-    if input_type == Yep32u and output_type == Yep64u:
-        SCALAR_LOAD = lambda x, y: MOV(x.as_dword, y)
-    elif input_type.size == output_type.size:
-        SCALAR_LOAD = sse_scalar_mov_map[input_type]
-    else:
-        SCALAR_LOAD = sse_scalar_movsx_map[(input_type, output_type)]
-
-    # We don't want to have to worry about the order of operands if we
-    # use the generic sub instruction
-    SCALAR_SUB = lambda x, y, z: sse_scalar_sub_map[output_type](x, z) \
-        if x == y else sse_scalar_sub_map[output_type](x, y)
-
-    SCALAR_STORE = sse_scalar_mov_map[output_type]
-    return SCALAR_LOAD, SCALAR_SUB, SCALAR_STORE
-
-def sse_vector_instruction_select(input_type, output_type):
-    if input_type.size == output_type.size:
-        SIMD_LOAD = sse_vector_unaligned_mov_map[input_type]
-    else:
-        SIMD_LOAD = sse_vector_movsx_map[(input_type, output_type)]
-
-    SIMD_SUB = lambda x, y, z: sse_vector_sub_map[output_type](x, z) \
-        if x == y else sse_vector_sub_map[output_type](x, y)
-    SIMD_STORE = sse_vector_aligned_mov_map[output_type]
-    return SIMD_LOAD, SIMD_SUB, SIMD_STORE
-
-def sub_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
+def add_VV_V_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
+    """
+    Add function which uses avx_add_instruction_maps to execute the addition
+    kernel on any type operands.
+    """
     INPUT_TYPE = arg_x.c_type.base
     OUTPUT_TYPE = arg_z.c_type.base
     INPUT_TYPE_SIZE = arg_x.c_type.base.size
@@ -87,21 +27,20 @@ def sub_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
 
     if isa_ext == "avx":
         SIMD_REGISTER_SIZE = YMMRegister.size
-        SCALAR_LOAD, SCALAR_SUB, SCALAR_STORE = avx_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        SIMD_LOAD, SIMD_SUB, SIMD_STORE = avx_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
+        SCALAR_LOAD, SCALAR_ADD, SCALAR_STORE = avx_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
+        SIMD_LOAD, SIMD_ADD, SIMD_STORE, _ = avx_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
         reg_x_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
         reg_y_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
         simd_accs = [YMMRegister() for _ in range(UNROLL_FACTOR)]
         simd_ops = [YMMRegister() for _ in range(UNROLL_FACTOR)]
     elif isa_ext == "sse":
         SIMD_REGISTER_SIZE = XMMRegister.size
-        SCALAR_LOAD, SCALAR_SUB, SCALAR_STORE = sse_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        SIMD_LOAD, SIMD_SUB, SIMD_STORE = sse_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
+        SCALAR_LOAD, SCALAR_ADD, SCALAR_STORE = sse_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
+        SIMD_LOAD, SIMD_ADD, SIMD_STORE = sse_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
         reg_x_scalar = sse_scalar_register_map[OUTPUT_TYPE]()
         reg_y_scalar = sse_scalar_register_map[OUTPUT_TYPE]()
         simd_accs = [XMMRegister() for _ in range(UNROLL_FACTOR)]
         simd_ops = [XMMRegister() for _ in range(UNROLL_FACTOR)]
-
 
     ret_ok = Label()
     ret_null_pointer = Label()
@@ -130,6 +69,7 @@ def sub_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
     TEST(reg_z_addr, OUTPUT_TYPE_SIZE - 1) # Make sure arg_z is aligned on the proper boundary
     JNZ(ret_misaligned_pointer)
 
+
     align_loop = Loop() # Loop to align one of the addresses
     scalar_loop = Loop() # Processes remainder elements (if n % 8 != 0)
 
@@ -140,7 +80,7 @@ def sub_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
     with align_loop:
         SCALAR_LOAD(reg_x_scalar, SX_SIZE[reg_x_addr])
         SCALAR_LOAD(reg_y_scalar, SX_SIZE[reg_y_addr])
-        SCALAR_SUB(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+        SCALAR_ADD(reg_x_scalar, reg_x_scalar, reg_y_scalar)
         SCALAR_STORE([reg_z_addr], reg_x_scalar)
         ADD(reg_x_addr, INPUT_TYPE_SIZE)
         ADD(reg_y_addr, INPUT_TYPE_SIZE)
@@ -159,7 +99,7 @@ def sub_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
         with instruction_columns[1]:
             SIMD_LOAD(simd_ops[i], [reg_y_addr + i * SIMD_REGISTER_SIZE * INPUT_TYPE_SIZE / OUTPUT_TYPE_SIZE])
         with instruction_columns[2]:
-            SIMD_SUB(simd_accs[i], simd_accs[i], simd_ops[i])
+            SIMD_ADD(simd_accs[i], simd_accs[i], simd_ops[i])
         with instruction_columns[3]:
             SIMD_STORE([reg_z_addr + i * SIMD_REGISTER_SIZE], simd_accs[i])
     with instruction_columns[0]:
@@ -178,7 +118,7 @@ def sub_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
     with scalar_loop: # Process the remaining elements
         SCALAR_LOAD(reg_x_scalar, SX_SIZE[reg_x_addr])
         SCALAR_LOAD(reg_y_scalar, SX_SIZE[reg_y_addr])
-        SCALAR_SUB(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+        SCALAR_ADD(reg_x_scalar, reg_x_scalar, reg_y_scalar)
         SCALAR_STORE([reg_z_addr], reg_x_scalar)
         ADD(reg_x_addr, INPUT_TYPE_SIZE)
         ADD(reg_y_addr, INPUT_TYPE_SIZE)
