@@ -139,6 +139,35 @@ avx_scalar_movsx_map = {
     (Yep32u, Yep64u): MOV
 }
 
+avx_scalar_reg_to_vector_reg_mov_map = {
+    Yep8s   : VMOVD,
+    Yep8u   : VMOVD,
+    Yep16s  : VMOVD,
+    Yep16u  : VMOVD,
+    Yep32s  : VMOVD,
+    Yep32u  : VMOVD,
+    Yep64s  : VMOVQ,
+    Yep64u  : VMOVQ,
+    Yep32f  : None,
+    Yep64f  : None
+}
+
+# =================================================
+# BROADCAST
+# =================================================
+avx_broadcast_map = {
+    Yep8s   : VPBROADCASTB,
+    Yep8u   : VPBROADCASTB,
+    Yep16s  : VPBROADCASTW,
+    Yep16u  : VPBROADCASTW,
+    Yep32s  : VPBROADCASTD,
+    Yep32u  : VPBROADCASTD,
+    Yep64s  : VPBROADCASTQ,
+    Yep64u  : VPBROADCASTQ,
+    Yep32f  : VBROADCASTSS,
+    Yep64f  : VBROADCASTSD
+}
+
 # =================================================
 # REGS
 # =================================================

@@ -41,6 +41,22 @@ def avx_vector_instruction_select(input_type, output_type):
         UNPACK = None
     return SIMD_LOAD, SIMD_ADD, SIMD_STORE, UNPACK
 
+def avx_broadcast_instruction_select(input_type, output_type):
+    BROADCAST = avx_broadcast_map[output_type]
+    return BROADCAST
+
+def AVX_MOV_GPR_TO_VECTOR(vector_reg, gpr, input_type, output_type):
+    if input_type == Yep32f:
+        VMOVSS(vector_reg.as_xmm, gpr, gpr)
+    elif input_type == Yep64f:
+        VMOVSD(vector_reg.as_xmm, gpr, gpr)
+    else:
+        GPR_TO_VECTOR_MOV = avx_scalar_reg_to_vector_reg_mov_map[output_type]
+        if input_type.size < 4:
+            GPR_TO_VECTOR_MOV(vector_reg.as_xmm, gpr.as_dword)
+        else:
+            GPR_TO_VECTOR_MOV(vector_reg.as_xmm, gpr)
+
 def sse_scalar_instruction_select(input_type, output_type):
     # Choose the scalar load instruction.
     # The special case is 32u -> 64u, as there is no zero-extension
