@@ -278,6 +278,8 @@ with Function("yepCore_Add_V64fS64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_V64fS64f_V64f:
     add_VS_V_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+
+
 # =======================================================================
 # =======================================================================
 # ADD VECTOR TO IMMEDIATE VECTOR
