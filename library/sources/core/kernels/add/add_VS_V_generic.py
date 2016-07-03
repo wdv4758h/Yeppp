@@ -25,7 +25,6 @@ def add_VS_V_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
         SIMD_REGISTER_SIZE = YMMRegister.size
         SCALAR_LOAD, SCALAR_ADD, SCALAR_STORE = avx_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
         SIMD_LOAD, SIMD_ADD, SIMD_STORE, UNPACK = avx_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        BROADCAST = avx_broadcast_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
         reg_x_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
         reg_y_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
         reg_y_vector = YMMRegister()
@@ -36,7 +35,11 @@ def add_VS_V_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
         SIMD_LOAD, SIMD_ADD, SIMD_STORE = sse_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
         reg_x_scalar = sse_scalar_register_map[OUTPUT_TYPE]()
         reg_y_scalar = sse_scalar_register_map[OUTPUT_TYPE]()
-        reg_y_vector = XMMRegister()
+        if INPUT_TYPE in [ Yep32f, Yep64f ]:
+            # In this case, the argument is already in xmm reg
+            reg_y_vector = reg_y_scalar
+        else:
+            reg_y_vector = XMMRegister()
         simd_accs = [XMMRegister() for _ in range(UNROLL_FACTOR)]
 
     ret_ok = Label()
@@ -87,8 +90,11 @@ def add_VS_V_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
 
 
     # Batch loop for processing the rest of the array in a pipelined loop
-    AVX_MOV_GPR_TO_VECTOR(reg_y_vector, reg_y_scalar, INPUT_TYPE, OUTPUT_TYPE)
-    BROADCAST(reg_y_vector, reg_y_vector.as_xmm)
+    if isa_ext == "avx":
+        AVX_MOV_GPR_TO_VECTOR(reg_y_vector, reg_y_scalar, INPUT_TYPE, OUTPUT_TYPE)
+    elif isa_ext == "sse":
+        SSE_MOV_GPR_TO_VECTOR(reg_y_vector, reg_y_scalar, INPUT_TYPE, OUTPUT_TYPE)
+
     instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream()]
     instruction_offsets = (0, 1, 2)
     for i in range(UNROLL_FACTOR):

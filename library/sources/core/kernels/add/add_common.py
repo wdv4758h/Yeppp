@@ -41,10 +41,6 @@ def avx_vector_instruction_select(input_type, output_type):
         UNPACK = None
     return SIMD_LOAD, SIMD_ADD, SIMD_STORE, UNPACK
 
-def avx_broadcast_instruction_select(input_type, output_type):
-    BROADCAST = avx_broadcast_map[output_type]
-    return BROADCAST
-
 def AVX_MOV_GPR_TO_VECTOR(vector_reg, gpr, input_type, output_type):
     if input_type == Yep32f:
         VMOVSS(vector_reg.as_xmm, gpr, gpr)
@@ -56,6 +52,8 @@ def AVX_MOV_GPR_TO_VECTOR(vector_reg, gpr, input_type, output_type):
             GPR_TO_VECTOR_MOV(vector_reg.as_xmm, gpr.as_dword)
         else:
             GPR_TO_VECTOR_MOV(vector_reg.as_xmm, gpr)
+    BROADCAST = avx_broadcast_map[output_type]
+    BROADCAST(vector_reg, vector_reg.as_xmm)
 
 def sse_scalar_instruction_select(input_type, output_type):
     # Choose the scalar load instruction.
@@ -86,3 +84,23 @@ def sse_vector_instruction_select(input_type, output_type):
         if x == y else sse_vector_add_map[output_type](x, y)
     SIMD_STORE = sse_vector_aligned_mov_map[output_type]
     return SIMD_LOAD, SIMD_ADD, SIMD_STORE
+
+def SSE_MOV_GPR_TO_VECTOR(vector_reg, gpr, input_type, output_type):
+    if input_type == Yep32f:
+        PSHUFD(vector_reg, gpr, 0x0)
+    elif input_type == Yep64f:
+        assert vector_reg == gpr
+        PUNPCKLQDQ(vector_reg, gpr) # In this case, vector_reg == gpr
+    elif output_type.size <= 4:
+        if output_type.size < 4:
+            MOVZX(gpr.as_dword, gpr)
+        if output_type.size == 1:
+            IMUL(gpr.as_dword, gpr.as_dword, 0x01010101)
+        elif output_type.size == 2:
+            IMUL(gpr.as_dword, gpr.as_dword, 0x00010001)
+        MOVD(vector_reg, gpr.as_dword)
+        PSHUFD(vector_reg, vector_reg, 0x0)
+    elif output_type.size == 8:
+        MOVQ(vector_reg, gpr)
+        PUNPCKLQDQ(vector_reg, vector_reg)
+
