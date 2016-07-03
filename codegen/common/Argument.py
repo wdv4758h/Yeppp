@@ -70,3 +70,10 @@ class Argument:
             if c.isdigit():
                 ret += c
         return ret
+
+    @property
+    def data_type_letter(self):
+        """
+        Returns s if signed, u if unsigned, f if floating-point
+        """
+        return self.arg_type[-1]

@@ -61,6 +61,93 @@ avx_scalar_sub_map = {
 }
 
 # =================================================
+# MULTIPLICATION
+# =================================================
+avx_vector_mult_low_map = {
+    Yep16s      : VPMULLW,
+    Yep16u      : VPMULLW,
+    Yep32s      : VPMULLD,
+    Yep32u      : VPMULLD
+}
+
+avx_vector_mult_high_map = {
+    Yep16s      : VPMULHW,
+    Yep16u      : VPMULHUW
+}
+
+avx_vector_mult_map = {
+    Yep32f      : VMULPS,
+    Yep64f      : VMULPD
+}
+
+avx_scalar_mult_map = {
+    Yep8s       : IMUL,
+    Yep8u       : IMUL,
+    Yep16s      : IMUL,
+    Yep16u      : IMUL,
+    Yep32s      : IMUL,
+    Yep32u      : IMUL,
+    Yep64s      : IMUL,
+    Yep64u      : IMUL,
+    Yep32f      : VMULSS,
+    Yep64f      : VMULSD
+}
+
+# =================================================
+# MAXIMUM/MINIMUM
+# =================================================
+avx_vector_max_map = {
+    Yep8s       : VPMAXSB,
+    Yep8u       : VPMAXUB,
+    Yep16s      : VPMAXSW,
+    Yep16u      : VPMAXUW,
+    Yep32s      : VPMAXSD,
+    Yep32u      : VPMAXUD,
+    Yep64s      : VPMAXSQ,
+    Yep64u      : VPMAXUQ,
+    Yep32f      : VMAXPS,
+    Yep64f      : VMAXPD
+}
+
+avx_scalar_max_map = {
+    Yep8s       : None,
+    Yep8u       : None,
+    Yep16s      : None,
+    Yep16u      : None,
+    Yep32s      : None,
+    Yep32u      : None,
+    Yep64s      : None,
+    Yep64u      : None,
+    Yep32f      : VMAXSS,
+    Yep64f      : VMAXSD
+}
+
+avx_vector_min_map = {
+    Yep8s       : VPMINSB,
+    Yep8u       : VPMINUB,
+    Yep16s      : VPMINSW,
+    Yep16u      : VPMINUW,
+    Yep32s      : VPMINSD,
+    Yep32u      : VPMINUD,
+    Yep64s      : VPMINSQ,
+    Yep64u      : VPMINUQ,
+    Yep32f      : VMINPS,
+    Yep64f      : VMINPD
+}
+
+avx_scalar_min_map = {
+    Yep8s       : None,
+    Yep8u       : None,
+    Yep16s      : None,
+    Yep16u      : None,
+    Yep32s      : None,
+    Yep32u      : None,
+    Yep64s      : None,
+    Yep64u      : None,
+    Yep32f      : VMINSS,
+    Yep64f      : VMINSD
+}
+# =================================================
 # UNPACK
 # =================================================
 avx_high_unpack_map = {

@@ -28,7 +28,7 @@ def add_VV_V_generic(arg_x, arg_y, arg_z, arg_n, isa_ext):
     if isa_ext == "avx":
         SIMD_REGISTER_SIZE = YMMRegister.size
         SCALAR_LOAD, SCALAR_ADD, SCALAR_STORE = avx_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        SIMD_LOAD, SIMD_ADD, SIMD_STORE, _ = avx_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
+        SIMD_LOAD, SIMD_ADD, SIMD_STORE = avx_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
         reg_x_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
         reg_y_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
         simd_accs = [YMMRegister() for _ in range(UNROLL_FACTOR)]

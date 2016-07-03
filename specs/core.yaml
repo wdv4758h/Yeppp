@@ -795,7 +795,7 @@ functions:
             - declaration: yepCore_Min_IV64uS32u_IV64u xPointer, y, YepSize length
             - declaration: yepCore_Min_IV32fS32f_IV32f xPointer, y, YepSize length
             - declaration: yepCore_Min_IV64fS64f_IV64f xPointer, y, YepSize length
-    - operation: max
+    - operation: Max
       function_groups:
 
         - c_documentation: |
@@ -837,7 +837,7 @@ functions:
             while (length-- != 0) {
                 ${maximumPointer.arg_type} x = *xPointer++;
                 ${maximumPointer.arg_type} y = *yPointer++;
-                ${maximumPointer.arg_type} maximum = yepBuiltin_Max_${maximumPointer.size}s${maximumPointer.size}s_${maximumPointer.size}s(x, y);
+                ${maximumPointer.arg_type} maximum = yepBuiltin_Max_${(maximumPointer.size + maximumPointer.data_type_letter) * 2 + '_' + maximumPointer.size + maximumPointer.data_type_letter}(x, y);
                 *maximumPointer++ = maximum;
             }
             return YepStatusOk;
@@ -864,7 +864,7 @@ functions:
           default_implementation_template: |
             while (length-- != 0) {
                 ${maximumPointer.arg_type} x = *xPointer++;
-                ${maximumPointer.arg_type} maximum = yepBuiltin_Max_${maximumPointer.size}s${maximumPointer.size}s_${maximumPointer.size}s(x, y);
+                ${maximumPointer.arg_type} maximum = yepBuiltin_Max_${(maximumPointer.size + maximumPointer.data_type_letter) * 2 + '_' + maximumPointer.size + maximumPointer.data_type_letter}(x, y);
                 *maximumPointer++ = maximum;
             }
             return YepStatusOk;

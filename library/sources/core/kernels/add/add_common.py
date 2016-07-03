@@ -34,12 +34,7 @@ def avx_vector_instruction_select(input_type, output_type):
 
     SIMD_ADD = avx_vector_add_map[output_type]
     SIMD_STORE = avx_vector_aligned_mov_map[output_type]
-
-    if input_type.size != output_type.size:
-        UNPACK = avx_high_unpack_map[(input_type, output_type)]
-    else:
-        UNPACK = None
-    return SIMD_LOAD, SIMD_ADD, SIMD_STORE, UNPACK
+    return SIMD_LOAD, SIMD_ADD, SIMD_STORE
 
 def AVX_MOV_GPR_TO_VECTOR(vector_reg, gpr, input_type, output_type):
     if input_type == Yep32f:
