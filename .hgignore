@@ -13,8 +13,12 @@ build.ninja
 # Generated library sources
 library/headers/yepCore.h
 library/headers/yepMath.h
-library/sources/core/*
-library/sources/math/*
+library/sources/core/*.h
+library/sources/core/yepCore.disp.cpp
+library/sources/core/yepCore.impl.cpp
+library/sources/math/*.h
+library/sources/math/yepMath.disp.cpp
+library/sources/math/yepMath.impl.cpp
 
 # Generated bindings
 bindings/fortran/sources/*.f90
