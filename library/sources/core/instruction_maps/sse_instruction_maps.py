@@ -118,6 +118,22 @@ sse_scalar_movsx_map = {
     (Yep32u, Yep64u): MOV
 }
 
+sse_scalar_max_map = {
+    
+}
+
+sse_vector_max_map = {
+
+}
+
+sse_scalar_min_map = {
+
+}
+
+sse_vector_min_map = {
+
+}
+
 # =================================================
 # REGS
 # =================================================

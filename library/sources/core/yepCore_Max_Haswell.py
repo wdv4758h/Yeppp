@@ -1,6 +1,6 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from kernels.max.max_VV_V_generic import max_VV_V_generic
+from kernels.binop.binop_VV_V import binop_VV_V
 from common.YepStatus import *
 
 # =======================================================================
@@ -16,7 +16,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Max_V32fV32f_V32f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Max_V32fV32f_V32f:
-    max_VV_V_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
 
 
 arg_x = Argument(ptr(const_Yep64f), name="xPointer")
@@ -27,4 +27,4 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Max_V64fV64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Max_V64fV64f_V64f:
-    max_VV_V_generic(arg_x, arg_y, arg_z, arg_n, "avx")
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")

@@ -2,13 +2,12 @@ from peachpy.x86_64 import *
 from peachpy import *
 from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
-from add_common import *
+from binop_common import *
 
-def add_IVV_IV_generic(arg_x, arg_y, arg_n, isa_ext):
-    """
-    Add function which uses avx_add_instruction_maps to execute the addition
-    kernel on any type operands.
-    """
+def binop_IVV_IV(arg_x, arg_y, arg_n, op, isa_ext):
+    # First we set some constants based on the input/output types
+    # so that we can use the same code for any input/output
+    # type combination
     INPUT_TYPE = arg_x.c_type.base
     OUTPUT_TYPE = arg_x.c_type.base
     INPUT_TYPE_SIZE = arg_x.c_type.base.size
@@ -16,22 +15,14 @@ def add_IVV_IV_generic(arg_x, arg_y, arg_n, isa_ext):
 
     UNROLL_FACTOR = 5
 
-    if isa_ext == "avx":
-        SIMD_REGISTER_SIZE = YMMRegister.size
-        SCALAR_LOAD, SCALAR_ADD, SCALAR_STORE = avx_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        SIMD_LOAD, SIMD_ADD, SIMD_STORE = avx_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        reg_x_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
-        reg_y_scalar = avx_scalar_register_map[OUTPUT_TYPE]()
-        simd_accs = [YMMRegister() for _ in range(UNROLL_FACTOR)]
-        simd_ops = [YMMRegister() for _ in range(UNROLL_FACTOR)]
-    elif isa_ext == "sse":
-        SIMD_REGISTER_SIZE = XMMRegister.size
-        SCALAR_LOAD, SCALAR_ADD, SCALAR_STORE = sse_scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        SIMD_LOAD, SIMD_ADD, SIMD_STORE = sse_vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE)
-        reg_x_scalar = sse_scalar_register_map[OUTPUT_TYPE]()
-        reg_y_scalar = sse_scalar_register_map[OUTPUT_TYPE]()
-        simd_accs = [XMMRegister() for _ in range(UNROLL_FACTOR)]
-        simd_ops = [XMMRegister() for _ in range(UNROLL_FACTOR)]
+    SIMD_REGISTER_SIZE = { "AVX2": YMMRegister.size,
+                           "AVX" : YMMRegister.size,
+                           "SSE" : XMMRegister.size }[isa_ext]
+
+    SCALAR_LOAD, SCALAR_OP, SCALAR_STORE = scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE, op, isa_ext)
+    SIMD_LOAD, SIMD_OP, SIMD_STORE = vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE, op, isa_ext)
+    reg_x_scalar, reg_y_scalar = scalar_reg_select(OUTPUT_TYPE, isa_ext)
+    simd_accs, simd_ops = vector_reg_select(isa_ext, UNROLL_FACTOR)
 
 
     ret_ok = Label()
@@ -68,7 +59,7 @@ def add_IVV_IV_generic(arg_x, arg_y, arg_n, isa_ext):
     with align_loop:
         SCALAR_LOAD(reg_x_scalar, [reg_x_addr])
         SCALAR_LOAD(reg_y_scalar, [reg_y_addr])
-        SCALAR_ADD(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+        SCALAR_OP(reg_x_scalar, reg_x_scalar, reg_y_scalar)
         SCALAR_STORE([reg_x_addr], reg_x_scalar)
         ADD(reg_x_addr, OUTPUT_TYPE_SIZE)
         ADD(reg_y_addr, OUTPUT_TYPE_SIZE)
@@ -89,7 +80,7 @@ def add_IVV_IV_generic(arg_x, arg_y, arg_n, isa_ext):
         with instruction_columns[1]:
             SIMD_LOAD(simd_ops[i], [reg_y_addr + i * SIMD_REGISTER_SIZE * INPUT_TYPE_SIZE / OUTPUT_TYPE_SIZE])
         with instruction_columns[2]:
-            SIMD_ADD(simd_accs[i], simd_accs[i], simd_ops[i])
+            SIMD_OP(simd_accs[i], simd_accs[i], simd_ops[i])
         with instruction_columns[3]:
             SIMD_STORE([reg_x_addr_out + i * SIMD_REGISTER_SIZE], simd_accs[i])
     with instruction_columns[0]:
@@ -108,7 +99,7 @@ def add_IVV_IV_generic(arg_x, arg_y, arg_n, isa_ext):
     with scalar_loop: # Process the remaining elements
         SCALAR_LOAD(reg_x_scalar, [reg_x_addr])
         SCALAR_LOAD(reg_y_scalar, [reg_y_addr])
-        SCALAR_ADD(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+        SCALAR_OP(reg_x_scalar, reg_x_scalar, reg_y_scalar)
         SCALAR_STORE([reg_x_addr], reg_x_scalar)
         ADD(reg_x_addr, OUTPUT_TYPE_SIZE)
         ADD(reg_y_addr, OUTPUT_TYPE_SIZE)
