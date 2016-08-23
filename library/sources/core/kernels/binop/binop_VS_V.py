@@ -76,8 +76,8 @@ def binop_VS_V(arg_x, arg_y, arg_z, arg_n, op, isa_ext):
     align_loop = Loop() # Loop to align one of the addresses
     scalar_loop = Loop() # Processes remainder elements (if n % 8 != 0)
 
-    # Aligning on Z addr
-    # Process elements 1 at a time until z is aligned on YMMRegister.size boundary
+    # Aligning on output addr
+    # Process elements 1 at a time until output is aligned on YMMRegister.size boundary
     TEST(reg_z_addr, SIMD_REGISTER_SIZE - 1) # Check if already aligned
     JZ(align_loop.end) # If so, skip this loop entirely
     with align_loop:

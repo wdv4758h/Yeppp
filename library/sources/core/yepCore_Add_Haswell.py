@@ -3,7 +3,7 @@ from peachpy import *
 from kernels.binop.binop_VV_V import binop_VV_V
 from kernels.binop.binop_VS_V import binop_VS_V
 from kernels.binop.binop_IVV_IV import binop_IVV_IV
-from kernels.add.add_IVS_IV_generic import add_IVS_IV_generic
+from kernels.binop.binop_IVS_IV import binop_IVS_IV
 from common.YepStatus import *
 
 # =======================================================================
@@ -358,7 +358,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_IV8sS8s_IV8s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_IV8sS8s_IV8s:
-    add_IVS_IV_generic(arg_x, arg_y, arg_n, "avx")
+    binop_IVS_IV(arg_x, arg_y, arg_n, "add", "AVX2")
 
 
 arg_x = Argument(ptr(Yep16s), name="xPointer")
@@ -368,7 +368,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_IV16sS16s_IV16s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_IV16sS16s_IV16s:
-    add_IVS_IV_generic(arg_x, arg_y, arg_n, "avx")
+    binop_IVS_IV(arg_x, arg_y, arg_n, "add", "AVX2")
 
 
 arg_x = Argument(ptr(Yep32s), name="xPointer")
@@ -378,7 +378,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_IV32sS32s_IV32s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_IV32sS32s_IV32s:
-    add_IVS_IV_generic(arg_x, arg_y, arg_n, "avx")
+    binop_IVS_IV(arg_x, arg_y, arg_n, "add", "AVX2")
 
 
 arg_x = Argument(ptr(Yep64s), name="xPointer")
@@ -388,7 +388,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_IV64sS64s_IV64s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_IV64sS64s_IV64s:
-    add_IVS_IV_generic(arg_x, arg_y, arg_n, "avx")
+    binop_IVS_IV(arg_x, arg_y, arg_n, "add", "AVX2")
 
 
 arg_x = Argument(ptr(Yep32f), name="xPointer")
@@ -398,7 +398,7 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_IV32fS32f_IV32f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_IV32fS32f_IV32f:
-    add_IVS_IV_generic(arg_x, arg_y, arg_n, "avx")
+    binop_IVS_IV(arg_x, arg_y, arg_n, "add", "AVX2")
 
 
 arg_x = Argument(ptr(Yep64f), name="xPointer")
@@ -408,4 +408,4 @@ arg_n = Argument(YepSize, name="length")
 with Function("yepCore_Add_IV64fS64f_IV64f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as Add_IV64fS64f_IV64f:
-    add_IVS_IV_generic(arg_x, arg_y, arg_n, "avx")
+    binop_IVS_IV(arg_x, arg_y, arg_n, "add", "AVX2")

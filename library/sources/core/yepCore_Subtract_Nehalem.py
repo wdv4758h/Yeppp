@@ -3,6 +3,7 @@ from peachpy import *
 from kernels.binop.binop_VV_V import binop_VV_V
 from kernels.binop.binop_VS_V import binop_VS_V
 from kernels.binop.binop_IVV_IV import binop_IVV_IV
+from kernels.binop.binop_IVS_IV import binop_IVS_IV
 from common.YepStatus import *
 
 
@@ -344,3 +345,69 @@ with Function("yepCore_Subtract_IV64fV64f_IV64f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV64fV64f_IV64f:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
+# =======================================================================
+# =======================================================================
+# SUBTRACT SCALAR FROM IMMEDIATE VECTOR
+# =======================================================================
+# =======================================================================
+
+arg_x = Argument(ptr(Yep8s), name="xPointer")
+arg_y = Argument(Yep8s, name="y")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Subtract_IV8sS8s_IV8s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV8sS8s_IV8s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
+arg_x = Argument(ptr(Yep16s), name="xPointer")
+arg_y = Argument(Yep16s, name="y")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Subtract_IV16sS16s_IV16s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV16sS16s_IV16s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
+arg_x = Argument(ptr(Yep32s), name="xPointer")
+arg_y = Argument(Yep32s, name="y")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Subtract_IV32sS32s_IV32s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV32sS32s_IV32s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
+arg_x = Argument(ptr(Yep64s), name="xPointer")
+arg_y = Argument(Yep64s, name="y")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Subtract_IV64sS64s_IV64s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV64sS64s_IV64s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
+arg_x = Argument(ptr(Yep32f), name="xPointer")
+arg_y = Argument(Yep32f, name="y")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Subtract_IV32fS32f_IV32f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV32fS32f_IV32f:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
+arg_x = Argument(ptr(Yep64f), name="xPointer")
+arg_y = Argument(Yep64f, name="y")
+arg_n = Argument(YepSize, name="length")
+
+with Function("yepCore_Subtract_IV64fS64f_IV64f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as Subtract_IV64fS64f_IV64f:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
