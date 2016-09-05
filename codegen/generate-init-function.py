@@ -17,7 +17,7 @@ def generate_init_function(module, outfile, function_list):
 #include <yepPredefines.h>
 #include <yepTypes.h>
 #include <yepPrivate.h>
-#include <yep{0}.h>
+#include <yep{1}.h>
 #include <library/functions.h>
 #include <{0}/yep{1}.disp.h>
 

@@ -143,24 +143,28 @@ class Configuration:
 
         self.include_dirs = [library_header_root, library_source_root]
 
+        cflags = {
+            "x86": ["-m32", "-march=core2", "-mno-ssse3", "-mtune=corei7-avx"],
+            "x86-64": ["-m64", "-march=core2", "-mtune=corei7-avx"]
+        }[self.platform.arch]
+        cflags += ["-O3", "-g", "-fPIC", "-Wa,--noexecstack", "-fomit-frame-pointer", "-fstrict-aliasing", "-DYEP_BUILD_LIBRARY"]
+        cxxflags = list(cflags)
+        ldflags = [cflags[0]]
+        cxxflags += ["-fno-rtti", "-fno-exceptions", "-fno-unwind-tables"]
+        self.include_dirs.append("/System/Library/Frameworks/JavaVM.framework/Headers/")
+        libs = ["-lc"]
         if self.platform.os == "osx":
             python = "python"
             cc = options.cc if options.cc is not None else "clang"
             cxx = options.cxx if options.cxx is not None else "clang++"
-            cflags = {
-                "x86": ["-m32", "-march=core2", "-mno-ssse3", "-mtune=corei7-avx"],
-                "x86-64": ["-m64", "-march=core2", "-mtune=corei7-avx"]
-            }[self.platform.arch]
-            ldflags = [cflags[0]]
-            cflags += ["-O3", "-g", "-fPIC", "-Wa,--noexecstack", "-fomit-frame-pointer", "-fstrict-aliasing", "-DYEP_BUILD_LIBRARY"]
-            self.include_dirs.append("/System/Library/Frameworks/JavaVM.framework/Headers/")
             cflags += ["-mmacosx-version-min=$osxmin"]
-            cxxflags = list(cflags)
-            cxxflags += ["-fno-rtti", "-fno-exceptions", "-fno-unwind-tables"]
-
             ldflags += ["-fPIC", "-dynamiclib", "-nostdlib"]
             ldflags += ["-mmacosx-version-min=$osxmin"]
-            libs = ["-lc"]
+        elif self.platform.os == "linux":
+            python = "python2"
+            cc = options.cc if options.cc is not None else "gcc"
+            cxx = options.cxx if options.cxx is not None else "g++"
+            ldflags += ["-fPIC", "-shared", "-nostdlib"]
         else:
             raise ValueError("Unsupported OS: " + str(self.platform.os))
 
@@ -211,6 +215,9 @@ class Configuration:
         self.writer.rule("generate-unit-test",
             "$python codegen/generate-unit-test.py $yaml -o $out -op=$op",
             description="GENERATE $descpath")
+        self.writer.rule("generate-benchmark",
+            "$python codegen/generate-benchmark.py $yaml -o $out -op=$op",
+            description="GENERATE $descpath")
         if self.platform.os == "osx":
             self.writer.rule("dbgextract", "$dsymutil --flat --out=$dbgfile $in && $strip -o $objfile -x $in",
                 description="DBGEXTRACT $descpath")
@@ -256,6 +263,16 @@ class Configuration:
         if source_file is None:
             source_file = os.path.join(self.unit_test_dir, op + ".cpp")
         self.writer.build(source_file, "generate-unit-test", [yaml_file] + extra_deps,
+            variables={
+                "descpath": os.path.relpath(source_file, self.build_dir),
+                "yaml": yaml_file,
+                "op": op})
+        return source_file
+
+    def generate_benchmark(self, yaml_file, op, source_file=None, extra_deps=[]):
+        if source_file is None:
+            source_file = os.path.join(self.benchmark_dir, op + ".cpp")
+        self.writer.build(source_file, "generate-benchmark", [yaml_file] + extra_deps,
             variables={
                 "descpath": os.path.relpath(source_file, self.build_dir),
                 "yaml": yaml_file,
@@ -356,6 +373,7 @@ def main():
     library_build_root = os.path.join(root_dir, "build", config.platform.name)
     library_spec_root = os.path.join(root_dir, "specs")
     library_unit_test_root = os.path.join(root_dir, "unit-test")
+    library_bench_root = os.path.join(root_dir, "benchmarks")
 
     library_object_files = []
     config.source_dir = library_source_root
@@ -363,6 +381,7 @@ def main():
     config.header_dir = library_header_root
     config.spec_dir = library_spec_root
     config.unit_test_dir = library_unit_test_root
+    config.benchmark_dir = library_bench_root
     source_extensions = ["*.c", "*.cpp", "yep*.py"]
 
     generated_public_headers = []
@@ -439,14 +458,26 @@ def main():
     for op,src in unit_test_source_files.items():
         unit_test_object_files[op] = config.compile_cxx(src, extra_deps=generated_public_headers)
 
+    # Generate benchmarks
+    benchmark_source_files = {}
+    for op in ops:
+        source_file = config.generate_benchmark(os.path.join(library_spec_root, "core.yaml"), op, extra_deps=dispatch_headers)
+        benchmark_source_files[op] = source_file
+    benchmark_object_files = {}
+    for op,src in benchmark_source_files.items():
+        benchmark_object_files[op] = config.compile_cxx(src, extra_deps=generated_public_headers)
+
     config.source_dir = library_source_root
     config.build_dir = library_build_root
-    libyeppp = config.link_cxx_library(library_object_files, os.path.join(library_build_root, "libyeppp.dylib"))
+    libyeppp = config.link_cxx_library(library_object_files, os.path.join(library_build_root, "libyeppp" + config.platform.dylib_ext))
     binary_dir = os.path.join(root_dir, "binaries", config.platform.os, config.platform.arch.replace('-', '_'))
-    config.extract_debug_symbols(libyeppp, os.path.join(binary_dir, "libyeppp.dylib"), os.path.join(binary_dir, "libyeppp.dylib.dSYM"))
+
+    if config.platform.os == "osx":
+        config.extract_debug_symbols(libyeppp, os.path.join(binary_dir, "libyeppp.dylib"), os.path.join(binary_dir, "libyeppp.dylib.dSYM"))
 
     for op in ops:
         config.link_cxx_executable(library_object_files + [unit_test_object_files[op]], os.path.join(library_unit_test_root, op + "Test"))
+        config.link_cxx_executable(library_object_files + [benchmark_object_files[op]], os.path.join(library_bench_root, op + "Benchmark"))
 
 if __name__ == "__main__":
     sys.exit(main())

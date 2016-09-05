@@ -2,6 +2,7 @@ from Argument import Argument
 from DispatchTableGenerator import DispatchTableGenerator
 from DefaultImplementationGenerator import DefaultImplementationGenerator
 from UnitTestGenerator import UnitTestGenerator
+from BenchmarkGenerator import BenchmarkGenerator
 import re
 
 
@@ -46,6 +47,7 @@ class Function:
         self.dispatch_table_generator = DispatchTableGenerator(self.name, self.arguments)
         self.default_impl_generator = DefaultImplementationGenerator(self.name, self.arguments, self.default_impl_template)
         self.unit_test_generator = UnitTestGenerator(self.name, self.arguments)
+        self.benchmark_generator = BenchmarkGenerator(self.name, self.arguments)
 
     @property
     def c_documentation(self):
@@ -104,6 +106,10 @@ class Function:
     @property
     def unit_test(self):
         return self.unit_test_generator.generate_unit_test()
+
+    @property
+    def benchmark(self):
+        return self.benchmark_generator.generate_benchmark()
 
     def _separate_args_in_name(self, arg_str):
         """

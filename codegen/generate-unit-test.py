@@ -15,6 +15,7 @@ def generate_unit_tests(path, function_list):
 #include <library/functions.h>
 #include <yepRandom.h>
 #include <core/yepCore.init.h>
+#include <math/yepMath.init.h>
 #include <yepBuiltin.h>
 #include <string.h>
 #include <stdio.h>
