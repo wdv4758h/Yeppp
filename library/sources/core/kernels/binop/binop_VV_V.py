@@ -2,7 +2,7 @@ from peachpy.x86_64 import *
 from peachpy import *
 from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
-from binop_common import *
+from common.instruction_selection import *
 
 def binop_VV_V(arg_x, arg_y, arg_z, arg_n, op, isa_ext):
     """

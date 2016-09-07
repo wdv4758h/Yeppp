@@ -1,22 +1,42 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from instruction_maps.avx_mult_instruction_maps import *
+from common.instruction_selection import *
 from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
 
-def scalar_mult_inst_select(reg_x, reg_y, op_type):
+def multiply_VV_V(arg_x, arg_y, arg_z, arg_n, isa_ext):
     """
-    Determines the correct scalar multiplication instruction
-    to use by using scalar_mult_map.
-    If the needed instruction takes 3 arguments, then
-    reg_x is both the destination and the 1st source.
-    """
-    if op_type in [Yep32f, Yep64f]:
-        scalar_mult_map[op_type](reg_x, reg_x, reg_y)
-    else:
-        scalar_mult_map[op_type](reg_x, reg_y)
+    Multiply two vectors and store the result in a third vector
 
-def multiply_generic(arg_x, arg_y, arg_z, arg_n):
+    :param arg_x The first input vector
+    :param arg_y The second input vector
+    :param arg_z The output vector
+    :param arg_n The length of the vectors
+    :param isa_ext The ISA extension to use
+    """
+
+    # Set some constants that will allow us to write more generic code
+    INPUT_TYPE       = arg_x.c_type.base
+    OUTPUT_TYPE      = arg_z.c_type.base
+    INPUT_TYPE_SIZE  = arg_x.c_type.base.size
+    OUTPUT_TYPE_SIZE = arg_z.c_type.base.size
+
+    SX_SIZE = { 1: byte,
+                2: word,
+                4: dword,
+                8: qword }[INPUT_TYPE_SIZE]
+
+    UNROLL_FACTOR = 5
+
+    SIMD_REGISTER_SIZE = { "AVX2": YMMRegister.size,
+                           "AVX" : YMMRegister.size,
+                           "SSE" : XMMRegister.size }[isa_ext]
+
+    SCALAR_LOAD, SCALAR_MUL, SCALAR_STORE = scalar_instruction_select(INPUT_TYPE, OUTPUT_TYPE, "multiply", isa_ext)
+    SIMD_LOAD, SIMD_MUL, SIMD_STORE       = vector_instruction_select(INPUT_TYPE, OUTPUT_TYPE, "multiply", isa_ext)
+    reg_x_scalar, reg_y_scalar            = scalar_reg_select(OUTPUT_TYPE, isa_ext)
+    simd_accs, simd_ops                   = vector_reg_select(isa_ext, UNROLL_FACTOR)
+
     ret_ok = Label()
     ret_null_pointer = Label()
     ret_misaligned_pointer = Label()
@@ -41,92 +61,58 @@ def multiply_generic(arg_x, arg_y, arg_z, arg_n):
     LOAD.ARGUMENT(reg_z_addr, arg_z)
     TEST(reg_z_addr, reg_z_addr)
     JZ(ret_null_pointer)
-    TEST(reg_z_addr, YMMRegister.size - 1) # TODO: fix this in case we want Z aligned on XMMsize - 1
+    TEST(reg_z_addr, OUTPUT_TYPE_SIZE - 1) # TODO: fix this in case we want Z aligned on XMMsize - 1
     JNZ(ret_misaligned_pointer)
 
+    align_loop  = Loop()
     vector_loop = Loop()
     scalar_loop = Loop()
 
-    # Determine which register type to use for vector operations.
-    # For certain data types (e.g 16s -> 32s multiplication)
-    # where multiplication requires unpacking, XMM implementations are simpler
-    # TODO: Implement everything with YMM and test speed vs. XMM implementations
-    if arg_x.c_type.base in [Yep16s, Yep16u] and arg_z.c_type.base in [Yep32s, Yep32u]:
-        vector_x_reg = XMMRegister()
-        vector_y_reg = XMMRegister()
-        vector_low_res = XMMRegister()
-        vector_high_res = XMMRegister()
-        vec_reg_size = XMMRegister.size
-    else:
-        vector_x_reg = YMMRegister()
-        vector_y_reg = YMMRegister()
-        vec_reg_size = YMMRegister.size
+    TEST(reg_z_addr, SIMD_REGISTER_SIZE - 1)
+    JZ(align_loop.end)
+    with align_loop:
+        SCALAR_LOAD(reg_x_scalar, [reg_x_addr])
+        SCALAR_LOAD(reg_y_scalar, [reg_y_addr])
+        SCALAR_MUL(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+        SCALAR_STORE([reg_z_addr], reg_x_scalar)
+        ADD(reg_x_addr, INPUT_TYPE_SIZE)
+        ADD(reg_y_addr, INPUT_TYPE_SIZE)
+        ADD(reg_z_addr, OUTPUT_TYPE_SIZE)
+        SUB(reg_length, 1)
+        JZ(ret_ok)
+        TEST(reg_z_addr, SIMD_REGISTER_SIZE - 1)
+        JNZ(align_loop.begin)
 
-    scalar_x_reg = scalar_register_map[arg_z.c_type.base]()
-    scalar_y_reg = scalar_register_map[arg_z.c_type.base]()
+    instruction_columns = [InstructionStream(), InstructionStream(), InstructionStream(), InstructionStream()]
+    instruction_offsets = (0, 1, 2, 3)
+    for i in range(UNROLL_FACTOR):
+        with instruction_columns[0]:
+            SIMD_LOAD(simd_accs[i], [reg_x_addr + i * SIMD_REGISTER_SIZE])
+        with instruction_columns[1]:
+            SIMD_LOAD(simd_ops[i], [reg_y_addr + i * SIMD_REGISTER_SIZE])
+        with instruction_columns[2]:
+            SIMD_MUL(simd_accs[i], simd_accs[i], simd_ops[i])
+        with instruction_columns[3]:
+            SIMD_STORE([reg_z_addr + i * SIMD_REGISTER_SIZE], simd_accs[i])
+    with instruction_columns[0]:
+        ADD(reg_x_addr, UNROLL_FACTOR * SIMD_REGISTER_SIZE)
+    with instruction_columns[1]:
+        ADD(reg_y_addr, UNROLL_FACTOR * SIMD_REGISTER_SIZE)
+    with instruction_columns[3]:
+        ADD(reg_z_addr, UNROLL_FACTOR * SIMD_REGISTER_SIZE)
 
-    CMP(reg_length, vec_reg_size / arg_x.c_type.base.size) # Not enough elements to use SIMD instructions
-    JB(vector_loop.end)
-    with vector_loop:
-        if arg_x.c_type.base in [Yep16s, Yep32s, Yep64s] and arg_x.c_type.base == arg_z.c_type.base: # We are only going to keep the lower bits
-            packed_aligned_move_map[arg_x.c_type.base](vector_x_reg, [reg_x_addr])
-            packed_aligned_move_map[arg_y.c_type.base](vector_y_reg, [reg_y_addr])
-            packed_low_mult_map[arg_x.c_type.base](vector_x_reg, vector_x_reg, vector_y_reg)
-            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr], vector_x_reg)
-            ADD(reg_z_addr, vec_reg_size)
-            ADD(reg_x_addr, vec_reg_size)
-            ADD(reg_y_addr, vec_reg_size)
-            SUB(reg_length, vec_reg_size / arg_x.c_type.base.size)
-            CMP(reg_length, vec_reg_size / arg_x.c_type.base.size)
-        elif arg_x.c_type.base in [Yep16s, Yep16u] and arg_z.c_type.base in [Yep32s, Yep32u]: # Multiplication requires unpacking the low and high results
-            packed_aligned_move_map[arg_x.c_type.base](vector_x_reg, [reg_x_addr])
-            packed_aligned_move_map[arg_y.c_type.base](vector_y_reg, [reg_y_addr])
-            packed_low_mult_map[arg_x.c_type.base](vector_low_res, vector_x_reg, vector_y_reg)
-            packed_high_mult_map[arg_x.c_type.base](vector_high_res, vector_x_reg, vector_y_reg)
-            VPUNPCKHWD(vector_x_reg, vector_low_res, vector_high_res)
-            VPUNPCKLWD(vector_y_reg, vector_low_res, vector_high_res)
-            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr], vector_y_reg)
-            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr + vec_reg_size], vector_x_reg)
-            ADD(reg_z_addr, 2 * vec_reg_size)
-            ADD(reg_x_addr, vec_reg_size)
-            ADD(reg_y_addr, vec_reg_size)
-            SUB(reg_length, vec_reg_size / arg_x.c_type.base.size)
-            CMP(reg_length, vec_reg_size / arg_x.c_type.base.size)
-        elif arg_x.c_type.base in [Yep32s, Yep32u] and arg_z.c_type.base in [Yep64s, Yep64u]: # Multiply from 32s -> 64s using the VMULDQ instr
-            VPMOVZXDQ(vector_x_reg, [reg_x_addr])
-            VPMOVZXDQ(vector_y_reg, [reg_y_addr])
-            if arg_x.c_type.base == Yep32s:
-                VPMULDQ(vector_x_reg, vector_x_reg, vector_y_reg)
-            else:
-                VPMULUDQ(vector_x_reg, vector_x_reg, vector_y_reg)
-            VMOVDQA([reg_z_addr], vector_x_reg)
-            ADD(reg_z_addr, vec_reg_size)
-            ADD(reg_x_addr, vec_reg_size / 2)
-            ADD(reg_y_addr, vec_reg_size / 2)
-            SUB(reg_length, vec_reg_size / (2 * arg_x.c_type.base.size))
-            CMP(reg_length, vec_reg_size / (2 * arg_x.c_type.base.size))
-        elif arg_x.c_type.base in [Yep32f, Yep64f]: # Multiplication can be performed in 1 instruction on floats
-            packed_aligned_move_map[arg_x.c_type.base](vector_x_reg, [reg_x_addr])
-            packed_aligned_move_map[arg_y.c_type.base](vector_y_reg, [reg_y_addr])
-            packed_mult_map[arg_x.c_type.base](vector_x_reg, vector_x_reg, vector_y_reg)
-            packed_aligned_move_map[arg_x.c_type.base]([reg_z_addr], vector_x_reg)
-            ADD(reg_z_addr, vec_reg_size)
-            ADD(reg_x_addr, vec_reg_size)
-            ADD(reg_y_addr, vec_reg_size)
-            SUB(reg_length, vec_reg_size / arg_x.c_type.base.size)
-            CMP(reg_length, vec_reg_size / arg_x.c_type.base.size)
-        JAE(vector_loop.begin)
+    software_pipelined_loop(reg_length, UNROLL_FACTOR * SIMD_REGISTER_SIZE / OUTPUT_TYPE_SIZE, instruction_columns, instruction_offsets)
 
     TEST(reg_length, reg_length)
     JZ(ret_ok)
     with scalar_loop:
-        scalar_move_map[arg_x.c_type.base](scalar_x_reg, [reg_x_addr])
-        scalar_move_map[arg_x.c_type.base](scalar_y_reg, [reg_y_addr])
-        scalar_mult_inst_select(scalar_x_reg, scalar_y_reg, arg_x.c_type.base)
-        scalar_move_map[arg_z.c_type.base]([reg_z_addr], scalar_x_reg)
-        ADD(reg_x_addr, arg_x.c_type.base.size)
-        ADD(reg_y_addr, arg_y.c_type.base.size)
-        ADD(reg_z_addr, arg_z.c_type.base.size)
+        SCALAR_LOAD(reg_x_scalar, [reg_x_addr])
+        SCALAR_LOAD(reg_y_scalar, [reg_y_addr])
+        SCALAR_MUL(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+        SCALAR_STORE([reg_z_addr], reg_x_scalar)
+        ADD(reg_x_addr, INPUT_TYPE_SIZE)
+        ADD(reg_y_addr, INPUT_TYPE_SIZE)
+        ADD(reg_z_addr, OUTPUT_TYPE_SIZE)
         SUB(reg_length, 1)
         JNZ(scalar_loop.begin)
 

@@ -2,7 +2,7 @@ from peachpy.x86_64 import *
 from peachpy import *
 from common.YepStatus import *
 from common.pipeline import software_pipelined_loop
-from binop_common import *
+from common.instruction_selection import *
 
 def binop_IVV_IV(arg_x, arg_y, arg_n, op, isa_ext):
     # First we set some constants based on the input/output types

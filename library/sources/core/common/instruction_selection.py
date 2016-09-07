@@ -14,7 +14,8 @@ def avx2_scalar_instruction_select(input_type, output_type, op):
     op_map = { "add"      : avx_scalar_add_map,
                "subtract" : avx_scalar_sub_map,
                "max"      : avx_scalar_max_map,
-               "min"      : avx_scalar_min_map }[op]
+               "min"      : avx_scalar_min_map,
+               "multiply" : avx_scalar_multiply_map }[op]
 
     if output_type in [Yep8s, Yep8u, Yep16s, Yep16u, Yep32s, Yep32u,
             Yep64s, Yep64u]:
@@ -36,7 +37,8 @@ def avx2_vector_instruction_select(input_type, output_type, op):
     op_map = { "add"      : avx_vector_add_map,
                "subtract" : avx_vector_sub_map,
                "max"      : avx_vector_max_map,
-               "min"      : avx_vector_min_map }[op]
+               "min"      : avx_vector_min_map,
+               "multiply" : avx_vector_multiply_map }[op]
 
     SIMD_OP = op_map[output_type]
     SIMD_STORE = avx_vector_aligned_mov_map[output_type]

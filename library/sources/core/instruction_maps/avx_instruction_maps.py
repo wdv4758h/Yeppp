@@ -75,12 +75,12 @@ avx_vector_mult_high_map = {
     Yep16u      : VPMULHUW
 }
 
-avx_vector_mult_map = {
+avx_vector_multiply_map = {
     Yep32f      : VMULPS,
     Yep64f      : VMULPD
 }
 
-avx_scalar_mult_map = {
+avx_scalar_multiply_map = {
     Yep8s       : IMUL,
     Yep8u       : IMUL,
     Yep16s      : IMUL,
