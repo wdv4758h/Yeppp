@@ -76,6 +76,9 @@ avx_vector_mult_high_map = {
 }
 
 avx_vector_multiply_map = {
+    Yep16s      : VPMULLW,
+    Yep32s      : VPMULLD,
+    Yep64s      : VPMULLQ,
     Yep32f      : VMULPS,
     Yep64f      : VMULPD
 }

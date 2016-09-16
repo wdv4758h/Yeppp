@@ -198,7 +198,8 @@ class Configuration:
             description="AR $descpath")
         self.writer.rule("peachpy-obj",
             "$python -m peachpy.$arch -mabi=$abi -mimage-format=$image_format -fname-mangling=\"_\$${Name}_\$${uArch}_\$${ISA}\"" \
-            " -emit-json-metadata $json_file -emit-c-header $header -o $object_file $src",
+            " -emit-json-metadata $json_file -emit-c-header $header -MMD -MF $object_file.d -o $object_file $src",
+            #deps="gcc", depfile="$object_file.d",
             description="PEACHPY $descpath")
         self.writer.rule("generate-dispatch-table",
             "$python codegen/generate-dispatch-table.py --yaml $yaml -o $srcout $json",
@@ -421,15 +422,8 @@ def main():
             if relative_source_filename == "library/sources/library/CpuMacOSX.cpp" and config.platform.kernel not in {"mach"}:
                 continue
 
-            if source_filename.endswith(".py"):
-                # Compiling PeachPy kernels, need to get dependents
-                op = os.path.basename(source_filename).split("_")[1].lower()
-                kernels_dir = os.path.join(os.path.dirname(source_filename), "kernels", op)
-                if os.path.exists(kernels_dir):
-                    kernels = [ os.path.join(kernels_dir, k) for k in os.listdir(kernels_dir) if k != "__init__.py" ]
-                else:
-                    kernels = []
-                object_file, json_file = config.compile_peachpy(source_filename, extra_deps=kernels)
+            if source_filename.endswith(".py") and os.path.basename(source_filename).startswith("yep"):
+                object_file, json_file = config.compile_peachpy(source_filename)
                 json_metadata_files.append(json_file)
                 library_object_files.append(object_file)
             elif source_filename.endswith(".cpp"):
