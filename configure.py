@@ -305,7 +305,7 @@ class Configuration:
             "object_file": object_file,
             "src": source_file
         }
-        self.writer.build([object_file, json_file], "peachpy-obj", [source_file] + extra_deps, variables=variables)
+        self.writer.build(object_file, "peachpy-obj", [source_file] + extra_deps, variables=variables, implicit_outputs=json_file)
         return object_file, json_file
 
     def compile_c(self, source_file, object_file=None, extra_deps=[]):

@@ -56,7 +56,8 @@ def sse_scalar_instruction_select(input_type, output_type, op):
     op_map = { "add"      : sse_scalar_add_map,
                "subtract" : sse_scalar_sub_map,
                "max"      : sse_scalar_max_map,
-               "min"      : sse_scalar_min_map }[op]
+               "min"      : sse_scalar_min_map,
+               "multiply" : sse_scalar_multiply_map }[op]
 
     SCALAR_OP = lambda x, y, z: op_map[output_type](x, z) \
         if x == y else op_map[output_type](x, y)
@@ -74,7 +75,8 @@ def sse_vector_instruction_select(input_type, output_type, op):
     op_map = { "add"      : sse_vector_add_map,
                "subtract" : sse_vector_sub_map,
                "max"      : sse_vector_max_map,
-               "min"      : sse_vector_min_map }[op]
+               "min"      : sse_vector_min_map,
+               "multiply" : sse_vector_multiply_map }[op]
 
     SIMD_OP = lambda x, y, z: op_map[output_type](x, z) \
         if x == y else op_map[output_type](x, y)

@@ -61,6 +61,33 @@ sse_scalar_sub_map = {
 }
 
 # =================================================
+# MULTIPLICATION
+# =================================================
+sse_vector_mult_low_map = {
+    Yep16s : PMULLW,
+    Yep16u : PMULLW,
+    Yep32s : PMULLD,
+    Yep32u : PMULLD
+}
+
+sse_vector_mult_high_map = {
+}
+
+sse_vector_multiply_map = {
+    Yep16s : PMULLW,
+    Yep32s : PMULLD,
+    Yep32f : MULPS,
+    Yep64f : MULPD
+}
+
+sse_scalar_multiply_map = {
+    Yep16s : IMUL,
+    Yep32s : IMUL,
+    Yep32f : MULSS,
+    Yep64f : MULSD
+}
+
+# =================================================
 # MOV
 # =================================================
 sse_vector_aligned_mov_map = {

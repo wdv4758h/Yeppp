@@ -1,6 +1,6 @@
 from peachpy.x86_64 import *
 from peachpy import *
-from common.YepStatus import *
+import common.YepStatus as YepStatus
 from common.pipeline import software_pipelined_loop
 from common.instruction_selection import *
 
@@ -134,10 +134,10 @@ def binop_VV_V(arg_x, arg_y, arg_z, arg_n, op, isa_ext):
         JNZ(scalar_loop.begin)
 
     with LABEL(ret_ok):
-        RETURN(YepStatusOk)
+        RETURN(YepStatus.YepStatusOk)
 
     with LABEL(ret_null_pointer):
-        RETURN(YepStatusNullPointer)
+        RETURN(YepStatus.YepStatusNullPointer)
 
     with LABEL(ret_misaligned_pointer):
-        RETURN(YepStatusMisalignedPointer)
+        RETURN(YepStatus.YepStatusMisalignedPointer)
