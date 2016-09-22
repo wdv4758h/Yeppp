@@ -192,6 +192,7 @@ avx_vector_unaligned_mov_map = {
     Yep16s: VMOVDQU,
     Yep16u: VMOVDQU,
     Yep32s: VMOVDQU,
+    Yep32u: VMOVDQU,
     Yep64s: VMOVDQU,
     Yep32f: VMOVUPS,
     Yep64f: VMOVUPD

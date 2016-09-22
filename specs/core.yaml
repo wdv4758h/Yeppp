@@ -700,7 +700,7 @@ functions:
             while (length-- != 0) {
                 ${minimumPointer.arg_type} x = *xPointer++;
                 ${minimumPointer.arg_type} y = *yPointer++;
-                ${minimumPointer.arg_type} minimum = yepBuiltin_Min_${minimumPointer.size}s${minimumPointer.size}s_${minimumPointer.size}s(x, y);
+                ${minimumPointer.arg_type} minimum = yepBuiltin_Min_${(minimumPointer.size + minimumPointer.data_type_letter) * 2 + '_' + minimumPointer.size + minimumPointer.data_type_letter}(x, y);
                 *minimumPointer++ = minimum;
             }
             return YepStatusOk;

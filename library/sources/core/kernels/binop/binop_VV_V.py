@@ -87,8 +87,23 @@ def binop_VV_V(arg_x, arg_y, arg_z, arg_n, op, isa_ext):
         # Process elements one at a time until our output stores will be aligned
         SCALAR_LOAD(reg_x_scalar, SX_SIZE[reg_x_addr])
         SCALAR_LOAD(reg_y_scalar, SX_SIZE[reg_y_addr])
-        SCALAR_OP(reg_x_scalar, reg_x_scalar, reg_y_scalar)
-        SCALAR_STORE([reg_z_addr], reg_x_scalar)
+        if (op == "max" or op == "min") and not input_type.is_floating_point:
+            # There is no scalar instruction for integer min-max
+            CMP(reg_y_scalar, reg_x_scalar)
+            if input_type.is_signed_integer:
+                if op == "max":
+                    CMOVGE(reg_x_scalar, reg_y_scalar)
+                else:
+                    CMOVLE(reg_x_scalar, reg_y_scalar)
+            else:
+                if op == "max":
+                    CMOVAE(reg_x_scalar, reg_y_scalar)
+                else:
+                    CMOVBE(reg_x_scalar, reg_y_scalar)
+            MOV([reg_z_addr], reg_x_scalar)
+        else:
+            SCALAR_OP(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+            SCALAR_STORE([reg_z_addr], reg_x_scalar)
         ADD(reg_x_addr, input_type_size)
         ADD(reg_y_addr, input_type_size)
         ADD(reg_z_addr, output_type_size)
@@ -125,8 +140,23 @@ def binop_VV_V(arg_x, arg_y, arg_z, arg_n, op, isa_ext):
     with scalar_loop: # Process the remaining elements
         SCALAR_LOAD(reg_x_scalar, SX_SIZE[reg_x_addr])
         SCALAR_LOAD(reg_y_scalar, SX_SIZE[reg_y_addr])
-        SCALAR_OP(reg_x_scalar, reg_x_scalar, reg_y_scalar)
-        SCALAR_STORE([reg_z_addr], reg_x_scalar)
+        if (op == "max" or op == "min") and not input_type.is_floating_point:
+            # There is no scalar instruction for integer min-max
+            CMP(reg_y_scalar, reg_x_scalar)
+            if input_type.is_signed_integer:
+                if op == "max":
+                    CMOVGE(reg_x_scalar, reg_y_scalar)
+                else:
+                    CMOVLE(reg_x_scalar, reg_y_scalar)
+            else:
+                if op == "max":
+                    CMOVAE(reg_x_scalar, reg_y_scalar)
+                else:
+                    CMOVBE(reg_x_scalar, reg_y_scalar)
+            MOV([reg_z_addr], reg_x_scalar)
+        else:
+            SCALAR_OP(reg_x_scalar, reg_x_scalar, reg_y_scalar)
+            SCALAR_STORE([reg_z_addr], reg_x_scalar)
         ADD(reg_x_addr, input_type_size)
         ADD(reg_y_addr, input_type_size)
         ADD(reg_z_addr, output_type_size)

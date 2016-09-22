@@ -333,7 +333,7 @@ setup_x64()
 		"linux-x86_64")
 			# Native compilation for x86-64 on x86-64 (Linux)
 			export YEPROOT="${YEP_ROOT}"
-			export YEPBINARIES="${YEPROOT}/binaries/linux/x86_64"
+			export YEPBINARIES="${YEPROOT}/build/x86_64-linux"
 			export YEPPLATFORM="x64-linux-sysv-default"
 
 			setup_native_tools
