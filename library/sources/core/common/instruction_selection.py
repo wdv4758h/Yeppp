@@ -17,8 +17,7 @@ def avx2_scalar_instruction_select(input_type, output_type, op):
                "min"      : avx_scalar_min_map,
                "multiply" : avx_scalar_multiply_map }[op]
 
-    if output_type in [Yep8s, Yep8u, Yep16s, Yep16u, Yep32s, Yep32u,
-            Yep64s, Yep64u]:
+    if output_type.is_signed_integer or output_type.is_unsigned_integer:
         SCALAR_OP = lambda x, y, z: op_map[output_type](x, z) \
             if x == y else op_map[output_type](x, y)
     else:

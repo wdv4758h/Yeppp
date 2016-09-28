@@ -88,6 +88,57 @@ sse_scalar_multiply_map = {
 }
 
 # =================================================
+# MAXIMUM/MINIMUM
+# =================================================
+sse_vector_max_map = {
+    Yep8s  : PMAXSB, #SSE 4.1
+    Yep8u  : PMAXUB, #SSE2
+    Yep16s : PMAXSW, #SSE 4.1
+    Yep16u : PMAXUW, #SSE 4.1
+    Yep32s : PMAXSD,
+    Yep32u : PMAXUD,
+    Yep32f : MAXPS,
+    Yep64f : MAXPD
+}
+
+sse_scalar_max_map = {
+    Yep8s       : None,
+    Yep8u       : None,
+    Yep16s      : None,
+    Yep16u      : None,
+    Yep32s      : None,
+    Yep32u      : None,
+    Yep64s      : None,
+    Yep64u      : None,
+    Yep32f      : MAXSS,
+    Yep64f      : MAXSD
+}
+
+sse_vector_min_map = {
+    Yep8s  : PMINSB,
+    Yep8u  : PMINUB,
+    Yep16s : PMINSW,
+    Yep16u : PMINUW,
+    Yep32s : PMINSD,
+    Yep32u : PMINUD,
+    Yep32f : MINPS,
+    Yep64f : MINPD
+}
+
+sse_scalar_min_map = {
+    Yep8s       : None,
+    Yep8u       : None,
+    Yep16s      : None,
+    Yep16u      : None,
+    Yep32s      : None,
+    Yep32u      : None,
+    Yep64s      : None,
+    Yep64u      : None,
+    Yep32f      : MINSS,
+    Yep64f      : MINSD
+}
+
+# =================================================
 # MOV
 # =================================================
 sse_vector_aligned_mov_map = {
@@ -109,7 +160,9 @@ sse_vector_unaligned_mov_map = {
     Yep16s: MOVDQU,
     Yep16u: MOVDQU,
     Yep32s: MOVDQU,
+    Yep32u: MOVDQU,
     Yep64s: MOVDQU,
+    Yep64u: MOVDQU,
     Yep32f: MOVUPS,
     Yep64f: MOVUPD
 }
@@ -143,22 +196,6 @@ sse_scalar_movsx_map = {
     (Yep16u, Yep32u): MOVZX,
     (Yep32s, Yep64s): MOVSXD,
     (Yep32u, Yep64u): MOV
-}
-
-sse_scalar_max_map = {
-    
-}
-
-sse_vector_max_map = {
-
-}
-
-sse_scalar_min_map = {
-
-}
-
-sse_vector_min_map = {
-
 }
 
 # =================================================
