@@ -146,7 +146,8 @@ class Function:
         if has_output:
             for output in outputs:
                 arg_type = self._parse_arg_type(output)
-                self.arguments.append(Argument(arg_type, args_arr[args_arr_ind], True, False))
+                is_scalar = "S" in output
+                self.arguments.append(Argument(arg_type, args_arr[args_arr_ind], True, False, is_scalar))
                 args_arr_ind += 1
 
         if args_arr_ind < len(args_arr):

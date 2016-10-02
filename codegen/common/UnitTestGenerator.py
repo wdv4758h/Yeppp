@@ -61,6 +61,7 @@ class UnitTestGenerator:
         utg.add_line("Yep32s failedTests = 0;")
 
     def _init_arguments(self, utg):
+        # Initialize the input arguments
         for arg in self.arguments:
             if arg.is_pointer:
                 utg.add_line("YEP_ALIGN(64) {0} {1}Array[1088 + (64 / sizeof({0}))];".format(
@@ -74,8 +75,17 @@ class UnitTestGenerator:
                 utg.add_line("status = {0}(&rng, {1}, &{2}, 1);".format(
                     random_generator_function_map[arg.arg_type], ", ".join(bounds[arg.arg_type]), arg.name))
                 utg.add_line("assert(status == YepStatusOk);")
+
         # Initial arrays and reference arrays:
-        if self.output.is_pointer: # Output is an array (not max, min, etc.)
+        if self.output.is_scalar: # Output is an array (not max, min, etc.)
+            utg.add_line("{0} {1};".format(self.output.arg_type, self.output.name))
+            utg.add_line("{0} {1}Init;".format(self.output.arg_type, self.output.name))
+            utg.add_line("{0} {1}Ref;".format(self.output.arg_type, self.output.name))
+            utg.add_line("status = {0}(&rng, {1}, &{2}Init, 1);".format(
+                random_generator_function_map[self.output.arg_type],
+                ", ".join(bounds[self.output.arg_type]),
+                self.output.name))
+        else: # Output is a vector
             utg.add_line("YEP_ALIGN(64) {0} {1}InitArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("YEP_ALIGN(64) {0} {1}RefArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("status = {0}(&rng, {1}, {2}InitArray, YEP_COUNT_OF({2}Array));".format(
@@ -98,15 +108,33 @@ descriptor != defaultDescriptor; descriptor++) {{".format(self.name)).indent()
                 utg.add_line("for (YepSize length = 0; length < 64; length++) {").indent()
 
     def _argument_loop_body(self, utg):
-        utg.add_line("memcpy({0}RefArray, {0}InitArray, sizeof({0}RefArray));".format(self.output.name))
+        if self.output.is_scalar:
+            utg.add_line("{0}Ref = {0}Init;".format(self.output.name))
+        else:
+            utg.add_line("memcpy({0}RefArray, {0}InitArray, sizeof({0}RefArray));".format(self.output.name))
 
         utg.add_line("status = defaultImplementation({});".format(", ".join(self._determine_func_call_args(True))))
         utg.add_line("assert(status == YepStatusOk);")
         utg.add_line()
 
-        utg.add_line("memcpy({0}Array, {0}InitArray, sizeof({0}Array));".format(self.output.name))
+        if self.output.is_scalar:
+            utg.add_line("{0} = {0}Init;".format(self.output.name))
+        else:
+            utg.add_line("memcpy({0}Array, {0}InitArray, sizeof({0}Array));".format(self.output.name))
+
         utg.add_line("status = descriptor->function({});".format(", ".join(self._determine_func_call_args(False))))
-        utg.add_line("if (memcmp({0}Array, {0}RefArray, sizeof({0}Array)) != 0) {{".format(self.output.name)).indent()
+
+        if self.output.is_scalar:
+            if self.output.is_floating_point:
+                utg.add_line("const Yep32f ulpError = yepBuiltin_Abs_{0}_{0}({1}Ref - {1}) / yepBuiltin_Ulp_{0}_{0}({1}Ref);".format(
+                    self.output.size + self.output.data_type_letter,
+                    self.output.name))
+                utg.add_line("if (ulpError > 1000.0f) {").indent()
+                utg.add_line("printf(\"Got: %f Expected %f\\n\", {0}, {0}Ref);".format(self.output.name))
+            else:
+                utg.add_line("if ({0} != {0}Ref) {{".format(self.output.name)).indent()
+        else:
+            utg.add_line("if (memcmp({0}Array, {0}RefArray, sizeof({0}Array)) != 0) {{".format(self.output.name)).indent()
         utg.add_line("failedTests++;")
         utg.add_line("reportFailedTest(\"{}\", descriptor->microarchitecture);".format(self.name))
         utg.add_line("goto next_descriptor;")
@@ -118,7 +146,10 @@ descriptor != defaultDescriptor; descriptor++) {{".format(self.name)).indent()
             if arg.is_pointer:
                 if arg.is_const:
                     call_args.append("&{0}Array[{0}Offset]".format(arg.name))
-                else:
+                elif arg.is_scalar: # It is a scalar output
+                    extra_part = "Ref" if is_default_impl_call else ""
+                    call_args.append("&{0}{1}".format(arg.name, extra_part))
+                else: # Vector output
                     extra_part = "Ref" if is_default_impl_call else ""
                     call_args.append("&{0}{1}Array[{0}Offset]".format(arg.name, extra_part))
             else:

@@ -4,11 +4,12 @@ class Argument:
     Used to generate declarations and default implementations
     """
 
-    def __init__(self, arg_type, name, is_pointer, is_const):
+    def __init__(self, arg_type, name, is_pointer, is_const, is_scalar=False):
         self.arg_type = arg_type
         self.name = name
         self.is_pointer = is_pointer
         self.is_const = is_const
+        self.is_scalar = is_scalar
 
     @property
     def arg_type(self):
@@ -46,6 +47,10 @@ class Argument:
         return self.is_const
 
     @property
+    def is_scalar(self):
+        return self.is_scalar
+
+    @property
     def declaration(self):
         """
         Returns the declaration needed in a C function
@@ -77,3 +82,7 @@ class Argument:
         Returns s if signed, u if unsigned, f if floating-point
         """
         return self.arg_type[-1]
+
+    @property
+    def is_floating_point(self):
+        return self.data_type_letter == 'f'
