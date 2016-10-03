@@ -12,7 +12,7 @@ class UnitTestGenerator:
         self.inputs_arrs = [ arg for arg in self.arguments if arg.is_pointer and arg.is_const ]
         self.output = [ arg for arg in self.arguments if arg.is_pointer and not arg.is_const ][0]
         self.use_positive_init = False
-        for op in [ "DotProduct" ]:
+        for op in [ "DotProduct", "Sum" ]:
             if op in name:
                 self.use_positive_init = True
                 break
