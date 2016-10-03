@@ -25,6 +25,12 @@ with Function("yepCore_Multiply_V16sV16s_V16s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V16sV16s_V16s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_V16sV16s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_V16sV16s_V16s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32s), name="yPointer")
@@ -35,6 +41,11 @@ with Function("yepCore_Multiply_V32sV32s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V32sV32s_V32s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_V32sV32s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse4_1) as yepCore_Multiply_V32sV32s_V32s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
 
 
 
@@ -48,6 +59,11 @@ with Function("yepCore_Multiply_V32fV32f_V32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V32fV32f_V32f:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_V32fV32f_V32f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_V32fV32f_V32f:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep64f), name="xPointer")
@@ -59,6 +75,12 @@ with Function("yepCore_Multiply_V64fV64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V64fV64f_V64f:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_V64fV64f_V64f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_V64fV64f_V64f:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
+
 
 
 
@@ -77,6 +99,11 @@ with Function("yepCore_Multiply_V16sS16s_V16s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V16sS16s_V16s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_V16sS16s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_V16sS16s_V16s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
@@ -88,6 +115,11 @@ with Function("yepCore_Multiply_V32sS32s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V32sS32s_V32s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_V32sS32s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse4_1) as yepCore_Multiply_V32sS32s_V32s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
 
 
 
@@ -101,6 +133,11 @@ with Function("yepCore_Multiply_V32fS32f_V32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V32fS32f_V32f:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_V32fS32f_V32f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_V32fS32f_V32f:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep64f), name="xPointer")
@@ -112,6 +149,12 @@ with Function("yepCore_Multiply_V64fS64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_V64fS64f_V64f:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_V64fS64f_V64f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_V64fS64f_V64f:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "multiply", "SSE")
+
 
 
 
@@ -129,6 +172,12 @@ with Function("yepCore_Multiply_IV16sV16s_IV16s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV16sV16s_IV16s:
     binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_IV16sV16s_IV16s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_IV16sV16s_IV16s:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep32s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32s), name="yPointer")
@@ -138,6 +187,12 @@ with Function("yepCore_Multiply_IV32sV32s_IV32s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV32sV32s_IV32s:
     binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_IV32sV32s_IV32s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse4_1) as yepCore_Multiply_IV32sV32s_IV32s:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.Yep32f), name="xPointer")
@@ -149,6 +204,12 @@ with Function("yepCore_Multiply_IV32fV32f_IV32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV32fV32f_IV32f:
     binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_IV32fV32f_IV32f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_IV32fV32f_IV32f:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep64f), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep64f), name="yPointer")
@@ -158,6 +219,12 @@ with Function("yepCore_Multiply_IV64fV64f_IV64f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV64fV64f_IV64f:
     binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_IV64fV64f_IV64f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_IV64fV64f_IV64f:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
 
 
 # =======================================================================
@@ -174,6 +241,12 @@ with Function("yepCore_Multiply_IV16sS16s_IV16s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV16sS16s_IV16s:
     binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_IV16sS16s_IV16s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_IV16sS16s_IV16s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep32s), name="xPointer")
 arg_y = Argument(ctypes.Yep32s, name="y")
@@ -183,6 +256,12 @@ with Function("yepCore_Multiply_IV32sS32s_IV32s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV32sS32s_IV32s:
     binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_IV32sS32s_IV32s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse4_1) as yepCore_Multiply_IV32sS32s_IV32s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.Yep32f), name="xPointer")
@@ -194,6 +273,12 @@ with Function("yepCore_Multiply_IV32fS32f_IV32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV32fS32f_IV32f:
     binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
 
+with Function("yepCore_Multiply_IV32fS32f_IV32f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_IV32fS32f_IV32f:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep64f), name="xPointer")
 arg_y = Argument(ctypes.Yep64f, name="y")
@@ -203,3 +288,8 @@ with Function("yepCore_Multiply_IV64fS64f_IV64f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Multiply_IV64fS64f_IV64f:
     binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "AVX2")
+
+with Function("yepCore_Multiply_IV64fS64f_IV64f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Multiply_IV64fS64f_IV64f:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "multiply", "SSE")

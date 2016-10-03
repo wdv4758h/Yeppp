@@ -15,29 +15,6 @@ from common.YepStatus import YepStatus
 # VECTOR/VECTOR MAX
 # =======================================================================
 # =======================================================================
-
-# arg_x = Argument(ptr(ctypes.const_Yep8s), name="xPointer")
-# arg_y = Argument(ptr(ctypes.const_Yep8s), name="yPointer")
-# arg_z = Argument(ptr(ctypes.Yep8s), name="zPointer")
-# arg_n = Argument(ctypes.YepSize, name="length")
-
-# with Function("yepCore_Max_V8sV8s_V8s",
-#         (arg_x, arg_y, arg_z, arg_n),
-#         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V8sV8s_V8s:
-#     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
-
-
-# arg_x = Argument(ptr(ctypes.const_Yep8u), name="xPointer")
-# arg_y = Argument(ptr(ctypes.const_Yep8u), name="yPointer")
-# arg_z = Argument(ptr(ctypes.Yep8u), name="zPointer")
-# arg_n = Argument(ctypes.YepSize, name="length")
-
-# with Function("yepCore_Max_V8uV8u_V8u",
-#         (arg_x, arg_y, arg_z, arg_n),
-#         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V8uV8u_V8u:
-#     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
-
-
 arg_x = Argument(ptr(ctypes.const_Yep16s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep16s), name="yPointer")
 arg_z = Argument(ptr(ctypes.Yep16s), name="zPointer")
@@ -47,6 +24,12 @@ with Function("yepCore_Max_V16sV16s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V16sV16s_V16s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
+
+with Function("yepCore_Max_V16sV16s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Max_V16sV16s_V16s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep16u), name="xPointer")
@@ -59,6 +42,12 @@ with Function("yepCore_Max_V16uV16u_V16u",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V16uV16u_V16u:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
 
+with Function("yepCore_Max_V16uV16u_V16u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Max_V16uV16u_V16u:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32s), name="yPointer")
@@ -69,6 +58,12 @@ with Function("yepCore_Max_V32sV32s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V32sV32s_V32s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
+
+with Function("yepCore_Max_V32sV32s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Max_V32sV32s_V32s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep32u), name="xPointer")
@@ -81,6 +76,12 @@ with Function("yepCore_Max_V32uV32u_V32u",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V32uV32u_V32u:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
 
+with Function("yepCore_Max_V32uV32u_V32u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Max_V32uV32u_V32u:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32f), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32f), name="yPointer")
@@ -92,6 +93,12 @@ with Function("yepCore_Max_V32fV32f_V32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V32fV32f_V32f:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
 
+with Function("yepCore_Max_V32fV32f_V32f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Max_V32fV32f_V32f:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep64f), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep64f), name="yPointer")
@@ -102,3 +109,8 @@ with Function("yepCore_Max_V64fV64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Max_V64fV64f_V64f:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "AVX2")
+
+with Function("yepCore_Max_V64fV64f_V64f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Max_V64fV64f_V64f:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "max", "SSE")

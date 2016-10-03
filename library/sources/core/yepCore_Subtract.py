@@ -26,6 +26,12 @@ with Function("yepCore_Subtract_V8sV8s_V8s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V8sV8s_V8s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V8sV8s_V8s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V8sV8s_V8s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep8s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep8s), name="yPointer")
@@ -37,6 +43,12 @@ with Function("yepCore_Subtract_V8sV8s_V16s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V8sV8s_V16s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V8sV8s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V8sV8s_V16s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep8u), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep8u), name="yPointer")
@@ -47,6 +59,11 @@ with Function("yepCore_Subtract_V8uV8u_V16u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V8uV8u_V16u:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V8uV8u_V16u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V8uV8u_V16u:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
 
 
 
@@ -60,6 +77,12 @@ with Function("yepCore_Subtract_V16sV16s_V16s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V16sV16s_V16s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V16sV16s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V16sV16s_V16s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep16s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep16s), name="yPointer")
@@ -70,6 +93,12 @@ with Function("yepCore_Subtract_V16sV16s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V16sV16s_V32s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V16sV16s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V16sV16s_V32s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep16u), name="xPointer")
@@ -82,6 +111,12 @@ with Function("yepCore_Subtract_V16uV16u_V32u",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V16uV16u_V32u:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V16uV16u_V32u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V16uV16u_V32u:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32s), name="yPointer")
@@ -92,6 +127,12 @@ with Function("yepCore_Subtract_V32sV32s_V32s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32sV32s_V32s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V32sV32s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32sV32s_V32s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
@@ -104,6 +145,12 @@ with Function("yepCore_Subtract_V32sV32s_V64s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32sV32s_V64s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V32sV32s_V64s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32sV32s_V64s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32u), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32u), name="yPointer")
@@ -114,6 +161,12 @@ with Function("yepCore_Subtract_V32uV32u_V64u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32uV32u_V64u:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V32uV32u_V64u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32uV32u_V64u:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep64s), name="xPointer")
@@ -126,6 +179,12 @@ with Function("yepCore_Subtract_V64sV64s_V64s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V64sV64s_V64s:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V64sV64s_V64s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V64sV64s_V64s:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32f), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep32f), name="yPointer")
@@ -137,6 +196,12 @@ with Function("yepCore_Subtract_V32fV32f_V32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32fV32f_V32f:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V32fV32f_V32f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32fV32f_V32f:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep64f), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep64f), name="yPointer")
@@ -147,6 +212,12 @@ with Function("yepCore_Subtract_V64fV64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V64fV64f_V64f:
     binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V64fV64f_V64f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V64fV64f_V64f:
+    binop_VV_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 # =======================================================================
 # =======================================================================
@@ -163,6 +234,12 @@ with Function("yepCore_Subtract_V8sS8s_V8s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V8sS8s_V8s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V8sS8s_V8s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V8sS8s_V8s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep8s), name="xPointer")
 arg_y = Argument(ctypes.Yep8s, name="y")
@@ -173,6 +250,12 @@ with Function("yepCore_Subtract_V8sS8s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V8sS8s_V16s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V8sS8s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V8sS8s_V16s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep8u), name="xPointer")
@@ -185,6 +268,12 @@ with Function("yepCore_Subtract_V8uS8u_V16u",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V8uS8u_V16u:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V8uS8u_V16u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V8uS8u_V16u:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep16s), name="xPointer")
 arg_y = Argument(ctypes.Yep16s, name="y")
@@ -195,6 +284,12 @@ with Function("yepCore_Subtract_V16sS16s_V16s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V16sS16s_V16s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V16sS16s_V16s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V16sS16s_V16s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep16s), name="xPointer")
@@ -207,6 +302,12 @@ with Function("yepCore_Subtract_V16sS16s_V32s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V16sS16s_V32s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V16sS16s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V16sS16s_V32s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep16u), name="xPointer")
 arg_y = Argument(ctypes.Yep16u, name="y")
@@ -217,6 +318,12 @@ with Function("yepCore_Subtract_V16uS16u_V32u",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V16uS16u_V32u:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V16uS16u_V32u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V16uS16u_V32u:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
@@ -229,6 +336,12 @@ with Function("yepCore_Subtract_V32sS32s_V32s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32sS32s_V32s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V32sS32s_V32s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32sS32s_V32s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep32s), name="xPointer")
 arg_y = Argument(ctypes.Yep32s, name="y")
@@ -239,6 +352,12 @@ with Function("yepCore_Subtract_V32sS32s_V64s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32sS32s_V64s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V32sS32s_V64s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32sS32s_V64s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep32u), name="xPointer")
@@ -251,6 +370,12 @@ with Function("yepCore_Subtract_V32uS32u_V64u",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32uS32u_V64u:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V32uS32u_V64u",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32uS32u_V64u:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep64s), name="xPointer")
 arg_y = Argument(ctypes.Yep64s, name="y")
@@ -261,6 +386,12 @@ with Function("yepCore_Subtract_V64sS64s_V64s",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V64sS64s_V64s:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V64sS64s_V64s",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V64sS64s_V64s:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.const_Yep32f), name="xPointer")
@@ -273,6 +404,12 @@ with Function("yepCore_Subtract_V32fS32f_V32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V32fS32f_V32f:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_V32fS32f_V32f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V32fS32f_V32f:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.const_Yep64f), name="xPointer")
 arg_y = Argument(ctypes.Yep64f, name="y")
@@ -283,6 +420,12 @@ with Function("yepCore_Subtract_V64fS64f_V64f",
         (arg_x, arg_y, arg_z, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_V64fS64f_V64f:
     binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_V64fS64f_V64f",
+        (arg_x, arg_y, arg_z, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_V64fS64f_V64f:
+    binop_VS_V(arg_x, arg_y, arg_z, arg_n, "subtract", "SSE")
+
 
 
 # =======================================================================
@@ -299,6 +442,12 @@ with Function("yepCore_Subtract_IV8sV8s_IV8s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV8sV8s_IV8s:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_IV8sV8s_IV8s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV8sV8s_IV8s:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep16s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep16s), name="yPointer")
@@ -308,6 +457,12 @@ with Function("yepCore_Subtract_IV16sV16s_IV16s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV16sV16s_IV16s:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_IV16sV16s_IV16s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV16sV16s_IV16s:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.Yep32s), name="xPointer")
@@ -319,6 +474,12 @@ with Function("yepCore_Subtract_IV32sV32s_IV32s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV32sV32s_IV32s:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_IV32sV32s_IV32s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV32sV32s_IV32s:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep64s), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep64s), name="yPointer")
@@ -328,6 +489,12 @@ with Function("yepCore_Subtract_IV64sV64s_IV64s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV64sV64s_IV64s:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_IV64sV64s_IV64s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV64sV64s_IV64s:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.Yep32f), name="xPointer")
@@ -339,6 +506,12 @@ with Function("yepCore_Subtract_IV32fV32f_IV32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV32fV32f_IV32f:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_IV32fV32f_IV32f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV32fV32f_IV32f:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep64f), name="xPointer")
 arg_y = Argument(ptr(ctypes.const_Yep64f), name="yPointer")
@@ -348,6 +521,12 @@ with Function("yepCore_Subtract_IV64fV64f_IV64f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV64fV64f_IV64f:
     binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_IV64fV64f_IV64f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV64fV64f_IV64f:
+    binop_IVV_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
 
 # =======================================================================
 # =======================================================================
@@ -364,6 +543,12 @@ with Function("yepCore_Subtract_IV8sS8s_IV8s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV8sS8s_IV8s:
     binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_IV8sS8s_IV8s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV8sS8s_IV8s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep16s), name="xPointer")
 arg_y = Argument(ctypes.Yep16s, name="y")
@@ -373,6 +558,12 @@ with Function("yepCore_Subtract_IV16sS16s_IV16s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV16sS16s_IV16s:
     binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_IV16sS16s_IV16s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV16sS16s_IV16s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.Yep32s), name="xPointer")
@@ -384,6 +575,12 @@ with Function("yepCore_Subtract_IV32sS32s_IV32s",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV32sS32s_IV32s:
     binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_IV32sS32s_IV32s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV32sS32s_IV32s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep64s), name="xPointer")
 arg_y = Argument(ctypes.Yep64s, name="y")
@@ -393,6 +590,12 @@ with Function("yepCore_Subtract_IV64sS64s_IV64s",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV64sS64s_IV64s:
     binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_IV64sS64s_IV64s",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV64sS64s_IV64s:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
 
 
 arg_x = Argument(ptr(ctypes.Yep32f), name="xPointer")
@@ -404,6 +607,12 @@ with Function("yepCore_Subtract_IV32fS32f_IV32f",
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV32fS32f_IV32f:
     binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
 
+with Function("yepCore_Subtract_IV32fS32f_IV32f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV32fS32f_IV32f:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
+
+
 
 arg_x = Argument(ptr(ctypes.Yep64f), name="xPointer")
 arg_y = Argument(ctypes.Yep64f, name="y")
@@ -413,3 +622,8 @@ with Function("yepCore_Subtract_IV64fS64f_IV64f",
         (arg_x, arg_y, arg_n),
         YepStatus, target=uarch.haswell + isa.avx2) as yepCore_Subtract_IV64fS64f_IV64f:
     binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "AVX2")
+
+with Function("yepCore_Subtract_IV64fS64f_IV64f",
+        (arg_x, arg_y, arg_n),
+        YepStatus, target=uarch.nehalem + isa.sse2) as yepCore_Subtract_IV64fS64f_IV64f:
+    binop_IVS_IV(arg_x, arg_y, arg_n, "subtract", "SSE")
