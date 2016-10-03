@@ -11,6 +11,11 @@ class UnitTestGenerator:
         self.arguments = arguments
         self.inputs_arrs = [ arg for arg in self.arguments if arg.is_pointer and arg.is_const ]
         self.output = [ arg for arg in self.arguments if arg.is_pointer and not arg.is_const ][0]
+        self.use_positive_init = False
+        for op in [ "DotProduct" ]:
+            if op in name:
+                self.use_positive_init = True
+                break
 
     def generate_unit_test(self):
         """
@@ -32,7 +37,7 @@ class UnitTestGenerator:
         self._argument_loop_body(utg)
         utg.dedent()
 
-        indent_depth = len([ arg for arg in self.arguments if arg.is_pointer ])
+        indent_depth = len([ arg for arg in self.arguments if arg.is_pointer and not arg.is_scalar ])
         for i in range(indent_depth):
             utg.add_line("}").dedent()
         self._passed_or_skipped(utg)
@@ -68,28 +73,28 @@ class UnitTestGenerator:
                     arg.arg_type, arg.name))
                 if arg.name == self.output.name: continue # We don't want to initialize the output array here, only the init array below
                 utg.add_line("status = {0}(&rng, {1}, {2}Array, YEP_COUNT_OF({2}Array));".format(
-                    random_generator_function_map[arg.arg_type], ", ".join(bounds[arg.arg_type]), arg.name))
+                    random_generator_function_map[arg.arg_type], ", ".join(get_bounds(arg.arg_type, self.use_positive_init)), arg.name))
                 utg.add_line("assert(status == YepStatusOk);")
             elif arg.arg_type != "YepSize":
                 utg.add_line("{} {};".format(arg.arg_type, arg.name))
                 utg.add_line("status = {0}(&rng, {1}, &{2}, 1);".format(
-                    random_generator_function_map[arg.arg_type], ", ".join(bounds[arg.arg_type]), arg.name))
+                    random_generator_function_map[arg.arg_type], ", ".join(get_bounds(arg.arg_type, self.use_positive_init)), arg.name))
                 utg.add_line("assert(status == YepStatusOk);")
 
         # Initial arrays and reference arrays:
-        if self.output.is_scalar: # Output is an array (not max, min, etc.)
+        if self.output.is_scalar: # Output is a scalar (i.e a reduction)
             utg.add_line("{0} {1};".format(self.output.arg_type, self.output.name))
             utg.add_line("{0} {1}Init;".format(self.output.arg_type, self.output.name))
             utg.add_line("{0} {1}Ref;".format(self.output.arg_type, self.output.name))
             utg.add_line("status = {0}(&rng, {1}, &{2}Init, 1);".format(
                 random_generator_function_map[self.output.arg_type],
-                ", ".join(bounds[self.output.arg_type]),
+                ", ".join(get_bounds(self.output.arg_type, self.use_positive_init)),
                 self.output.name))
         else: # Output is a vector
             utg.add_line("YEP_ALIGN(64) {0} {1}InitArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("YEP_ALIGN(64) {0} {1}RefArray[1088 + (64 / sizeof({0}))];".format(self.output.arg_type, self.output.name))
             utg.add_line("status = {0}(&rng, {1}, {2}InitArray, YEP_COUNT_OF({2}Array));".format(
-                random_generator_function_map[self.output.arg_type], ", ".join(bounds[self.output.arg_type]), self.output.name))
+                random_generator_function_map[self.output.arg_type], ", ".join(get_bounds(self.output.arg_type, self.use_positive_init)), self.output.name))
 
     def _begin_implementation_loop(self, utg):
         utg.add_line("for (DescriptorPointer descriptor = &_dispatchTable_{0}[0]; \
@@ -101,11 +106,11 @@ descriptor != defaultDescriptor; descriptor++) {{".format(self.name)).indent()
 
     def _begin_argument_loops(self, utg):
         for arg in self.arguments:
-            if arg.is_pointer:
+            if arg.arg_type == "YepSize":
+                utg.add_line("for (YepSize length = 0; length < 64; length++) {").indent()
+            elif not arg.is_scalar:
                 utg.add_line("for (YepSize {0}Offset = 0; {0}Offset < 64 / sizeof({1}); {0}Offset++) {{".format(
                     arg.name, arg.arg_type)).indent()
-            elif arg.arg_type == "YepSize": # is the length argument
-                utg.add_line("for (YepSize length = 0; length < 64; length++) {").indent()
 
     def _argument_loop_body(self, utg):
         if self.output.is_scalar:

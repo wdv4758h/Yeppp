@@ -11,7 +11,6 @@ random_generator_function_map = {
     'Yep64f': 'yepRandom_WELL1024a_GenerateUniform_S64fS64f_V64f_Acc64'
 }
 
-
 bounds = {
     'Yep8u' : ("0u", "255u"),
     'Yep16u': ("0u", "65535u"),
@@ -24,6 +23,27 @@ bounds = {
     'Yep32f': ("-1.0f", "1.0f"),
     'Yep64f': ("-1.0", "1.0")
 }
+
+bounds_positive = {
+    'Yep8u' : ("0u", "255u"),
+    'Yep16u': ("0u", "65535u"),
+    'Yep32u': ("0u", "4294967295u"),
+    'Yep64u': ("0ull", "18446744073709551615ull"),
+    'Yep8s' : ("-128", "127"),
+    'Yep16s': ("-32768", "32767"),
+    'Yep32s': ("-2147483648", "2147483647"),
+    'Yep64s': ("-92233720368547758ll", "9223372036854775807ll"),
+    'Yep32f': ('0.0f', '1.0f'),
+    'Yep64f': ('0.0', '1.0')
+}
+
+
+
+def get_bounds(arg_type, use_positive_init):
+    if use_positive_init:
+        return bounds_positive[arg_type]
+    else:
+        return bounds[arg_type]
 
 
 class CodeGenerator(object):

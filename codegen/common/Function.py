@@ -137,8 +137,9 @@ class Function:
         for i in inputs:
             is_const = "I" not in i and "S" not in i
             is_pointer = "S" not in i
+            is_scalar = not is_pointer # For inputs, scalars are never pointers (they are just passed by value)
             arg_type = self._parse_arg_type(i)
-            self.arguments.append(Argument(arg_type, args_arr[args_arr_ind], is_pointer, is_const))
+            self.arguments.append(Argument(arg_type, args_arr[args_arr_ind], is_pointer, is_const, is_scalar))
             args_arr_ind += 1
 
         # Check if we even have an output (the operation doesn't write to one of the sources)
@@ -155,7 +156,8 @@ class Function:
             for i in range(args_arr_ind,len(args_arr)):
                 # These arguments have their types specified in the declaration string
                 arg = args_arr[i].split(" ")
-                self.arguments.append(Argument(arg[0], arg[1], False, False))
+                is_scalar = "YepSize" in arg[0]
+                self.arguments.append(Argument(arg[0], arg[1], False, False, is_scalar))
 
     def _parse_arg_type(self, arg_str):
         """
